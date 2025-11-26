@@ -1,6 +1,3 @@
-import { Hero } from "@/components/landing/hero";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
 import type { Metadata } from "next";
 import { SITE_URL } from "@/constants/site-constants";
 
@@ -13,9 +10,7 @@ export const metadata: Metadata = {
 export default async function Home() {
   return (
     <div>
-      <Header />
-      <Hero />
-      <Footer />
+      <h1>Hello World</h1>
     </div>
   );
 }

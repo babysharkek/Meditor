@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { GithubIcon } from "@/components/icons";
+import { GithubIcon } from "@opencut/ui/icons";
 import { EXTERNAL_TOOLS, SOCIAL_LINKS } from "@/constants/site-constants";
 import { GitHubContributeSection } from "@/components/gitHub-contribute-section";
 import { BasePage } from "../base-page";
@@ -75,7 +75,7 @@ export default async function ContributorsPage() {
       title="Contributors"
       description="Meet the amazing people who contribute to OpenCut, the free and open-source video editor."
     >
-      <div className="flex items-center justify-center gap-8 text-sm -mt-4">
+      <div className="-mt-4 flex items-center justify-center gap-8 text-sm">
         <StatItem value={contributors.length} label="contributors" />
         <StatItem value={totalContributions} label="contributions" />
       </div>

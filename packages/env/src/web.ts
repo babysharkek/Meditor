@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const envSchema = z.object({
+const webEnvSchema = z.object({
   // Node
   NODE_ENV: z.enum(["development", "production", "test"]),
   ANALYZE: z.string().optional(),
@@ -29,6 +29,6 @@ const envSchema = z.object({
   MODAL_TRANSCRIPTION_URL: z.url(),
 });
 
-export type Env = z.infer<typeof envSchema>;
+export type WebEnv = z.infer<typeof webEnvSchema>;
 
-export const env = envSchema.parse(process.env);
+export const webEnv = webEnvSchema.parse(process.env);
