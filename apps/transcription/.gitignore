@@ -1,0 +1,15 @@
+__pycache__/
+env/
+
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# debug
+npm-debug.log*
+
+# typescript
+next-env.d.ts
