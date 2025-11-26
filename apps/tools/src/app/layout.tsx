@@ -5,7 +5,7 @@ import { Toaster } from "../components/ui/sonner";
 import { TooltipProvider } from "../components/ui/tooltip";
 import { baseMetaData } from "./metadata";
 import { BotIdClient } from "botid/client";
-import { env } from "@opencut/env";
+import { toolsEnv } from "@opencut/env/tools";
 import { Inter } from "next/font/google";
 
 const siteFont = Inter({ subsets: ["latin"] });
@@ -39,7 +39,7 @@ export default function RootLayout({
               strategy="afterInteractive"
               async
               data-client-id="Apo7VtbtH8QvYfCn-NLXX"
-              data-disabled={env.NODE_ENV === "development"}
+              data-disabled={toolsEnv.NODE_ENV === "development"}
               data-track-attributes={false}
               data-track-errors={true}
               data-track-outgoing-links={false}

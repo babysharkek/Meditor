@@ -8,7 +8,7 @@ import { StorageProvider } from "../components/storage-provider";
 import { ScenesMigrator } from "../components/providers/migrators/scenes-migrator";
 import { baseMetaData } from "./metadata";
 import { BotIdClient } from "botid/client";
-import { env } from "@opencut/env";
+import { webEnv } from "@opencut/env/web";
 import { Inter } from "next/font/google";
 
 const siteFont = Inter({ subsets: ["latin"] });
@@ -45,7 +45,7 @@ export default function RootLayout({
               strategy="afterInteractive"
               async
               data-client-id="UP-Wcoy5arxFeK7oyjMMZ"
-              data-disabled={env.NODE_ENV === "development"}
+              data-disabled={webEnv.NODE_ENV === "development"}
               data-track-attributes={false}
               data-track-errors={true}
               data-track-outgoing-links={false}

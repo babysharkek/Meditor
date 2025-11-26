@@ -9,7 +9,11 @@
     "start": "next start --port 3001",
     "lint": "biome check src/",
     "lint:fix": "biome check src/ --write",
-    "format": "biome format src/ --write"
+    "format": "biome format src/ --write",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push:local": "cross-env NODE_ENV=development drizzle-kit push",
+    "db:push:prod": "cross-env NODE_ENV=production drizzle-kit push"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -20,6 +24,8 @@
     "@upstash/redis": "^1.35.4",
     "aws4fetch": "^1.0.20",
     "better-auth": "^1.2.7",
+    "drizzle-orm": "^0.44.2",
+    "postgres": "^3.4.5",
     "botid": "^1.4.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -66,6 +72,7 @@
     "@types/react-dom": "^18.2.18",
     "cross-env": "^7.0.3",
     "drizzle-kit": "^0.31.4",
+    "dotenv": "^16.5.0",
     "postcss": "^8",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",

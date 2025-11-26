@@ -1,6 +1,6 @@
 import { createAuthClient } from "better-auth/react";
-import { env } from "@opencut/env";
+import { webEnv } from "@opencut/env/web";
 
 export const { signIn, signUp, useSession } = createAuthClient({
-  baseURL: env.NEXT_PUBLIC_SITE_URL,
+  baseURL: webEnv.NEXT_PUBLIC_SITE_URL,
 });

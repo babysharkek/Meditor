@@ -1,12 +1,12 @@
 import { betterAuth, RateLimit } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { Redis } from "@upstash/redis";
-import { db } from "@opencut/db";
-import { env } from "@opencut/env";
+import { db } from "@/lib/db";
+import { toolsEnv } from "@opencut/env/tools";
 
 const redis = new Redis({
-  url: env.UPSTASH_REDIS_REST_URL,
-  token: env.UPSTASH_REDIS_REST_TOKEN,
+  url: toolsEnv.UPSTASH_REDIS_REST_URL,
+  token: toolsEnv.UPSTASH_REDIS_REST_TOKEN,
 });
 
 export const auth = betterAuth({
@@ -14,7 +14,7 @@ export const auth = betterAuth({
     provider: "pg",
     usePlural: true,
   }),
-  secret: env.BETTER_AUTH_SECRET,
+  secret: toolsEnv.BETTER_AUTH_SECRET,
   user: {
     deleteUser: {
       enabled: true,
@@ -35,9 +35,9 @@ export const auth = betterAuth({
       },
     },
   },
-  baseURL: env.NEXT_PUBLIC_SITE_URL,
-  appName: "OpenCut",
-  trustedOrigins: ["http://localhost:3000"],
+  baseURL: toolsEnv.NEXT_PUBLIC_SITE_URL,
+  appName: "OpenCut Tools",
+  trustedOrigins: [toolsEnv.NEXT_PUBLIC_SITE_URL],
 });
 
 export type Auth = typeof auth;

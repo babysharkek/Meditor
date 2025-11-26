@@ -8,7 +8,6 @@ const toolsEnvSchema = z.object({
 
   // Public
   NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
-  NEXT_PUBLIC_MARBLE_API_URL: z.url(),
 
   // Server
   DATABASE_URL: z
