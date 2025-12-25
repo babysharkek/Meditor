@@ -53,15 +53,16 @@ export default function ProjectsPage() {
     Record<string, string | null>
   >({});
   const [_loadingThumbnails, setLoadingThumbnails] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("createdAt-desc");
+  const { getProjectThumbnail } = useTimelineStore();
   const router = useRouter();
 
   const getProjectThumbnail = useCallback(
@@ -73,9 +74,7 @@ export default function ProjectsPage() {
       setLoadingThumbnails((prev) => new Set(prev).add(projectId));
 
       try {
-        const thumbnail = await useTimelineStore
-          .getState()
-          .getProjectThumbnail(projectId);
+        const thumbnail = await getProjectThumbnail(projectId);
         setThumbnailCache((prev) => ({ ...prev, [projectId]: thumbnail }));
         return thumbnail;
       } finally {
@@ -86,7 +85,7 @@ export default function ProjectsPage() {
         });
       }
     },
-    []
+    [],
   );
 
   const handleCreateProject = async () => {
@@ -120,7 +119,7 @@ export default function ProjectsPage() {
 
   const handleBulkDelete = async () => {
     await Promise.all(
-      Array.from(selectedProjects).map((projectId) => deleteProject(projectId))
+      Array.from(selectedProjects).map((projectId) => deleteProject(projectId)),
     );
     setSelectedProjects(new Set());
     setIsSelectionMode(false);
@@ -136,11 +135,11 @@ export default function ProjectsPage() {
     selectedProjects.size > 0 && selectedProjects.size < sortedProjects.length;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="pt-6 px-6 flex items-center justify-between w-full h-16">
+    <div className="bg-background min-h-screen">
+      <div className="flex h-16 w-full items-center justify-between px-6 pt-6">
         <Link
           href="/"
-          className="flex items-center gap-1 hover:text-muted-foreground transition-colors"
+          className="hover:text-muted-foreground flex items-center gap-1 transition-colors"
         >
           <ChevronLeft className="size-5! shrink-0" />
           <span className="text-sm font-medium">Back</span>
@@ -172,17 +171,17 @@ export default function ProjectsPage() {
           )}
         </div>
       </div>
-      <main className="max-w-6xl mx-auto px-6 pt-6 pb-6">
+      <main className="mx-auto max-w-6xl px-6 pb-6 pt-6">
         <div className="mb-8 flex items-center justify-between">
           <div className="flex flex-col gap-3">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
               Your Projects
             </h1>
             <p className="text-muted-foreground">
               {savedProjects.length}{" "}
               {savedProjects.length === 1 ? "project" : "projects"}
               {isSelectionMode && selectedProjects.size > 0 && (
-                <span className="ml-2 text-primary">
+                <span className="text-primary ml-2">
                   • {selectedProjects.size} selected
                 </span>
               )}
@@ -221,7 +220,7 @@ export default function ProjectsPage() {
         </div>
 
         <div className="mb-4 flex items-center justify-between gap-4">
-          <div className="flex-1 max-w-72">
+          <div className="max-w-72 flex-1">
             <Input
               placeholder="Search projects..."
               value={searchQuery}
@@ -237,7 +236,7 @@ export default function ProjectsPage() {
                       <Button
                         size="icon"
                         variant="secondary"
-                        className="justify-center items-center w-9 h-9"
+                        className="h-9 w-9 items-center justify-center"
                       >
                         <ArrowDown01
                           strokeWidth={1.5}
@@ -253,7 +252,7 @@ export default function ProjectsPage() {
                           setSortOption(
                             sortOption.endsWith("asc")
                               ? "createdAt-desc"
-                              : "createdAt-asc"
+                              : "createdAt-asc",
                           );
                         } else {
                           setSortOption("createdAt-asc");
@@ -270,7 +269,7 @@ export default function ProjectsPage() {
                           setSortOption(
                             sortOption.endsWith("asc")
                               ? "name-desc"
-                              : "name-asc"
+                              : "name-asc",
                           );
                         } else {
                           setSortOption("name-asc");
@@ -305,32 +304,32 @@ export default function ProjectsPage() {
                 handleSelectAll(!allSelected);
               }
             }}
-            className="w-full hover:cursor-pointer gap-2 mb-6 p-4 bg-muted/30 rounded-lg border items-center flex"
+            className="bg-muted/30 mb-6 flex w-full items-center gap-2 rounded-lg border p-4 hover:cursor-pointer"
             tabIndex={0}
           >
             <Checkbox checked={someSelected ? "indeterminate" : allSelected} />
             <span className="text-sm font-medium">
               {allSelected ? "Deselect All" : "Select All"}
             </span>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               ({selectedProjects.size} of {sortedProjects.length} selected)
             </span>
           </button>
         )}
 
         {isLoading || !isInitialized ? (
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="xs:grid-cols-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 8 }, (_, index) => (
               <div
                 key={`skeleton-${index}-${Date.now()}`}
-                className="overflow-hidden bg-background border-none p-0"
+                className="bg-background overflow-hidden border-none p-0"
               >
-                <Skeleton className="aspect-square w-full bg-muted/50" />
-                <div className="px-0 pt-5 flex flex-col gap-1">
-                  <Skeleton className="h-4 w-3/4 bg-muted/50" />
+                <Skeleton className="bg-muted/50 aspect-square w-full" />
+                <div className="flex flex-col gap-1 px-0 pt-5">
+                  <Skeleton className="bg-muted/50 h-4 w-3/4" />
                   <div className="flex items-center gap-1.5">
-                    <Skeleton className="h-4 w-4 bg-muted/50" />
-                    <Skeleton className="h-4 w-24 bg-muted/50" />
+                    <Skeleton className="bg-muted/50 h-4 w-4" />
+                    <Skeleton className="bg-muted/50 h-4 w-24" />
                   </div>
                 </div>
               </div>
@@ -344,7 +343,7 @@ export default function ProjectsPage() {
             onClearSearch={() => setSearchQuery("")}
           />
         ) : (
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="xs:grid-cols-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-4">
             {sortedProjects.map((project) => (
               <ProjectCard
                 key={project.id}
@@ -442,25 +441,25 @@ function ProjectCard({
 
   const cardContent = (
     <Card
-      className={`overflow-hidden bg-background border-none p-0 transition-all ${
-        isSelectionMode && isSelected ? "ring-2 ring-primary" : ""
+      className={`bg-background overflow-hidden border-none p-0 transition-all ${
+        isSelectionMode && isSelected ? "ring-primary ring-2" : ""
       }`}
     >
       <div
-        className={`relative aspect-square bg-muted transition-opacity ${
+        className={`bg-muted relative aspect-square transition-opacity ${
           isDropdownOpen ? "opacity-65" : "opacity-100 group-hover:opacity-65"
         }`}
       >
         {isSelectionMode && (
-          <div className="absolute top-3 left-3 z-10">
-            <div className="w-5 h-5 rounded-full bg-background/80 backdrop-blur-xs border flex items-center justify-center">
+          <div className="absolute left-3 top-3 z-10">
+            <div className="bg-background/80 backdrop-blur-xs flex h-5 w-5 items-center justify-center rounded-full border">
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={(checked) =>
                   onSelect?.(project.id, checked as boolean)
                 }
                 onClick={(e) => e.stopPropagation()}
-                className="w-4 h-4"
+                className="h-4 w-4"
               />
             </div>
           </div>
@@ -468,8 +467,8 @@ function ProjectCard({
 
         <div className="absolute inset-0">
           {isLoadingThumbnail ? (
-            <div className="w-full h-full bg-muted/50 flex items-center justify-center">
-              <Loader2 className="h-12 w-12 text-muted-foreground animate-spin" />
+            <div className="bg-muted/50 flex h-full w-full items-center justify-center">
+              <Loader2 className="text-muted-foreground h-12 w-12 animate-spin" />
             </div>
           ) : dynamicThumbnail ? (
             <Image
@@ -479,16 +478,16 @@ function ProjectCard({
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-muted/50 flex items-center justify-center">
-              <Video className="h-12 w-12 shrink-0 text-muted-foreground" />
+            <div className="bg-muted/50 flex h-full w-full items-center justify-center">
+              <Video className="text-muted-foreground h-12 w-12 shrink-0" />
             </div>
           )}
         </div>
       </div>
 
-      <CardContent className="px-0 pt-5 flex flex-col gap-1">
+      <CardContent className="flex flex-col gap-1 px-0 pt-5">
         <div className="flex items-start justify-between">
-          <h3 className="font-medium text-sm leading-snug group-hover:text-foreground/90 transition-colors line-clamp-2">
+          <h3 className="group-hover:text-foreground/90 line-clamp-2 text-sm font-medium leading-snug transition-colors">
             {project.name}
           </h3>
           {!isSelectionMode && (
@@ -500,7 +499,7 @@ function ProjectCard({
                 <Button
                   variant="text"
                   size="sm"
-                  className={`size-6 p-0 transition-all shrink-0 ml-2 ${
+                  className={`ml-2 size-6 shrink-0 p-0 transition-all ${
                     isDropdownOpen
                       ? "opacity-100"
                       : "opacity-0 group-hover:opacity-100"
@@ -554,7 +553,7 @@ function ProjectCard({
         </div>
 
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
             <Calendar className="size-4!" />
             <span>Created {formatDate(project.createdAt)}</span>
           </div>
@@ -570,12 +569,12 @@ function ProjectCard({
           type="button"
           onClick={handleCardClick}
           onKeyDown={handleCardKeyDown}
-          className="block group cursor-pointer w-full text-left"
+          className="group block w-full cursor-pointer text-left"
         >
           {cardContent}
         </button>
       ) : (
-        <Link href={`/editor/${project.id}`} className="block group">
+        <Link href={`/editor/${project.id}`} className="group block">
           {cardContent}
         </Link>
       )}
@@ -606,10 +605,10 @@ function CreateButton({ onClick }: { onClick?: () => void }) {
 function NoProjects({ onCreateProject }: { onCreateProject: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
-        <Video className="h-8 w-8 text-muted-foreground" />
+      <div className="bg-muted/30 mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+        <Video className="text-muted-foreground h-8 w-8" />
       </div>
-      <h3 className="text-lg font-medium mb-2">No projects yet</h3>
+      <h3 className="mb-2 text-lg font-medium">No projects yet</h3>
       <p className="text-muted-foreground mb-6 max-w-md">
         Start creating your first video project. Import media, edit, and export
         professional videos.
@@ -631,10 +630,10 @@ function NoResults({
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
-        <Search className="h-8 w-8 text-muted-foreground" />
+      <div className="bg-muted/30 mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+        <Search className="text-muted-foreground h-8 w-8" />
       </div>
-      <h3 className="text-lg font-medium mb-2">No results found</h3>
+      <h3 className="mb-2 text-lg font-medium">No results found</h3>
       <p className="text-muted-foreground mb-6 max-w-md">
         Your search for "{searchQuery}" did not return any results.
       </p>

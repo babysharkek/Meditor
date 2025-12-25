@@ -152,18 +152,6 @@ export class TimelineManager {
     throw new Error("Not implemented");
   }
 
-  moveElementToTrack({
-    fromTrackId,
-    toTrackId,
-    elementId,
-  }: {
-    fromTrackId: string;
-    toTrackId: string;
-    elementId: string;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
   updateElementTrim({
     trackId,
     elementId,
@@ -233,28 +221,6 @@ export class TimelineManager {
     elementId: string;
     splitTime: number;
   }): void {
-    throw new Error("Not implemented");
-  }
-
-  separateAudio({
-    trackId,
-    elementId,
-  }: {
-    trackId: string;
-    elementId: string;
-  }): string | null {
-    throw new Error("Not implemented");
-  }
-
-  replaceElementMedia({
-    trackId,
-    elementId,
-    newFile,
-  }: {
-    trackId: string;
-    elementId: string;
-    newFile: File;
-  }): Promise<{ success: boolean; error?: string }> {
     throw new Error("Not implemented");
   }
 
@@ -391,18 +357,6 @@ export class TimelineManager {
   }
 
   revealElementInMedia({ elementId }: { elementId: string }): void {
-    throw new Error("Not implemented");
-  }
-
-  async replaceElementWithFile({
-    trackId,
-    elementId,
-    file,
-  }: {
-    trackId: string;
-    elementId: string;
-    file: File;
-  }): Promise<void> {
     throw new Error("Not implemented");
   }
 

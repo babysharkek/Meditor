@@ -58,7 +58,6 @@ export function TimelineToolbar({
     splitSelected,
     splitAndKeepLeft,
     splitAndKeepRight,
-    separateAudio,
     snappingEnabled,
     toggleSnapping,
     rippleEditingEnabled,
@@ -140,20 +139,6 @@ export function TimelineToolbar({
     splitAndKeepRight(trackId, elementId, currentTime);
   };
 
-  const handleSeparateAudio = () => {
-    if (selectedElements.length !== 1) {
-      toast.error("Select exactly one media element to separate audio");
-      return;
-    }
-    const { trackId, elementId } = selectedElements[0];
-    const track = tracks.find((t) => t.id === trackId);
-    if (!track || track.type !== "media") {
-      toast.error("Select a media element to separate audio");
-      return;
-    }
-    separateAudio(trackId, elementId);
-  };
-
   const handleZoom = ({ direction }: { direction: "in" | "out" }) => {
     const newZoomLevel =
       direction === "in"
@@ -211,7 +196,11 @@ export function TimelineToolbar({
               /
             </div>
             <div className="text-muted-foreground text-center font-mono text-xs">
-              {formatTimeCode(duration, "HH:MM:SS:FF")}
+              {formatTimeCode({ timeInSeconds: duration })}
+              {formatTimeCode({
+                timeInSeconds: duration,
+                format: "HH:MM:SS:FF",
+              })}
             </div>
           </div>
           {tracks.length === 0 && (
@@ -278,11 +267,11 @@ export function TimelineToolbar({
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="text" size="icon" onClick={handleSeparateAudio}>
+              <Button variant="text" size="icon" disabled>
                 <SplitSquareHorizontal className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Separate audio (Ctrl+D)</TooltipContent>
+            <TooltipContent>Separate audio (Coming soon)</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>

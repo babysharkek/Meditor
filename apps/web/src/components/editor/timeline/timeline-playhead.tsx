@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { TimelineTrack } from "@/types/timeline";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { useTimelinePlayhead } from "@/hooks/use-timeline-playhead";
+import { useTimelinePlayhead } from "@/hooks/timeline/use-timeline-playhead";
 
 interface TimelinePlayheadProps {
   currentTime: number;
@@ -91,12 +91,12 @@ export function TimelinePlayhead({
   const leftBoundary = trackLabelsWidth;
   const rightBoundary = Math.min(
     trackLabelsWidth + timelineContentWidth - scrollLeft, // Don't go beyond timeline content
-    trackLabelsWidth + viewportWidth // Don't go beyond viewport
+    trackLabelsWidth + viewportWidth, // Don't go beyond viewport
   );
 
   const leftPosition = Math.max(
     leftBoundary,
-    Math.min(rightBoundary, rawLeftPosition)
+    Math.min(rightBoundary, rawLeftPosition),
   );
 
   // Debug logging when playhead might go outside
@@ -115,14 +115,14 @@ export function TimelinePlayhead({
         timelineContentWidth,
         viewportWidth,
         zoomLevel,
-      })
+      }),
     );
   }
 
   return (
     <div
       ref={playheadRef}
-      className="absolute pointer-events-auto z-40"
+      className="pointer-events-auto absolute z-40"
       style={{
         left: `${leftPosition}px`,
         top: 0,
@@ -133,12 +133,12 @@ export function TimelinePlayhead({
     >
       {/* The playhead line spanning full height */}
       <div
-        className={`absolute left-0 w-0.5 cursor-col-resize h-full ${isSnappingToPlayhead ? "bg-foreground" : "bg-foreground"}`}
+        className={`absolute left-0 h-full w-0.5 cursor-col-resize ${isSnappingToPlayhead ? "bg-foreground" : "bg-foreground"}`}
       />
 
       {/* Playhead dot indicator at the top (in ruler area) */}
       <div
-        className={`absolute top-1 left-1/2 transform -translate-x-1/2 w-3 h-3 rounded-full border-2 shadow-xs ${isSnappingToPlayhead ? "bg-foreground border-foreground" : "bg-foreground border-foreground/50"}`}
+        className={`shadow-xs absolute left-1/2 top-1 h-3 w-3 -translate-x-1/2 transform rounded-full border-2 ${isSnappingToPlayhead ? "bg-foreground border-foreground" : "bg-foreground border-foreground/50"}`}
       />
     </div>
   );

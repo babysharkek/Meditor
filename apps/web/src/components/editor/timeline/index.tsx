@@ -10,7 +10,7 @@ import {
 } from "../../ui/context-menu";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { usePlaybackStore } from "@/stores/playback-store";
-import { useTimelineZoom } from "@/hooks/use-timeline-zoom";
+import { useTimelineZoom } from "@/hooks/timeline/use-timeline-zoom";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { TimelineTrackContent } from "./timeline-track";
 import {
@@ -20,7 +20,7 @@ import {
 import { SelectionBox } from "../selection-box";
 import { useSelectionBox } from "@/hooks/use-selection-box";
 import { SnapIndicator } from "../snap-indicator";
-import { SnapPoint } from "@/hooks/use-timeline-snapping";
+import { SnapPoint } from "@/hooks/timeline/use-timeline-snapping";
 import type { TimelineTrack } from "@/types/timeline";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import {
@@ -30,8 +30,8 @@ import {
 } from "@/lib/timeline";
 import { TimelineToolbar } from "./timeline-toolbar";
 import { useScrollSync } from "@/hooks/use-scroll-sync";
-import { useTimelineInteractions } from "@/hooks/use-timeline-interactions";
-import { useTimelineDragDrop } from "@/hooks/use-timeline-drag-drop";
+import { useTimelineInteractions } from "@/hooks/timeline/use-timeline-interactions";
+import { useTimelineDragDrop } from "@/hooks/timeline/use-timeline-drag-drop";
 import { TimelineRuler } from "./timeline-ruler";
 
 export function Timeline() {
@@ -45,10 +45,7 @@ export function Timeline() {
     dragState,
   } = useTimelineStore();
   const { currentTime, duration, seek, setDuration } = usePlaybackStore();
-  const { addElementToNewTrack } = useTimelineStore();
-  const { dragProps } = useTimelineDragDrop({
-    addElementToNewTrack,
-  });
+  
   const timelineRef = useRef<HTMLDivElement>(null);
   const rulerRef = useRef<HTMLDivElement>(null);
   const [isInTimeline, setIsInTimeline] = useState(false);
@@ -57,6 +54,10 @@ export function Timeline() {
   const { zoomLevel, setZoomLevel, handleWheel } = useTimelineZoom({
     containerRef: timelineRef,
     isInTimeline,
+  });
+
+  const { dragProps } = useTimelineDragDrop({
+    zoomLevel,
   });
 
   // Dynamic timeline width calculation based on playhead position and duration

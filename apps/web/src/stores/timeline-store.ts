@@ -13,8 +13,8 @@ import {
   ensureMainTrack,
   validateElementTrackCompatibility,
 } from "@/lib/timeline/track-utils";
-import { useMediaStore } from "./media-store";
-import { MediaFile, MediaType } from "@/types/media";
+import { generateVideoThumbnail, useMediaStore } from "./media-store";
+import { MediaFile } from "@/types/media";
 import { storageService } from "@/lib/storage/storage-service";
 import { useProjectStore } from "./project-store";
 import { useSceneStore } from "./scene-store";
@@ -23,7 +23,6 @@ import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { checkElementOverlaps, resolveElementOverlaps } from "@/lib/timeline";
 import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
 import { usePlaybackStore } from "./playback-store";
-
 // Helper function to manage element naming with suffixes
 const getElementNameWithSuffix = (
   originalName: string,
@@ -103,11 +102,6 @@ interface TimelineStore {
   removeTrackWithRipple: (trackId: string) => void;
   addElementToTrack: (trackId: string, element: CreateTimelineElement) => void;
 
-  moveElementToTrack: (
-    fromTrackId: string,
-    toTrackId: string,
-    elementId: string,
-  ) => void;
   updateElementTrim: (
     trackId: string,
     elementId: string,
@@ -138,14 +132,6 @@ interface TimelineStore {
     elementId: string,
     splitTime: number,
   ) => void;
-  separateAudio: (trackId: string, elementId: string) => string | null;
-
-  // Replace media for an element
-  replaceElementMedia: (
-    trackId: string,
-    elementId: string,
-    newFile: File,
-  ) => Promise<{ success: boolean; error?: string }>;
 
   // Ripple editing functions
   updateElementStartTimeWithRipple: (
@@ -199,12 +185,6 @@ interface TimelineStore {
   toggleSelectedHidden: (trackId?: string, elementId?: string) => void;
   toggleSelectedMuted: (trackId?: string, elementId?: string) => void;
   duplicateElement: (trackId: string, elementId: string) => void;
-  revealElementInMedia: (elementId: string) => void;
-  replaceElementWithFile: (
-    trackId: string,
-    elementId: string,
-    file: File,
-  ) => Promise<void>;
   getContextMenuState: (
     trackId: string,
     elementId: string,
@@ -690,49 +670,6 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
       updateTracksAndSave(updatedTracks);
     },
 
-    moveElementToTrack: (fromTrackId, toTrackId, elementId) => {
-      get().pushHistory();
-
-      const fromTrack = get()._tracks.find((track) => track.id === fromTrackId);
-      const toTrack = get()._tracks.find((track) => track.id === toTrackId);
-      const elementToMove = fromTrack?.elements.find(
-        (element) => element.id === elementId,
-      );
-
-      if (!elementToMove || !toTrack) return;
-
-      const validation = validateElementTrackCompatibility({
-        element: elementToMove,
-        track: toTrack,
-      });
-      if (!validation.isValid) {
-        console.error(validation.errorMessage);
-        return;
-      }
-
-      const newTracks = get()
-        ._tracks.map((track) => {
-          if (track.id === fromTrackId) {
-            return {
-              ...track,
-              elements: track.elements.filter(
-                (element) => element.id !== elementId,
-              ),
-            };
-          }
-          if (track.id === toTrackId) {
-            return {
-              ...track,
-              elements: [...track.elements, elementToMove],
-            };
-          }
-          return track;
-        })
-        .filter((track) => track.elements.length > 0);
-
-      updateTracksAndSave(newTracks);
-    },
-
     updateElementTrim: (
       trackId,
       elementId,
@@ -988,190 +925,6 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
       );
     },
 
-    // Extract audio from video element to an audio track
-    separateAudio: (trackId, elementId) => {
-      const { _tracks } = get();
-      const track = _tracks.find((t) => t.id === trackId);
-      const element = track?.elements.find((c) => c.id === elementId);
-
-      if (!element || track?.type !== "media") return null;
-
-      get().pushHistory();
-
-      const existingAudioTrack = _tracks.find((t) => t.type === "audio");
-      const audioElementId = generateUUID();
-
-      if (existingAudioTrack) {
-        updateTracksAndSave(
-          get()._tracks.map((track) =>
-            track.id === existingAudioTrack.id
-              ? {
-                  ...track,
-                  elements: [
-                    ...track.elements,
-                    {
-                      ...element,
-                      id: audioElementId,
-                      name: getElementNameWithSuffix(element.name, "audio"),
-                    },
-                  ],
-                }
-              : track,
-          ),
-        );
-      } else {
-        const newAudioTrack: TimelineTrack = {
-          id: generateUUID(),
-          name: "Audio Track",
-          type: "audio",
-          elements: [
-            {
-              ...element,
-              id: audioElementId,
-              name: getElementNameWithSuffix(element.name, "audio"),
-            },
-          ],
-          muted: false,
-        };
-
-        updateTracksAndSave([...get()._tracks, newAudioTrack]);
-      }
-
-      return audioElementId;
-    },
-
-    // Replace media for an element
-    replaceElementMedia: async (
-      trackId: string,
-      elementId: string,
-      newFile: File,
-    ): Promise<{ success: boolean; error?: string }> => {
-      const { _tracks } = get();
-      const track = _tracks.find((t) => t.id === trackId);
-      const element = track?.elements.find((c) => c.id === elementId);
-
-      if (!element) {
-        return { success: false, error: "Timeline element not found" };
-      }
-
-      if (element.type !== "media") {
-        return {
-          success: false,
-          error: "Replace is only available for media clips",
-        };
-      }
-
-      try {
-        const mediaStore = useMediaStore.getState();
-        const projectStore = useProjectStore.getState();
-
-        if (!projectStore.activeProject) {
-          return { success: false, error: "No active project found" };
-        }
-
-        const {
-          getFileType,
-          getImageDimensions,
-          generateVideoThumbnail,
-          getMediaDuration,
-        } = await import("./media-store");
-
-        const fileType = getFileType(newFile);
-        if (!fileType) {
-          return {
-            success: false,
-            error:
-              "Unsupported file type. Please select a video, audio, or image file.",
-          };
-        }
-
-        const mediaData: Omit<MediaFile, "id"> = {
-          name: newFile.name,
-          type: fileType as MediaType,
-          file: newFile,
-          url: URL.createObjectURL(newFile),
-        };
-
-        try {
-          if (fileType === "image") {
-            const { width, height } = await getImageDimensions(newFile);
-            mediaData.width = width;
-            mediaData.height = height;
-          } else if (fileType === "video") {
-            const [duration, { thumbnailUrl, width, height }] =
-              await Promise.all([
-                getMediaDuration(newFile),
-                generateVideoThumbnail(newFile),
-              ]);
-            mediaData.duration = duration;
-            mediaData.thumbnailUrl = thumbnailUrl;
-            mediaData.width = width;
-            mediaData.height = height;
-          } else if (fileType === "audio") {
-            mediaData.duration = await getMediaDuration(newFile);
-          }
-        } catch (error) {
-          return {
-            success: false,
-            error: `Failed to process ${fileType} file: ${error instanceof Error ? error.message : "Unknown error"}`,
-          };
-        }
-
-        try {
-          await mediaStore.addMediaFile(
-            projectStore.activeProject.id,
-            mediaData,
-          );
-        } catch (error) {
-          return {
-            success: false,
-            error: `Failed to add media to project: ${error instanceof Error ? error.message : "Unknown error"}`,
-          };
-        }
-
-        const newMediaItem = mediaStore.mediaFiles.find(
-          (item) => item.file === newFile,
-        );
-
-        if (!newMediaItem) {
-          return {
-            success: false,
-            error: "Failed to create media item in project. Please try again.",
-          };
-        }
-
-        get().pushHistory();
-
-        updateTracksAndSave(
-          _tracks.map((track) =>
-            track.id === trackId
-              ? {
-                  ...track,
-                  elements: track.elements.map((c) =>
-                    c.id === elementId
-                      ? {
-                          ...c,
-                          mediaId: newMediaItem.id,
-                          name: newMediaItem.name,
-                          duration: newMediaItem.duration || c.duration,
-                        }
-                      : c,
-                  ),
-                }
-              : track,
-          ),
-        );
-
-        return { success: true };
-      } catch (error) {
-        console.error("Failed to replace element media:", error);
-        return {
-          success: false,
-          error: `Unexpected error: ${error instanceof Error ? error.message : "Unknown error"}`,
-        };
-      }
-    },
-
     getTotalDuration: () => {
       const { _tracks } = get();
       if (_tracks.length === 0) return 0;
@@ -1226,9 +979,6 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
         if (!mediaFile) return null;
 
         if (mediaFile.type === "video" && mediaFile.file) {
-          const { generateVideoThumbnail } = await import(
-            "@/stores/media-store"
-          );
           const { thumbnailUrl } = await generateVideoThumbnail(mediaFile.file);
           return thumbnailUrl;
         }
@@ -1776,45 +1526,6 @@ export const useTimelineStore = create<TimelineStore>((set, get) => {
         name: `${element.name} (copy)`,
         startTime: element.startTime + effectiveDuration + 0.1,
       } as CreateTimelineElement);
-    },
-
-    revealElementInMedia: (elementId) => {
-      const {
-        useMediaPanelStore,
-      } = require("../components/editor/media-panel/store");
-      const { requestRevealMedia } = useMediaPanelStore.getState();
-
-      const { _tracks } = get();
-      const element = _tracks
-        .flatMap((track) => track.elements)
-        .find((el) => el.id === elementId);
-
-      if (element?.type === "media") {
-        requestRevealMedia(element.mediaId);
-      }
-    },
-
-    replaceElementWithFile: async (trackId, elementId, file) => {
-      try {
-        const result = await get().replaceElementMedia(
-          trackId,
-          elementId,
-          file,
-        );
-        if (result.success) {
-          const { toast } = await import("sonner");
-          toast.success("Clip replaced successfully");
-        } else {
-          const { toast } = await import("sonner");
-          toast.error(result.error || "Failed to replace clip");
-        }
-      } catch (error) {
-        console.error("Unexpected error replacing clip:", error);
-        const { toast } = await import("sonner");
-        toast.error(
-          `Unexpected error: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
-      }
     },
 
     getContextMenuState: (trackId, elementId) => {

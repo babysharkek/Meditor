@@ -60,7 +60,6 @@ export const getImageDimensions = (
   });
 };
 
-// Helper function to generate video thumbnail and get dimensions
 export const generateVideoThumbnail = (
   file: File
 ): Promise<{ thumbnailUrl: string; width: number; height: number }> => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { SnapPoint } from "@/hooks/use-timeline-snapping";
+import { SnapPoint } from "@/hooks/timeline/use-timeline-snapping";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import type { TimelineTrack } from "@/types/timeline";
 import { useState, useEffect } from "react";
@@ -63,7 +63,7 @@ export function SnapIndicator({
 
   return (
     <div
-      className="absolute pointer-events-none z-90"
+      className="z-90 pointer-events-none absolute"
       style={{
         left: `${leftPosition}px`,
         top: 0,
@@ -71,7 +71,7 @@ export function SnapIndicator({
         width: "2px",
       }}
     >
-      <div className={"w-0.5 h-full bg-primary/40 opacity-80"} />
+      <div className={"bg-primary/40 h-full w-0.5 opacity-80"} />
     </div>
   );
 }

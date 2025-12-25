@@ -13,7 +13,7 @@
     "start:tools": "turbo run start --filter=@opencut/tools"
   },
   "dependencies": {
-    "next": "^15.3.4"
+    "next": "15.3.6"
   },
   "devDependencies": {
     "@biomejs/biome": "2.1.2",

@@ -30,7 +30,7 @@ export default function RootLayout({
         <BotIdClient protect={protectedRoutes} />
       </head>
       <body className={`${siteFont.className} font-sans antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="dark">
+        <ThemeProvider attribute="class" defaultTheme="light">
           <TooltipProvider>
             {children}
             <Toaster />

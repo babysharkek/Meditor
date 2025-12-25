@@ -10,13 +10,14 @@ import {
   Eye,
   Volume2,
   VolumeX,
+  ArrowUpDown,
 } from "lucide-react";
 import { useMediaStore } from "@/stores/media-store";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { usePlaybackStore } from "@/stores/playback-store";
 import AudioWaveform from "../audio-waveform";
 import { TimelineElementProps } from "@/types/timeline";
-import { useTimelineElementResize } from "@/hooks/use-timeline-element-resize";
+import { useTimelineElementResize } from "@/hooks/timeline/use-timeline-element-resize";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { getTrackElementClasses, getTrackHeight } from "@/lib/timeline";
 import {
@@ -26,6 +27,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "../../ui/context-menu";
+import { useAssetsPanelStore } from "../../../stores/assets-panel-store";
 
 export function TimelineElement({
   element,
@@ -36,6 +38,7 @@ export function TimelineElement({
   onElementClick,
 }: TimelineElementProps) {
   const { mediaFiles } = useMediaStore();
+  const { requestRevealMedia } = useAssetsPanelStore();
   const {
     dragState,
     copySelected,
@@ -45,8 +48,6 @@ export function TimelineElement({
     toggleSelectedHidden,
     toggleSelectedMuted,
     duplicateElement,
-    revealElementInMedia,
-    replaceElementWithFile,
     getContextMenuState,
   } = useTimelineStore();
   const { currentTime } = usePlaybackStore();
@@ -129,24 +130,11 @@ export function TimelineElement({
     }
   };
 
-  const handleReplaceClip = (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "video/*,audio/*,image/*";
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        await replaceElementWithFile(track.id, element.id, file);
-      }
-    };
-    input.click();
-  };
-
   const handleRevealInMedia = (e: React.MouseEvent) => {
     e.stopPropagation();
-    revealElementInMedia(element.id);
+    if (element.type === "media") {
+      requestRevealMedia(element.mediaId);
+    }
   };
 
   const renderElementContent = () => {
@@ -354,15 +342,20 @@ export function TimelineElement({
           </ContextMenuItem>
         )}
 
+        <ContextMenuItem disabled>
+          <ArrowUpDown className="mr-2 h-4 w-4" />
+          Move to track (Coming soon)
+        </ContextMenuItem>
+
         {!isMultipleSelected && element.type === "media" && (
           <>
             <ContextMenuItem onClick={handleRevealInMedia}>
               <Search className="mr-2 h-4 w-4" />
               Reveal in media
             </ContextMenuItem>
-            <ContextMenuItem onClick={handleReplaceClip}>
+            <ContextMenuItem disabled>
               <RefreshCw className="mr-2 h-4 w-4" />
-              Replace clip
+              Replace clip (Coming soon)
             </ContextMenuItem>
           </>
         )}
