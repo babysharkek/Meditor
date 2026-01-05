@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TransitionUpIcon } from "../icons";
+import { TransitionUpIcon } from "@opencut/ui/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
@@ -15,20 +15,20 @@ import {
   getExportFileExtension,
   DEFAULT_EXPORT_OPTIONS,
 } from "@/lib/export-utils";
-import { useProjectStore } from "@/stores/project-store";
 import { Check, Copy, Download, RotateCcw, X } from "lucide-react";
 import { ExportFormat, ExportQuality, ExportResult } from "@/types/export";
 import { PropertyGroup } from "./properties-panel/property-item";
+import { useEditor } from "@/hooks/use-editor";
 
 export function ExportButton() {
   const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false);
-  const { activeProject } = useProjectStore();
+  const editor = useEditor();
 
   const handleExport = () => {
     setIsExportPopoverOpen(true);
   };
 
-  const hasProject = !!activeProject;
+  const hasProject = !!editor.project.activeProject;
 
   return (
     <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
@@ -36,10 +36,10 @@ export function ExportButton() {
         <button
           type="button"
           className={cn(
-            "flex items-center gap-1.5 bg-[#38BDF8] text-white rounded-md px-[0.12rem] py-[0.12rem] transition-all duration-200",
+            "flex items-center gap-1.5 rounded-md bg-[#38BDF8] px-[0.12rem] py-[0.12rem] text-white transition-all duration-200",
             hasProject
               ? "cursor-pointer hover:brightness-95"
-              : "cursor-not-allowed opacity-50"
+              : "cursor-not-allowed opacity-50",
           )}
           onClick={hasProject ? handleExport : undefined}
           disabled={!hasProject}
@@ -50,11 +50,11 @@ export function ExportButton() {
             }
           }}
         >
-          <div className="flex items-center gap-1.5 bg-linear-270 from-[#2567EC] to-[#37B6F7] rounded-[0.8rem] px-4 py-1 relative shadow-[0_1px_3px_0px_rgba(0,0,0,0.65)]">
+          <div className="bg-linear-270 relative flex items-center gap-1.5 rounded-[0.8rem] from-[#2567EC] to-[#37B6F7] px-4 py-1 shadow-[0_1px_3px_0px_rgba(0,0,0,0.65)]">
             <TransitionUpIcon className="z-50" />
-            <span className="text-[0.875rem] z-50">Export</span>
-            <div className="absolute w-full h-full left-0 top-0 bg-linear-to-t from-white/0 to-white/50 z-10 rounded-[0.8rem] flex items-center justify-center">
-              <div className="absolute w-[calc(100%-2px)] h-[calc(100%-2px)] top-[0.08rem] bg-linear-270 from-[#2567EC] to-[#37B6F7] z-50 rounded-[0.8rem]"></div>
+            <span className="z-50 text-[0.875rem]">Export</span>
+            <div className="bg-linear-to-t absolute left-0 top-0 z-10 flex h-full w-full items-center justify-center rounded-[0.8rem] from-white/0 to-white/50">
+              <div className="bg-linear-270 absolute top-[0.08rem] z-50 h-[calc(100%-2px)] w-[calc(100%-2px)] rounded-[0.8rem] from-[#2567EC] to-[#37B6F7]"></div>
             </div>
           </div>
         </button>
@@ -69,15 +69,16 @@ function ExportPopover({
 }: {
   onOpenChange: (open: boolean) => void;
 }) {
-  const { activeProject } = useProjectStore();
+  const editor = useEditor();
+  const activeProject = editor.project.activeProject;
   const [format, setFormat] = useState<ExportFormat>(
-    DEFAULT_EXPORT_OPTIONS.format
+    DEFAULT_EXPORT_OPTIONS.format,
   );
   const [quality, setQuality] = useState<ExportQuality>(
-    DEFAULT_EXPORT_OPTIONS.quality
+    DEFAULT_EXPORT_OPTIONS.quality,
   );
   const [includeAudio, setIncludeAudio] = useState<boolean>(
-    DEFAULT_EXPORT_OPTIONS.includeAudio || true
+    DEFAULT_EXPORT_OPTIONS.includeAudio || true,
   );
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -104,8 +105,8 @@ function ExportPopover({
 
     if (result.success && result.buffer) {
       // Download the file
-      const mimeType = getExportMimeType(format);
-      const extension = getExportFileExtension(format);
+      const mimeType = getExportMimeType({ format });
+      const extension = getExportFileExtension({ format });
       const blob = new Blob([result.buffer], { type: mimeType });
       const url = URL.createObjectURL(blob);
 
@@ -132,7 +133,7 @@ function ExportPopover({
   };
 
   return (
-    <PopoverContent className="w-80 mr-4 flex flex-col gap-3 bg-background">
+    <PopoverContent className="bg-background mr-4 flex w-80 flex-col gap-3">
       <>
         {exportResult && !exportResult.success ? (
           <ExportError
@@ -142,11 +143,11 @@ function ExportPopover({
         ) : (
           <>
             <div className="flex items-center justify-between">
-              <h3 className=" font-medium">
+              <h3 className="font-medium">
                 {isExporting ? "Exporting project" : "Export project"}
               </h3>
               <Button variant="text" size="icon" onClick={handleClose}>
-                <X className="!size-5 text-foreground/85" />
+                <X className="text-foreground/85 !size-5" />
               </Button>
             </div>
 
@@ -233,7 +234,7 @@ function ExportPopover({
                   </div>
 
                   <Button onClick={handleExport} className="w-full gap-2">
-                    <Download className="w-4 h-4" />
+                    <Download className="h-4 w-4" />
                     Export
                   </Button>
                 </>
@@ -242,18 +243,18 @@ function ExportPopover({
               {isExporting && (
                 <div className="space-y-4">
                   <div className="flex flex-col">
-                    <div className="text-center flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground mb-2">
+                    <div className="flex items-center justify-between text-center">
+                      <p className="text-muted-foreground mb-2 text-sm">
                         {Math.round(progress * 100)}%
                       </p>
-                      <p className="text-sm text-muted-foreground mb-2">100%</p>
+                      <p className="text-muted-foreground mb-2 text-sm">100%</p>
                     </div>
                     <Progress value={progress * 100} className="w-full" />
                   </div>
 
                   <Button
                     variant="outline"
-                    className="rounded-md w-full"
+                    className="w-full rounded-md"
                     onClick={() => {}}
                   >
                     Cancel
@@ -286,26 +287,24 @@ function ExportError({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-1.5">
-        <p className="text-sm font-medium text-red-400">Export failed</p>
-        <p className="text-xs text-muted-foreground">
-          {error}
-        </p>
+        <p className="text-sm font-medium text-destructive">Export failed</p>
+        <p className="text-muted-foreground text-xs">{error}</p>
       </div>
 
       <div className="flex gap-2">
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 text-xs h-8"
+          className="h-8 flex-1 text-xs"
           onClick={handleCopy}
         >
-          {copied ? <Check className="text-green-500" /> : <Copy />}
+          {copied ? <Check className="text-constructive" /> : <Copy />}
           Copy
         </Button>
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 text-xs h-8"
+          className="h-8 flex-1 text-xs"
           onClick={onRetry}
         >
           <RotateCcw />

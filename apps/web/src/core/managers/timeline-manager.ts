@@ -4,31 +4,30 @@ import type {
   CreateTimelineElement,
   TimelineTrack,
   TextElement,
-  DragData,
+  TimelineElement,
 } from "@/types/timeline";
-import type { MediaFile } from "@/types/media";
-import { calculateTotalDuration } from "@/lib/timeline/calculation-utils";
+import { calculateTotalDuration } from "@/lib/timeline";
+import { storageService } from "@/lib/storage/storage-service";
+import {
+  AddTrackCommand,
+  RemoveTrackCommand,
+  ToggleTrackMuteCommand,
+  AddElementToTrackCommand,
+  UpdateElementTrimCommand,
+  UpdateElementDurationCommand,
+  DeleteElementsCommand,
+  DuplicateElementsCommand,
+  ToggleElementsHiddenCommand,
+  ToggleElementsMutedCommand,
+  UpdateTextElementCommand,
+  SplitElementsCommand,
+  PasteCommand,
+  UpdateElementStartTimeCommand,
+  MoveElementCommand,
+} from "@/lib/commands/timeline";
 
 export class TimelineManager {
-  private _tracks: TimelineTrack[] = [];
-  private history: TimelineTrack[][] = [];
-  private redoStack: TimelineTrack[][] = [];
-  private clipboard: {
-    items: Array<{ trackType: TrackType; element: CreateTimelineElement }>;
-  } | null = null;
-  private tracks: TimelineTrack[] = [];
-  private snappingEnabled = true;
-  private rippleEditingEnabled = false;
-  private selectedElements: { trackId: string; elementId: string }[] = [];
-  private dragState = {
-    isDragging: false,
-    elementId: null as string | null,
-    trackId: null as string | null,
-    startMouseX: 0,
-    startElementTime: 0,
-    clickOffsetTime: 0,
-    currentTime: 0,
-  };
+  public sortedTracks: TimelineTrack[] = [];
   private listeners = new Set<() => void>();
 
   constructor(private editor: EditorCore) {
@@ -36,110 +35,18 @@ export class TimelineManager {
   }
 
   private initializeTracks(): void {
-    this._tracks = [];
-    this.tracks = [];
+    this.sortedTracks = [];
   }
 
-  getSortedTracks(): TimelineTrack[] {
-    throw new Error("Not implemented");
-  }
-
-  toggleSnapping(): void {
-    throw new Error("Not implemented");
-  }
-
-  toggleRippleEditing(): void {
-    throw new Error("Not implemented");
-  }
-
-  selectElement({
-    trackId,
-    elementId,
-    multi = false,
-  }: {
-    trackId: string;
-    elementId: string;
-    multi?: boolean;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  deselectElement({
-    trackId,
-    elementId,
-  }: {
-    trackId: string;
-    elementId: string;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  clearSelectedElements(): void {
-    throw new Error("Not implemented");
-  }
-
-  setSelectedElements({
-    elements,
-  }: {
-    elements: { trackId: string; elementId: string }[];
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  setDragState({
-    dragState,
-  }: {
-    dragState: Partial<{
-      isDragging: boolean;
-      elementId: string | null;
-      trackId: string | null;
-      startMouseX: number;
-      startElementTime: number;
-      clickOffsetTime: number;
-      currentTime: number;
-    }>;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  startDrag({
-    elementId,
-    trackId,
-    startMouseX,
-    startElementTime,
-    clickOffsetTime,
-  }: {
-    elementId: string;
-    trackId: string;
-    startMouseX: number;
-    startElementTime: number;
-    clickOffsetTime: number;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  updateDragTime({ currentTime }: { currentTime: number }): void {
-    throw new Error("Not implemented");
-  }
-
-  endDrag(): void {
-    throw new Error("Not implemented");
-  }
-
-  addTrack({ type }: { type: TrackType }): string {
-    throw new Error("Not implemented");
-  }
-
-  insertTrackAt({ type, index }: { type: TrackType; index: number }): string {
-    throw new Error("Not implemented");
+  addTrack({ type, index }: { type: TrackType; index?: number }): string {
+    const command = new AddTrackCommand(type, index);
+    this.editor.command.execute({ command });
+    return command.getTrackId();
   }
 
   removeTrack({ trackId }: { trackId: string }): void {
-    throw new Error("Not implemented");
-  }
-
-  removeTrackWithRipple({ trackId }: { trackId: string }): void {
-    throw new Error("Not implemented");
+    const command = new RemoveTrackCommand(trackId);
+    this.editor.command.execute({ command });
   }
 
   addElementToTrack({
@@ -149,7 +56,8 @@ export class TimelineManager {
     trackId: string;
     element: CreateTimelineElement;
   }): void {
-    throw new Error("Not implemented");
+    const command = new AddElementToTrackCommand(trackId, element);
+    this.editor.command.execute({ command });
   }
 
   updateElementTrim({
@@ -165,7 +73,17 @@ export class TimelineManager {
     trimEnd: number;
     pushHistory?: boolean;
   }): void {
-    throw new Error("Not implemented");
+    const command = new UpdateElementTrimCommand(
+      trackId,
+      elementId,
+      trimStart,
+      trimEnd,
+    );
+    if (pushHistory) {
+      this.editor.command.execute({ command });
+    } else {
+      command.execute();
+    }
   }
 
   updateElementDuration({
@@ -179,97 +97,99 @@ export class TimelineManager {
     duration: number;
     pushHistory?: boolean;
   }): void {
-    throw new Error("Not implemented");
+    const command = new UpdateElementDurationCommand(
+      trackId,
+      elementId,
+      duration,
+    );
+    if (pushHistory) {
+      this.editor.command.execute({ command });
+    } else {
+      command.execute();
+    }
   }
 
   updateElementStartTime({
-    trackId,
-    elementId,
+    elements,
     startTime,
-    pushHistory = true,
   }: {
-    trackId: string;
-    elementId: string;
+    elements: { trackId: string; elementId: string }[];
     startTime: number;
-    pushHistory?: boolean;
   }): void {
-    throw new Error("Not implemented");
+    const command = new UpdateElementStartTimeCommand(elements, startTime);
+    this.editor.command.execute({ command });
   }
 
-  toggleTrackMute({ trackId }: { trackId: string }): void {
-    throw new Error("Not implemented");
-  }
-
-  splitAndKeepLeft({
-    trackId,
-    elementId,
-    splitTime,
-  }: {
-    trackId: string;
-    elementId: string;
-    splitTime: number;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  splitAndKeepRight({
-    trackId,
-    elementId,
-    splitTime,
-  }: {
-    trackId: string;
-    elementId: string;
-    splitTime: number;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  updateElementStartTimeWithRipple({
-    trackId,
+  moveElement({
+    sourceTrackId,
+    targetTrackId,
     elementId,
     newStartTime,
   }: {
-    trackId: string;
+    sourceTrackId: string;
+    targetTrackId: string;
     elementId: string;
     newStartTime: number;
   }): void {
-    throw new Error("Not implemented");
+    const command = new MoveElementCommand(
+      sourceTrackId,
+      targetTrackId,
+      elementId,
+      newStartTime,
+    );
+    this.editor.command.execute({ command });
   }
 
-  removeElementFromTrackWithRipple({
-    trackId,
-    elementId,
-    pushHistory = true,
+  toggleTrackMute({ trackId }: { trackId: string }): void {
+    const command = new ToggleTrackMuteCommand(trackId);
+    this.editor.command.execute({ command });
+  }
+
+  splitElements({
+    elements,
+    splitTime,
+    retainSide = "both",
   }: {
-    trackId: string;
-    elementId: string;
-    pushHistory?: boolean;
+    elements: { trackId: string; elementId: string }[];
+    splitTime: number;
+    retainSide?: "both" | "left" | "right";
   }): void {
-    throw new Error("Not implemented");
+    const command = new SplitElementsCommand(elements, splitTime, retainSide);
+    this.editor.command.execute({ command });
   }
 
   getTotalDuration(): number {
-    return calculateTotalDuration({ tracks: this._tracks });
+    return calculateTotalDuration({ tracks: this.sortedTracks });
   }
 
-  getProjectThumbnail({
-    projectId,
+  getTrackById({ trackId }: { trackId: string }): TimelineTrack | null {
+    return this.sortedTracks.find((track) => track.id === trackId) ?? null;
+  }
+
+  getElementsWithTracks({
+    elements,
   }: {
-    projectId: string;
-  }): Promise<string | null> {
-    throw new Error("Not implemented");
-  }
+    elements:
+      | { trackId: string; elementId: string }[]
+      | { trackId: string; elementId: string };
+  }):
+    | Array<{ track: TimelineTrack; element: TimelineElement }>
+    | { track: TimelineTrack; element: TimelineElement }
+    | null {
+    const normalized = Array.isArray(elements) ? elements : [elements];
+    const result: Array<{ track: TimelineTrack; element: TimelineElement }> =
+      [];
 
-  undo(): void {
-    throw new Error("Not implemented");
-  }
+    for (const { trackId, elementId } of normalized) {
+      const track = this.getTrackById({ trackId });
+      const element = track?.elements.find((el) => el.id === elementId);
 
-  redo(): void {
-    throw new Error("Not implemented");
-  }
+      if (track && element) {
+        result.push({ track, element });
+      }
+    }
 
-  pushHistory(): void {
-    throw new Error("Not implemented");
+    return Array.isArray(elements) ? result : (result[0] ?? null);
   }
 
   async loadProjectTimeline({
@@ -279,7 +199,19 @@ export class TimelineManager {
     projectId: string;
     sceneId?: string;
   }): Promise<void> {
-    throw new Error("Not implemented");
+    try {
+      const tracks = await storageService.loadTimeline({
+        projectId,
+        sceneId,
+      });
+
+      if (tracks) {
+        this.updateTracks(tracks);
+      }
+    } catch (error) {
+      console.error("Failed to load timeline:", error);
+      throw error;
+    }
   }
 
   async saveProjectTimeline({
@@ -289,91 +221,34 @@ export class TimelineManager {
     projectId: string;
     sceneId?: string;
   }): Promise<void> {
-    throw new Error("Not implemented");
+    try {
+      await storageService.saveTimeline({
+        projectId,
+        tracks: this.sortedTracks,
+        sceneId,
+      });
+    } catch (error) {
+      console.error("Failed to save timeline:", error);
+      throw error;
+    }
   }
 
   clearTimeline(): void {
-    throw new Error("Not implemented");
-  }
-
-  copySelected(): void {
-    throw new Error("Not implemented");
+    this.updateTracks([]);
   }
 
   pasteAtTime({ time }: { time: number }): void {
-    throw new Error("Not implemented");
+    const command = new PasteCommand(time);
+    this.editor.command.execute({ command });
   }
 
-  deleteSelected({
-    trackId,
-    elementId,
+  deleteElements({
+    elements,
   }: {
-    trackId?: string;
-    elementId?: string;
+    elements: { trackId: string; elementId: string }[];
   }): void {
-    throw new Error("Not implemented");
-  }
-
-  splitSelected({
-    splitTime,
-    trackId,
-    elementId,
-  }: {
-    splitTime: number;
-    trackId?: string;
-    elementId?: string;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  toggleSelectedHidden({
-    trackId,
-    elementId,
-  }: {
-    trackId?: string;
-    elementId?: string;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  toggleSelectedMuted({
-    trackId,
-    elementId,
-  }: {
-    trackId?: string;
-    elementId?: string;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  duplicateElement({
-    trackId,
-    elementId,
-  }: {
-    trackId: string;
-    elementId: string;
-  }): void {
-    throw new Error("Not implemented");
-  }
-
-  revealElementInMedia({ elementId }: { elementId: string }): void {
-    throw new Error("Not implemented");
-  }
-
-  getContextMenuState({
-    trackId,
-    elementId,
-  }: {
-    trackId: string;
-    elementId: string;
-  }): {
-    isMultipleSelected: boolean;
-    isCurrentElementSelected: boolean;
-    hasAudioElements: boolean;
-    canSplitSelected: boolean;
-    currentTime: number;
-  } {
-    throw new Error("Not implemented");
+    const command = new DeleteElementsCommand(elements);
+    this.editor.command.execute({ command });
   }
 
   updateTextElement({
@@ -395,14 +270,38 @@ export class TimelineManager {
         | "fontWeight"
         | "fontStyle"
         | "textDecoration"
-        | "x"
-        | "y"
-        | "rotation"
-        | "opacity"
       >
     >;
   }): void {
-    throw new Error("Not implemented");
+    const command = new UpdateTextElementCommand(trackId, elementId, updates);
+    this.editor.command.execute({ command });
+  }
+
+  duplicateElements({
+    elements,
+  }: {
+    elements: { trackId: string; elementId: string }[];
+  }): void {
+    const command = new DuplicateElementsCommand({ elements });
+    this.editor.command.execute({ command });
+  }
+
+  toggleElementsHidden({
+    elements,
+  }: {
+    elements: { trackId: string; elementId: string }[];
+  }): void {
+    const command = new ToggleElementsHiddenCommand(elements);
+    this.editor.command.execute({ command });
+  }
+
+  toggleElementsMuted({
+    elements,
+  }: {
+    elements: { trackId: string; elementId: string }[];
+  }): void {
+    const command = new ToggleElementsMutedCommand(elements);
+    this.editor.command.execute({ command });
   }
 
   checkElementOverlap({
@@ -419,50 +318,8 @@ export class TimelineManager {
     throw new Error("Not implemented");
   }
 
-  findOrCreateTrack({ trackType }: { trackType: TrackType }): string {
-    throw new Error("Not implemented");
-  }
-
-  addElementAtTime({
-    item,
-    currentTime = 0,
-  }: {
-    item: MediaFile | TextElement;
-    currentTime?: number;
-  }): boolean {
-    throw new Error("Not implemented");
-  }
-
-  addElementToNewTrack({
-    item,
-  }: {
-    item: MediaFile | TextElement | DragData;
-  }): boolean {
-    throw new Error("Not implemented");
-  }
-
   getTracks(): TimelineTrack[] {
-    return this.tracks;
-  }
-
-  getTracksWithMain(): TimelineTrack[] {
-    return this._tracks;
-  }
-
-  getSelectedElements(): { trackId: string; elementId: string }[] {
-    return this.selectedElements;
-  }
-
-  getDragState(): typeof this.dragState {
-    return this.dragState;
-  }
-
-  getSnappingEnabled(): boolean {
-    return this.snappingEnabled;
-  }
-
-  getRippleEditingEnabled(): boolean {
-    return this.rippleEditingEnabled;
+    return this.sortedTracks;
   }
 
   subscribe(listener: () => void): () => void {
@@ -474,9 +331,8 @@ export class TimelineManager {
     this.listeners.forEach((fn) => fn());
   }
 
-  private updateTracks(newTracks: TimelineTrack[]): void {
-    this._tracks = newTracks;
-    this.tracks = newTracks; // TODO: Implement proper sorting with main track
+  updateTracks(newTracks: TimelineTrack[]): void {
+    this.sortedTracks = newTracks;
     this.notify();
   }
 }

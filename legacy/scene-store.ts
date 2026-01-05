@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { TScene } from "@/types/project";
 import { useProjectStore } from "./project-store";
-import { useTimelineStore } from "./timeline-store";
+import { useTimelineStore } from "../apps/web/src/stores/timeline-store";
 import { storageService } from "@/lib/storage/storage-service";
 import {
   getActiveScene,

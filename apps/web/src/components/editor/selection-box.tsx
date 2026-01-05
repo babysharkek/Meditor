@@ -20,22 +20,17 @@ export function SelectionBox({
   useEffect(() => {
     if (!isActive || !startPos || !currentPos || !containerRef.current) return;
 
-    const container = containerRef.current;
-    const containerRect = container.getBoundingClientRect();
-
-    // Calculate relative positions within the container
+    const containerRect = containerRef.current.getBoundingClientRect();
     const startX = startPos.x - containerRect.left;
     const startY = startPos.y - containerRect.top;
     const currentX = currentPos.x - containerRect.left;
     const currentY = currentPos.y - containerRect.top;
 
-    // Calculate the selection rectangle bounds
     const left = Math.min(startX, currentX);
     const top = Math.min(startY, currentY);
     const width = Math.abs(currentX - startX);
     const height = Math.abs(currentY - startY);
 
-    // Update the selection box position and size
     if (selectionBoxRef.current) {
       selectionBoxRef.current.style.left = `${left}px`;
       selectionBoxRef.current.style.top = `${top}px`;
@@ -49,7 +44,7 @@ export function SelectionBox({
   return (
     <div
       ref={selectionBoxRef}
-      className="absolute pointer-events-none z-50 bg-foreground/10"
+      className="border-foreground/50 bg-foreground/5 pointer-events-none absolute z-50 border"
     />
   );
 }

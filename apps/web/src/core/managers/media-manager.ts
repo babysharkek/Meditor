@@ -1,13 +1,12 @@
 import type { EditorCore } from "@/core";
-import type { MediaFile } from "@/types/media";
+import type { MediaFile } from "@/types/assets";
 import { storageService } from "@/lib/storage/storage-service";
 import { generateUUID } from "@/lib/utils";
 import { videoCache } from "@/lib/video-cache";
-import { generateThumbnail } from "@/lib/media-processing-utils";
 
 export class MediaManager {
-  private mediaFiles: MediaFile[] = [];
-  private isLoading = false;
+  public mediaFiles: MediaFile[] = [];
+  public isLoading = false;
   private listeners = new Set<() => void>();
 
   constructor(private editor: EditorCore) {}
@@ -88,32 +87,7 @@ export class MediaManager {
 
     try {
       const mediaItems = await storageService.loadAllMediaFiles({ projectId });
-
-      const updatedMediaItems = await Promise.all(
-        mediaItems.map(async (item) => {
-          if (item.type === "video" && item.file) {
-            try {
-              const thumbnailUrl = await generateThumbnail({
-                videoFile: item.file,
-                timeInSeconds: 1,
-              });
-              return {
-                ...item,
-                thumbnailUrl,
-              };
-            } catch (error) {
-              console.error(
-                `Failed to regenerate thumbnail for video ${item.id}:`,
-                error,
-              );
-              return item;
-            }
-          }
-          return item;
-        }),
-      );
-
-      this.mediaFiles = updatedMediaItems;
+      this.mediaFiles = mediaItems;
       this.notify();
     } catch (error) {
       console.error("Failed to load media items:", error);

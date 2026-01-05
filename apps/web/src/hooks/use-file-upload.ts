@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { hasAssetDragData } from "@/lib/asset-drag";
 
 interface UseFileUploadOptions {
   accept?: string;
@@ -7,20 +8,23 @@ interface UseFileUploadOptions {
 }
 
 function containsFiles(dataTransfer: DataTransfer): boolean {
-  const isInternalDrag = dataTransfer.types.includes("application/x-media-item");
-  const hasFiles = dataTransfer.types.includes("Files");
-  
-  return !isInternalDrag && hasFiles;
+  return (
+    !hasAssetDragData({ dataTransfer }) && dataTransfer.types.includes("Files")
+  );
 }
 
-export function useFileUpload({ accept, multiple, onFilesSelected }: UseFileUploadOptions = {}) {
+export function useFileUpload({
+  accept,
+  multiple,
+  onFilesSelected,
+}: UseFileUploadOptions = {}) {
   const [isDragOver, setIsDragOver] = useState(false);
   const dragCounterRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function openFilePicker() {
     if (!inputRef.current) return;
-    
+
     inputRef.current.accept = accept || "*";
     inputRef.current.multiple = multiple || false;
     inputRef.current.click();
@@ -31,7 +35,7 @@ export function useFileUpload({ accept, multiple, onFilesSelected }: UseFileUplo
     if (files && files.length > 0 && onFilesSelected) {
       onFilesSelected(files);
     }
-    
+
     if (event.target) {
       event.target.value = "";
     }
@@ -39,24 +43,24 @@ export function useFileUpload({ accept, multiple, onFilesSelected }: UseFileUplo
 
   function handleDragEnter(e: React.DragEvent) {
     e.preventDefault();
-    
+
     if (!containsFiles(e.dataTransfer)) return;
-    
+
     dragCounterRef.current += 1;
     setIsDragOver(true);
   }
 
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault();
-    
+
     if (!containsFiles(e.dataTransfer)) return;
   }
 
   function handleDragLeave(e: React.DragEvent) {
     e.preventDefault();
-    
+
     if (!containsFiles(e.dataTransfer)) return;
-    
+
     dragCounterRef.current -= 1;
     if (dragCounterRef.current === 0) {
       setIsDragOver(false);
@@ -67,11 +71,11 @@ export function useFileUpload({ accept, multiple, onFilesSelected }: UseFileUplo
     e.preventDefault();
     setIsDragOver(false);
     dragCounterRef.current = 0;
-    
+
     if (onFilesSelected && containsFiles(e.dataTransfer)) {
       const files = e.dataTransfer.files;
       const shouldUseMultiple = multiple ?? false;
-      
+
       if (shouldUseMultiple) {
         onFilesSelected(files);
       } else if (files.length > 0) {

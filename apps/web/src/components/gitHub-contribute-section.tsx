@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { GithubIcon } from "./icons";
+import { GithubIcon } from "@opencut/ui/icons";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { SOCIAL_LINKS } from "@/constants/site-constants";

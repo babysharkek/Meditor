@@ -274,7 +274,7 @@ export const useSoundsStore = create<SoundsStore>((set, get) => ({
         error instanceof Error
           ? error.message
           : "Failed to add sound to timeline",
-        { id: `sound-${sound.id}` }
+        { id: `sound-${sound.id}` },
       );
       return false;
     }

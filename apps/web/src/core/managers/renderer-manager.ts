@@ -2,7 +2,7 @@ import type { EditorCore } from "@/core";
 import type { RootNode } from "@/services/renderer/nodes/root-node";
 import type { ExportOptions, ExportResult } from "@/types/export";
 import type { TimelineTrack } from "@/types/timeline";
-import type { MediaFile } from "@/types/media";
+import type { MediaFile } from "@/types/assets";
 import { SceneExporter } from "@/services/renderer/scene-exporter";
 import { buildScene } from "@/services/renderer/scene-builder";
 import { DEFAULT_FPS, DEFAULT_CANVAS_SIZE } from "@/constants/editor-constants";
@@ -23,7 +23,7 @@ interface AudioElement {
 }
 
 export class RendererManager {
-  private renderTree: RootNode | null = null;
+  public renderTree: RootNode | null = null;
   private listeners = new Set<() => void>();
 
   constructor(private editor: EditorCore) {}
@@ -166,14 +166,17 @@ export class RendererManager {
       if (track.muted) continue;
 
       for (const element of track.elements) {
-        if (element.type !== "media") continue;
+        if (element.type !== "audio") {
+          continue;
+        }
 
-        const mediaElement = element;
-        const mediaItem = mediaMap.get(mediaElement.mediaId);
-        if (!mediaItem || mediaItem.type !== "audio") continue;
+        const mediaItem = mediaMap.get(element.mediaId);
+        if (!mediaItem || mediaItem.type !== "audio") {
+          continue;
+        }
 
         const visibleDuration =
-          mediaElement.duration - mediaElement.trimStart - mediaElement.trimEnd;
+          element.duration - element.trimStart - element.trimEnd;
         if (visibleDuration <= 0) continue;
 
         try {
@@ -184,11 +187,11 @@ export class RendererManager {
 
           audioElements.push({
             buffer: audioBuffer,
-            startTime: mediaElement.startTime,
-            duration: mediaElement.duration,
-            trimStart: mediaElement.trimStart,
-            trimEnd: mediaElement.trimEnd,
-            muted: mediaElement.muted || track.muted || false,
+            startTime: element.startTime,
+            duration: element.duration,
+            trimStart: element.trimStart,
+            trimEnd: element.trimEnd,
+            muted: element.muted || track.muted || false,
           });
         } catch (error) {
           console.warn(`Failed to decode audio file ${mediaItem.name}:`, error);

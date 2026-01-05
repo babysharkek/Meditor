@@ -8,10 +8,8 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "../../ui/context-menu";
-import { useTimelineStore } from "@/stores/timeline-store";
-import { usePlaybackStore } from "@/stores/playback-store";
 import { useTimelineZoom } from "@/hooks/timeline/use-timeline-zoom";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { TimelineTrackContent } from "./timeline-track";
 import {
   TimelinePlayhead,
@@ -19,10 +17,11 @@ import {
 } from "./timeline-playhead";
 import { SelectionBox } from "../selection-box";
 import { useSelectionBox } from "@/hooks/use-selection-box";
-import { SnapIndicator } from "../snap-indicator";
+import { SnapIndicator } from "./snap-indicator";
 import { SnapPoint } from "@/hooks/timeline/use-timeline-snapping";
 import type { TimelineTrack } from "@/types/timeline";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
+import { useElementInteraction } from "@/hooks/timeline/use-element-interaction";
 import {
   getTrackHeight,
   getCumulativeHeightBefore,
@@ -30,37 +29,59 @@ import {
 } from "@/lib/timeline";
 import { TimelineToolbar } from "./timeline-toolbar";
 import { useScrollSync } from "@/hooks/use-scroll-sync";
+import { useElementSelection } from "@/hooks/use-element-selection";
 import { useTimelineInteractions } from "@/hooks/timeline/use-timeline-interactions";
 import { useTimelineDragDrop } from "@/hooks/timeline/use-timeline-drag-drop";
 import { TimelineRuler } from "./timeline-ruler";
+import { DragLine } from "./drag-line";
+import { useTimelineStore } from "@/stores/timeline-store";
+import { useEditor } from "@/hooks/use-editor";
 
 export function Timeline() {
-  const {
-    tracks,
-    getTotalDuration,
-    clearSelectedElements,
-    snappingEnabled,
-    setSelectedElements,
-    toggleTrackMute,
-    dragState,
-  } = useTimelineStore();
-  const { currentTime, duration, seek, setDuration } = usePlaybackStore();
-  
+  const editor = useEditor();
+  const tracks = editor.timeline.sortedTracks;
+  const currentTime = editor.playback.currentTime;
+  const duration = editor.timeline.getTotalDuration();
+  const seek = (time: number) => editor.playback.seek({ time });
+
+  const { snappingEnabled } = useTimelineStore();
+  const { clearSelection, setSelection } = useElementSelection();
+
   const timelineRef = useRef<HTMLDivElement>(null);
   const rulerRef = useRef<HTMLDivElement>(null);
-  const [isInTimeline, setIsInTimeline] = useState(false);
+  const tracksContainerRef = useRef<HTMLDivElement>(null);
+  const rulerScrollRef = useRef<HTMLDivElement>(null);
+  const tracksScrollRef = useRef<HTMLDivElement>(null);
+  const trackLabelsRef = useRef<HTMLDivElement>(null);
+  const playheadRef = useRef<HTMLDivElement>(null);
+  const trackLabelsScrollRef = useRef<HTMLDivElement>(null);
 
-  // Timeline zoom functionality
+  const [isInTimeline, setIsInTimeline] = useState(false);
+  const [currentSnapPoint, setCurrentSnapPoint] = useState<SnapPoint | null>(
+    null,
+  );
+
+  const handleSnapPointChange = useCallback((snapPoint: SnapPoint | null) => {
+    setCurrentSnapPoint(snapPoint);
+  }, []);
+
   const { zoomLevel, setZoomLevel, handleWheel } = useTimelineZoom({
     containerRef: timelineRef,
     isInTimeline,
   });
 
-  const { dragProps } = useTimelineDragDrop({
+  const {
+    dragState,
+    handleElementMouseDown,
+    handleElementClick,
+    lastMouseXRef,
+  } = useElementInteraction({
     zoomLevel,
+    timelineRef,
+    tracksContainerRef,
+    onSnapPointChange: handleSnapPointChange,
   });
 
-  // Dynamic timeline width calculation based on playhead position and duration
   const dynamicTimelineWidth = Math.max(
     (duration || 0) * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel,
     (currentTime + TIMELINE_CONSTANTS.PLAYHEAD_LOOKAHEAD_SECONDS) *
@@ -69,14 +90,6 @@ export function Timeline() {
     timelineRef.current?.clientWidth || 1000,
   );
 
-  // Scroll synchronization and auto-scroll to playhead
-  const rulerScrollRef = useRef<HTMLDivElement>(null);
-  const tracksScrollRef = useRef<HTMLDivElement>(null);
-  const trackLabelsRef = useRef<HTMLDivElement>(null);
-  const playheadRef = useRef<HTMLDivElement>(null);
-  const trackLabelsScrollRef = useRef<HTMLDivElement>(null);
-
-  // Timeline playhead ruler handlers
   const { handleRulerMouseDown } = useTimelinePlayheadRuler({
     currentTime,
     duration,
@@ -88,8 +101,11 @@ export function Timeline() {
     playheadRef,
   });
 
-  // Selection box functionality
-  const tracksContainerRef = useRef<HTMLDivElement>(null);
+  const { isDragOver, dropTarget, dragProps } = useTimelineDragDrop({
+    containerRef: tracksContainerRef,
+    zoomLevel,
+  });
+
   const {
     selectionBox,
     handleMouseDown: handleSelectionMouseDown,
@@ -99,22 +115,12 @@ export function Timeline() {
     containerRef: tracksContainerRef,
     playheadRef,
     onSelectionComplete: (elements) => {
-      console.log(JSON.stringify({ onSelectionComplete: elements.length }));
-      setSelectedElements(elements);
+      setSelection(elements);
     },
   });
 
-  // Calculate snap indicator state
-  const [currentSnapPoint, setCurrentSnapPoint] = useState<SnapPoint | null>(
-    null,
-  );
   const showSnapIndicator =
     dragState.isDragging && snappingEnabled && currentSnapPoint !== null;
-
-  // Callback to handle snap point changes from TimelineTrackContent
-  const handleSnapPointChange = useCallback((snapPoint: SnapPoint | null) => {
-    setCurrentSnapPoint(snapPoint);
-  }, []);
 
   const { handleTimelineMouseDown, handleTimelineContentClick } =
     useTimelineInteractions({
@@ -126,19 +132,10 @@ export function Timeline() {
       duration,
       isSelecting,
       justFinishedSelecting,
-      clearSelectedElements,
+      clearSelectedElements: clearSelection,
       seek,
     });
 
-  // Update timeline duration when tracks change
-  useEffect(() => {
-    const totalDuration = getTotalDuration();
-    setDuration(
-      Math.max(totalDuration, TIMELINE_CONSTANTS.MIN_DURATION_SECONDS),
-    );
-  }, [tracks, setDuration, getTotalDuration]);
-
-  // --- Scroll synchronization effect ---
   useScrollSync({
     rulerScrollRef,
     tracksScrollRef,
@@ -154,7 +151,10 @@ export function Timeline() {
       onMouseEnter={() => setIsInTimeline(true)}
       onMouseLeave={() => setIsInTimeline(false)}
     >
-      <TimelineToolbar zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
+      <TimelineToolbar
+        zoomLevel={zoomLevel}
+        setZoomLevel={({ zoom }) => setZoomLevel(zoom)}
+      />
 
       <div
         className="relative flex flex-1 flex-col overflow-hidden"
@@ -185,17 +185,11 @@ export function Timeline() {
           tracksScrollRef={tracksScrollRef}
           isVisible={showSnapIndicator}
         />
-        {/* Timeline Header with Ruler */}
         <div className="bg-panel sticky top-0 z-10 flex">
-          {/* Track Labels Header */}
           <div className="bg-panel flex w-28 shrink-0 items-center justify-between border-r px-3 py-2">
-            {/* Empty space */}
-            <span className="text-muted-foreground text-sm font-medium opacity-0">
-              .
-            </span>
+            <span className="opacity-0">.</span>
           </div>
 
-          {/* Timeline Ruler */}
           <TimelineRuler
             zoomLevel={zoomLevel}
             duration={duration}
@@ -209,9 +203,7 @@ export function Timeline() {
           />
         </div>
 
-        {/* Tracks Area */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Track Labels */}
           {tracks.length > 0 && (
             <div
               ref={trackLabelsRef}
@@ -232,12 +224,20 @@ export function Timeline() {
                         {track.muted ? (
                           <VolumeOff
                             className="text-destructive h-4 w-4 cursor-pointer"
-                            onClick={() => toggleTrackMute(track.id)}
+                            onClick={() =>
+                              editor.timeline.toggleTrackMute({
+                                trackId: track.id,
+                              })
+                            }
                           />
                         ) : (
                           <Volume2
                             className="text-muted-foreground h-4 w-4 cursor-pointer"
-                            onClick={() => toggleTrackMute(track.id)}
+                            onClick={() =>
+                              editor.timeline.toggleTrackMute({
+                                trackId: track.id,
+                              })
+                            }
                           />
                         )}
                         <Eye className="text-muted-foreground h-4 w-4" />
@@ -250,13 +250,11 @@ export function Timeline() {
             </div>
           )}
 
-          {/* Timeline Tracks Content */}
           <div
             className="relative flex-1 overflow-hidden"
             onWheel={(e) => {
-              // Check if this is horizontal scrolling - if so, don't handle it here
               if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                return; // Let ScrollArea handle horizontal scrolling
+                return;
               }
               handleWheel(e);
             }}
@@ -272,6 +270,11 @@ export function Timeline() {
               currentPos={selectionBox?.currentPos || null}
               containerRef={tracksContainerRef}
               isActive={selectionBox?.isActive || false}
+            />
+            <DragLine
+              dropTarget={dropTarget}
+              tracks={tracks}
+              isVisible={isDragOver}
             />
             <ScrollArea className="h-full w-full" ref={tracksScrollRef}>
               <div
@@ -301,22 +304,24 @@ export function Timeline() {
                               height: `${getTrackHeight({ type: track.type })}px`,
                             }}
                             onClick={(e) => {
-                              // If clicking empty area (not on a element), deselect all elements
                               if (
                                 !(e.target as HTMLElement).closest(
                                   ".timeline-element",
                                 )
                               ) {
-                                clearSelectedElements();
+                                clearSelection();
                               }
                             }}
                           >
                             <TimelineTrackContent
                               track={track}
                               zoomLevel={zoomLevel}
-                              onSnapPointChange={handleSnapPointChange}
+                              dragState={dragState}
                               rulerScrollRef={rulerScrollRef}
                               tracksScrollRef={tracksScrollRef}
+                              lastMouseXRef={lastMouseXRef}
+                              onElementMouseDown={handleElementMouseDown}
+                              onElementClick={handleElementClick}
                             />
                           </div>
                         </ContextMenuTrigger>
@@ -324,7 +329,9 @@ export function Timeline() {
                           <ContextMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleTrackMute(track.id);
+                              editor.timeline.toggleTrackMute({
+                                trackId: track.id,
+                              });
                             }}
                           >
                             {track.muted ? "Unmute Track" : "Mute Track"}

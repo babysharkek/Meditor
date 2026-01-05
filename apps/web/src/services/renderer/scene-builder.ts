@@ -1,5 +1,5 @@
 import { type TimelineTrack } from "@/types/timeline";
-import { type MediaFile } from "@/types/media";
+import { type MediaFile } from "@/types/assets";
 import { RootNode } from "./nodes/root-node";
 import { VideoNode } from "./nodes/video-node";
 import { ImageNode } from "./nodes/image-node";

@@ -15,11 +15,14 @@ import {
 import { useMediaStore } from "@/stores/media-store";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { usePlaybackStore } from "@/stores/playback-store";
-import AudioWaveform from "../audio-waveform";
-import { TimelineElementProps } from "@/types/timeline";
-import { useTimelineElementResize } from "@/hooks/timeline/use-timeline-element-resize";
+import AudioWaveform from "./audio-waveform";
+import { useTimelineElementResize } from "@/hooks/timeline/use-element-resize";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { getTrackElementClasses, getTrackHeight } from "@/lib/timeline";
+import {
+  getTrackColor,
+  getTrackHeight,
+  isMutableElement,
+} from "@/lib/timeline";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -28,6 +31,24 @@ import {
   ContextMenuTrigger,
 } from "../../ui/context-menu";
 import { useAssetsPanelStore } from "../../../stores/assets-panel-store";
+import {
+  TimelineElement as TimelineElementType,
+  TimelineTrack,
+} from "@/types/timeline";
+import { ElementDragState } from "@/types/timeline";
+
+interface TimelineElementProps {
+  element: TimelineElementType;
+  track: TimelineTrack;
+  zoomLevel: number;
+  isSelected: boolean;
+  onElementMouseDown: (
+    e: React.MouseEvent,
+    element: TimelineElementType,
+  ) => void;
+  onElementClick: (e: React.MouseEvent, element: TimelineElementType) => void;
+  dragState: ElementDragState;
+}
 
 export function TimelineElement({
   element,
@@ -36,11 +57,11 @@ export function TimelineElement({
   isSelected,
   onElementMouseDown,
   onElementClick,
+  dragState,
 }: TimelineElementProps) {
   const { mediaFiles } = useMediaStore();
   const { requestRevealMedia } = useAssetsPanelStore();
   const {
-    dragState,
     copySelected,
     selectedElements,
     deleteSelected,
@@ -58,12 +79,11 @@ export function TimelineElement({
       : null;
   const hasAudio = mediaItem?.type === "audio" || mediaItem?.type === "video";
 
-  const { resizing, handleResizeStart, handleResizeMove, handleResizeEnd } =
-    useTimelineElementResize({
-      element,
-      track,
-      zoomLevel,
-    });
+  const { handleResizeStart } = useTimelineElementResize({
+    element,
+    track,
+    zoomLevel,
+  });
 
   const {
     isMultipleSelected,
@@ -215,7 +235,7 @@ export function TimelineElement({
     }
   };
 
-  const isMuted = element.type === "media" && element.muted;
+  const isMuted = isMutableElement(element) && element.muted;
 
   return (
     <ContextMenu>
@@ -230,12 +250,9 @@ export function TimelineElement({
           }}
           data-element-id={element.id}
           data-track-id={track.id}
-          onMouseMove={resizing ? handleResizeMove : undefined}
-          onMouseUp={resizing ? handleResizeEnd : undefined}
-          onMouseLeave={resizing ? handleResizeEnd : undefined}
         >
           <div
-            className={`relative h-full cursor-pointer overflow-hidden rounded-[0.5rem] ${getTrackElementClasses(
+            className={`relative h-full cursor-pointer overflow-hidden rounded-[0.5rem] ${getTrackColor(
               {
                 type: track.type,
               },
@@ -266,13 +283,25 @@ export function TimelineElement({
               <>
                 <div
                   className="bg-primary absolute bottom-0 left-0 top-0 z-50 flex w-[0.6rem] cursor-w-resize items-center justify-center"
-                  onMouseDown={(e) => handleResizeStart(e, element.id, "left")}
+                  onMouseDown={(e) =>
+                    handleResizeStart({
+                      e,
+                      elementId: element.id,
+                      side: "left",
+                    })
+                  }
                 >
                   <div className="bg-foreground/75 h-[1.5rem] w-[0.2rem] rounded-full" />
                 </div>
                 <div
                   className="bg-primary absolute bottom-0 right-0 top-0 z-50 flex w-[0.6rem] cursor-e-resize items-center justify-center"
-                  onMouseDown={(e) => handleResizeStart(e, element.id, "right")}
+                  onMouseDown={(e) =>
+                    handleResizeStart({
+                      e,
+                      elementId: element.id,
+                      side: "right",
+                    })
+                  }
                 >
                   <div className="bg-foreground/75 h-[1.5rem] w-[0.2rem] rounded-full" />
                 </div>

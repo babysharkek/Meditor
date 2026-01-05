@@ -27,12 +27,13 @@ export const TRACK_HEIGHTS: Record<TrackType, number> = {
   audio: 50,
 } as const;
 
+export const TRACK_GAP = 4;
+
 export const TIMELINE_CONSTANTS = {
   ELEMENT_MIN_WIDTH: 80,
   PIXELS_PER_SECOND: 50,
   TRACK_HEIGHT: 60,
-  DEFAULT_TEXT_DURATION: 5,
-  DEFAULT_IMAGE_DURATION: 5,
+  DEFAULT_ELEMENT_DURATION: 5,
   MIN_DURATION_SECONDS: 10,
   PLAYHEAD_LOOKAHEAD_SECONDS: 30, // Padding ahead of playhead
   ZOOM_LEVELS: [0.25, 0.5, 1, 1.5, 2, 3, 4],

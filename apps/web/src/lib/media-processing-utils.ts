@@ -4,7 +4,7 @@ import {
   getMediaDuration,
   getImageDimensions,
 } from "@/stores/media-store";
-import { MediaFile } from "@/types/media";
+import { MediaFile } from "@/types/assets";
 import { getVideoInfo } from "./mediabunny-utils";
 import { Input, ALL_FORMATS, BlobSource, VideoSampleSink } from "mediabunny";
 
@@ -69,20 +69,8 @@ export async function generateThumbnail({
   }
 
   frame.draw(ctx, 0, 0, width, height);
-
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob) {
-          resolve(URL.createObjectURL(blob));
-        } else {
-          reject(new Error("Failed to create thumbnail blob"));
-        }
-      },
-      "image/jpeg",
-      0.8,
-    );
-  });
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+  return dataUrl;
 }
 
 export async function processMediaFiles({

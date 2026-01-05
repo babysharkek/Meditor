@@ -14,7 +14,7 @@ import { useMediaStore } from "@/stores/media-store";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { usePlaybackStore } from "@/stores/playback-store";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import type { MediaFile } from "@/types/media";
+import type { MediaFile } from "@/types/assets";
 
 export type StickerCategory = "all" | "general" | "brands" | "emoji";
 
@@ -191,7 +191,7 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
         url: URL.createObjectURL(file),
         width: 200,
         height: 200,
-        duration: TIMELINE_CONSTANTS.DEFAULT_IMAGE_DURATION,
+        duration: TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION,
         ephemeral: false,
       };
 
@@ -201,7 +201,7 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
       const added = useMediaStore
         .getState()
         .mediaFiles.find(
-          (m) => m.url === mediaItem.url && m.name === mediaItem.name
+          (m) => m.url === mediaItem.url && m.name === mediaItem.name,
         );
       if (!added) {
         throw new Error("Sticker not in media store");

@@ -3,11 +3,15 @@ import { create } from "zustand";
 import { storageService } from "@/lib/storage/storage-service";
 import { toast } from "sonner";
 import { useMediaStore } from "./media-store";
-import { useTimelineStore } from "./timeline-store";
+import { useTimelineStore } from "../apps/web/src/stores/timeline-store";
 import { useSceneStore } from "./scene-store";
 import { generateUUID } from "@/lib/utils";
 import { TCanvasSize } from "@/types/editor";
-import { DEFAULT_BLUR_INTENSITY, DEFAULT_CANVAS_SIZE, DEFAULT_FPS } from "@/constants/editor-constants";
+import {
+  DEFAULT_BLUR_INTENSITY,
+  DEFAULT_CANVAS_SIZE,
+  DEFAULT_FPS,
+} from "@/constants/editor-constants";
 
 export function createMainScene(): TScene {
   return {

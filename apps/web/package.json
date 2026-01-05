@@ -22,7 +22,6 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^3.9.1",
     "@opencut/env": "workspace:*",
-    "@opencut/hooks": "workspace:*",
     "@opencut/ui": "workspace:*",
     "@radix-ui/react-separator": "^1.1.7",
     "@upstash/ratelimit": "^2.0.6",

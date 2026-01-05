@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { storageService } from "@/lib/storage/storage-service";
-import { useTimelineStore } from "./timeline-store";
+import { useTimelineStore } from "../apps/web/src/stores/timeline-store";
 import { generateUUID } from "@/lib/utils";
 import { MediaType, MediaFile } from "@/types/media";
 import { videoCache } from "@/lib/video-cache";
@@ -12,7 +12,7 @@ interface MediaStore {
   // Actions
   addMediaFile: (
     projectId: string,
-    file: Omit<MediaFile, "id">
+    file: Omit<MediaFile, "id">,
   ) => Promise<void>;
   removeMediaFile: (projectId: string, id: string) => Promise<void>;
   loadProjectMedia: (projectId: string) => Promise<void>;
@@ -39,7 +39,7 @@ export const getFileType = (file: File): MediaType | null => {
 
 // Helper function to get image dimensions
 export const getImageDimensions = (
-  file: File
+  file: File,
 ): Promise<{ width: number; height: number }> => {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
@@ -60,56 +60,11 @@ export const getImageDimensions = (
   });
 };
 
-export const generateVideoThumbnail = (
-  file: File
-): Promise<{ thumbnailUrl: string; width: number; height: number }> => {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement("video") as HTMLVideoElement;
-    const canvas = document.createElement("canvas") as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) {
-      reject(new Error("Could not get canvas context"));
-      return;
-    }
-
-    video.addEventListener("loadedmetadata", () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      // Seek to 1 second or 10% of duration, whichever is smaller
-      video.currentTime = Math.min(1, video.duration * 0.1);
-    });
-
-    video.addEventListener("seeked", () => {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const thumbnailUrl = canvas.toDataURL("image/jpeg", 0.8);
-      const width = video.videoWidth;
-      const height = video.videoHeight;
-
-      resolve({ thumbnailUrl, width, height });
-
-      // Cleanup
-      video.remove();
-      canvas.remove();
-    });
-
-    video.addEventListener("error", () => {
-      reject(new Error("Could not load video"));
-      video.remove();
-      canvas.remove();
-    });
-
-    video.src = URL.createObjectURL(file);
-    video.load();
-  });
-};
-
 // Helper function to get media duration
 export const getMediaDuration = (file: File): Promise<number> => {
   return new Promise((resolve, reject) => {
     const element = document.createElement(
-      file.type.startsWith("video/") ? "video" : "audio"
+      file.type.startsWith("video/") ? "video" : "audio",
     ) as HTMLVideoElement;
 
     element.addEventListener("loadedmetadata", () => {
@@ -213,33 +168,7 @@ export const useMediaStore = create<MediaStore>((set, get) => ({
 
     try {
       const mediaItems = await storageService.loadAllMediaFiles({ projectId });
-
-      // Regenerate thumbnails for video items
-      const updatedMediaItems = await Promise.all(
-        mediaItems.map(async (item) => {
-          if (item.type === "video" && item.file) {
-            try {
-              const { thumbnailUrl, width, height } =
-                await generateVideoThumbnail(item.file);
-              return {
-                ...item,
-                thumbnailUrl,
-                width: width || item.width,
-                height: height || item.height,
-              };
-            } catch (error) {
-              console.error(
-                `Failed to regenerate thumbnail for video ${item.id}:`,
-                error
-              );
-              return item;
-            }
-          }
-          return item;
-        })
-      );
-
-      set({ mediaFiles: updatedMediaItems });
+      set({ mediaFiles: mediaItems });
     } catch (error) {
       console.error("Failed to load media items:", error);
     } finally {
@@ -267,7 +196,7 @@ export const useMediaStore = create<MediaStore>((set, get) => ({
     try {
       const mediaIds = state.mediaFiles.map((item) => item.id);
       await Promise.all(
-        mediaIds.map((id) => storageService.deleteMediaFile({ projectId, id }))
+        mediaIds.map((id) => storageService.deleteMediaFile({ projectId, id })),
       );
     } catch (error) {
       console.error("Failed to clear media items from storage:", error);

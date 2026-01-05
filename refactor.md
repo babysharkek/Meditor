@@ -12,8 +12,32 @@ Review every point below carefully for files to ensure they follow consistent co
 10. Use zustand correctly. React component should never use `someStore.getState()`. Instead, use the `useSomeStore` hook.
 11. Business logic is in `src/lib` folder. Example: zustand store has a method to remove a bookmark, the method should be a wrapper of a function in `src/lib/` that handles the actual logic.
 12. Booleans must be named like `isSomething` or `hasSomething` or `shouldSomething`. Not `something` or `somethingIs`.
-13. No text in the codebase ever uses title case. Example: `Hello World` is wrong. It should be `hello world`.
+13. No text in docs or UI ever uses title case. Example: `Hello World` is wrong. It should be `Hello world`.
 14. Use `size-10` instead of `h-10 w-10` when the width and height are the same.
+15. For components that need to subscribe to data from the editor api (`src/core`, `src/managers`), use the `useEditor` hook. 
+16. In react components: store/manager methods should not be passed as props to sub-components. If a sub-component can access the same methods, it should do so. Example:
+    ```tsx
+    import { useTimelineStore } from "@/stores/timeline-store"; 
+
+    // ❌ Do NOT do this:
+    function ParentComponent() {
+      const { selectedElements } = useTimelineStore();
+
+      return <ChildComponent selectedElements={selectedElements} />;
+    }
+
+    function ChildComponent({ selectedElements }) {}
+
+    // ✅ Do this:
+    function ParentComponent() {
+      return <ChildComponent />;
+    }
+
+    function ChildComponent() {
+      const { selectedElements } = useTimelineStore();
+    }
+  ```
+17. Components render UI. Domain logic (data transformations, business rules, state mutations) lives in hooks, utilities, or managers. Simple interaction logic (gesture detection, modifier keys) can stay in components if not too many lines of code/complex.
 
 # Functions
 

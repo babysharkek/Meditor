@@ -1,5 +1,5 @@
 import { TProject } from "@/types/project";
-import { MediaFile } from "@/types/media";
+import { MediaFile } from "@/types/assets";
 import { IndexedDBAdapter } from "./indexeddb-adapter";
 import { OPFSAdapter } from "./opfs-adapter";
 import {
@@ -180,6 +180,7 @@ class StorageService {
       width: mediaItem.width,
       height: mediaItem.height,
       duration: mediaItem.duration,
+      thumbnailUrl: mediaItem.thumbnailUrl,
       ephemeral: mediaItem.ephemeral,
     };
 
@@ -229,6 +230,7 @@ class StorageService {
       width: metadata.width,
       height: metadata.height,
       duration: metadata.duration,
+      thumbnailUrl: metadata.thumbnailUrl,
       ephemeral: metadata.ephemeral,
     };
   }

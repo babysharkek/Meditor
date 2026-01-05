@@ -36,25 +36,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useProjectStore } from "@/stores/project-store";
+import { EditorCore } from "@/core";
 import { useTimelineStore } from "@/stores/timeline-store";
 import type { TProject } from "@/types/project";
+import { toast } from "sonner";
 
 export default function ProjectsPage() {
-  const {
-    savedProjects,
-    isLoading,
-    isInitialized,
-    deleteProject,
-    createNewProject,
-    getFilteredAndSortedProjects,
-  } = useProjectStore();
-  const [thumbnailCache, setThumbnailCache] = useState<
-    Record<string, string | null>
-  >({});
-  const [_loadingThumbnails, setLoadingThumbnails] = useState<Set<string>>(
-    new Set(),
-  );
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(
     new Set(),
@@ -62,36 +49,21 @@ export default function ProjectsPage() {
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("createdAt-desc");
-  const { getProjectThumbnail } = useTimelineStore();
   const router = useRouter();
-
-  const getProjectThumbnail = useCallback(
-    async (projectId: string): Promise<string | null> => {
-      if (thumbnailCache[projectId] !== undefined) {
-        return thumbnailCache[projectId];
-      }
-
-      setLoadingThumbnails((prev) => new Set(prev).add(projectId));
-
-      try {
-        const thumbnail = await getProjectThumbnail(projectId);
-        setThumbnailCache((prev) => ({ ...prev, [projectId]: thumbnail }));
-        return thumbnail;
-      } finally {
-        setLoadingThumbnails((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(projectId);
-          return newSet;
-        });
-      }
-    },
-    [],
-  );
+  const editor = EditorCore.getInstance();
 
   const handleCreateProject = async () => {
-    const projectId = await createNewProject("New Project");
-    console.log("projectId", projectId);
-    router.push(`/editor/${projectId}`);
+    try {
+      const projectId = await editor.project.createNewProject({
+        name: "New project",
+      });
+      router.push(`/editor/${projectId}`);
+    } catch (error) {
+      toast.error("Failed to create project", {
+        description:
+          error instanceof Error ? error.message : "Please try again",
+      });
+    }
   };
 
   const handleSelectProject = (projectId: string, checked: boolean) => {
@@ -118,15 +90,28 @@ export default function ProjectsPage() {
   };
 
   const handleBulkDelete = async () => {
-    await Promise.all(
-      Array.from(selectedProjects).map((projectId) => deleteProject(projectId)),
-    );
-    setSelectedProjects(new Set());
-    setIsSelectionMode(false);
-    setIsBulkDeleteDialogOpen(false);
+    try {
+      await Promise.all(
+        Array.from(selectedProjects).map((projectId) =>
+          editor.project.deleteProject({ id: projectId }),
+        ),
+      );
+    } catch (error) {
+      toast.error("Failed to delete projects", {
+        description:
+          error instanceof Error ? error.message : "Please try again",
+      });
+    } finally {
+      setSelectedProjects(new Set());
+      setIsSelectionMode(false);
+      setIsBulkDeleteDialogOpen(false);
+    }
   };
 
-  const sortedProjects = getFilteredAndSortedProjects(searchQuery, sortOption);
+  const sortedProjects = editor.project.getFilteredAndSortedProjects({
+    searchQuery,
+    sortOption,
+  });
 
   const allSelected =
     sortedProjects.length > 0 &&
@@ -178,8 +163,8 @@ export default function ProjectsPage() {
               Your Projects
             </h1>
             <p className="text-muted-foreground">
-              {savedProjects.length}{" "}
-              {savedProjects.length === 1 ? "project" : "projects"}
+              {sortedProjects.length}{" "}
+              {sortedProjects.length === 1 ? "project" : "projects"}
               {isSelectionMode && selectedProjects.size > 0 && (
                 <span className="text-primary ml-2">
                   • {selectedProjects.size} selected
@@ -209,9 +194,9 @@ export default function ProjectsPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsSelectionMode(true)}
-                  disabled={savedProjects.length === 0}
+                  disabled={sortedProjects.length === 0}
                 >
-                  Select Projects
+                  Select projects
                 </Button>
                 <CreateButton onClick={handleCreateProject} />
               </div>
@@ -317,7 +302,7 @@ export default function ProjectsPage() {
           </button>
         )}
 
-        {isLoading || !isInitialized ? (
+        {editor.project.isLoading || !editor.project.isInitialized ? (
           <div className="xs:grid-cols-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 8 }, (_, index) => (
               <div
@@ -335,7 +320,7 @@ export default function ProjectsPage() {
               </div>
             ))}
           </div>
-        ) : savedProjects.length === 0 ? (
+        ) : sortedProjects.length === 0 ? (
           <NoProjects onCreateProject={handleCreateProject} />
         ) : sortedProjects.length === 0 ? (
           <NoResults
@@ -351,7 +336,6 @@ export default function ProjectsPage() {
                 isSelectionMode={isSelectionMode}
                 isSelected={selectedProjects.has(project.id)}
                 onSelect={handleSelectProject}
-                getProjectThumbnail={getProjectThumbnail}
               />
             ))}
           </div>
@@ -372,7 +356,6 @@ interface ProjectCardProps {
   isSelectionMode?: boolean;
   isSelected?: boolean;
   onSelect?: (projectId: string, checked: boolean) => void;
-  getProjectThumbnail: (projectId: string) => Promise<string | null>;
 }
 
 function ProjectCard({
@@ -380,27 +363,11 @@ function ProjectCard({
   isSelectionMode = false,
   isSelected = false,
   onSelect,
-  getProjectThumbnail,
 }: ProjectCardProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-  const [dynamicThumbnail, setDynamicThumbnail] = useState<string | null>(null);
-  const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(true);
   const { deleteProject, renameProject, duplicateProject } = useProjectStore();
-
-  useEffect(() => {
-    const loadThumbnail = async () => {
-      setIsLoadingThumbnail(true);
-      try {
-        const thumbnail = await getProjectThumbnail(project.id);
-        setDynamicThumbnail(thumbnail);
-      } finally {
-        setIsLoadingThumbnail(false);
-      }
-    };
-    loadThumbnail();
-  }, [project.id, getProjectThumbnail]);
 
   const formatDate = (date: Date): string => {
     return date.toLocaleDateString("en-US", {
@@ -466,13 +433,9 @@ function ProjectCard({
         )}
 
         <div className="absolute inset-0">
-          {isLoadingThumbnail ? (
-            <div className="bg-muted/50 flex h-full w-full items-center justify-center">
-              <Loader2 className="text-muted-foreground h-12 w-12 animate-spin" />
-            </div>
-          ) : dynamicThumbnail ? (
+          {project.thumbnail ? (
             <Image
-              src={dynamicThumbnail}
+              src={project.thumbnail}
               alt="Project thumbnail"
               fill
               className="object-cover"

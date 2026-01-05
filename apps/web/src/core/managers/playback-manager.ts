@@ -2,12 +2,12 @@ import type { EditorCore } from "@/core";
 import { DEFAULT_FPS } from "@/constants/editor-constants";
 
 export class PlaybackManager {
-  private isPlaying = false;
-  private currentTime = 0;
-  private volume = 1;
-  private muted = false;
-  private previousVolume = 1;
-  private speed = 1.0;
+  public isPlaying = false;
+  public currentTime = 0;
+  public volume = 1;
+  public muted = false;
+  public previousVolume = 1;
+  public speed = 1.0;
   private listeners = new Set<() => void>();
   private playbackTimer: number | null = null;
   private lastUpdate = 0;

@@ -1,8 +1,14 @@
 "use client";
 
 import { Button } from "../ui/button";
-import { ChevronDown, ArrowLeft, SquarePen, Trash } from "lucide-react";
-import { useProjectStore } from "@/stores/project-store";
+import {
+  ChevronDown,
+  ArrowLeft,
+  SquarePen,
+  Trash,
+  Loader2,
+} from "lucide-react";
+import { EditorCore } from "@/core";
 import { KeyboardShortcutsHelp } from "../keyboard-shortcuts-help";
 import { useState } from "react";
 import {
@@ -21,6 +27,7 @@ import { PanelPresetSelector } from "./panel-preset-selector";
 import { ExportButton } from "./export-button";
 import { ThemeToggle } from "../theme-toggle";
 import { SOCIAL_LINKS } from "@/constants/site-constants";
+import { toast } from "sonner";
 
 export function EditorHeader() {
   return (
@@ -39,28 +46,59 @@ export function EditorHeader() {
 }
 
 function ProjectDropdown() {
-  const { activeProject, renameProject, deleteProject } = useProjectStore();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const router = useRouter();
+  const editor = EditorCore.getInstance();
+  const activeProject = editor.project.getActive();
 
-  const handleNameSave = async (newName: string) => {
-    console.log("handleNameSave", newName);
+  const handleExit = async () => {
+    if (isExiting) return;
+    setIsExiting(true);
+
+    try {
+      await editor.project.prepareExit();
+      editor.project.closeProject();
+    } catch (error) {
+      console.error("Failed to prepare project exit:", error);
+    } finally {
+      editor.project.closeProject();
+      router.push("/projects");
+    }
+  };
+
+  const handleSaveProjectName = async (newName: string) => {
     if (activeProject && newName.trim() && newName !== activeProject.name) {
       try {
-        await renameProject(activeProject.id, newName.trim());
-        setIsRenameDialogOpen(false);
+        await editor.project.renameProject({
+          id: activeProject.id,
+          name: newName.trim(),
+        });
       } catch (error) {
-        console.error("Failed to rename project:", error);
+        toast.error("Failed to rename project", {
+          description:
+            error instanceof Error ? error.message : "Please try again",
+        });
+      } finally {
+        setIsRenameDialogOpen(false);
       }
     }
   };
 
-  const handleDelete = () => {
+  const handleDeleteProject = async () => {
     if (activeProject) {
-      deleteProject(activeProject.id);
-      setIsDeleteDialogOpen(false);
-      router.push("/projects");
+      try {
+        await editor.project.deleteProject({ id: activeProject.id });
+        router.push("/projects");
+      } catch (error) {
+        toast.error("Failed to delete project", {
+          description:
+            error instanceof Error ? error.message : "Please try again",
+        });
+      } finally {
+        setIsDeleteDialogOpen(false);
+      }
     }
   };
 
@@ -77,12 +115,18 @@ function ProjectDropdown() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="z-100 w-40">
-          <Link href="/projects">
-            <DropdownMenuItem className="flex items-center gap-1.5">
+          <DropdownMenuItem
+            className="flex items-center gap-1.5"
+            onClick={handleExit}
+            disabled={isExiting}
+          >
+            {isExiting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
               <ArrowLeft className="h-4 w-4" />
-              Projects
-            </DropdownMenuItem>
-          </Link>
+            )}
+            Projects
+          </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center gap-1.5"
             onClick={() => setIsRenameDialogOpen(true)}
@@ -115,13 +159,13 @@ function ProjectDropdown() {
       <RenameProjectDialog
         isOpen={isRenameDialogOpen}
         onOpenChange={setIsRenameDialogOpen}
-        onConfirm={handleNameSave}
+        onConfirm={(newName) => handleSaveProjectName(newName)}
         projectName={activeProject?.name || ""}
       />
       <DeleteProjectDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={handleDelete}
+        onConfirm={handleDeleteProject}
         projectName={activeProject?.name || ""}
       />
     </>

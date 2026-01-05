@@ -4,14 +4,19 @@ import type { TCanvasSize } from "@/types/editor";
 import { storageService } from "@/lib/storage/storage-service";
 import { toast } from "sonner";
 import { generateUUID } from "@/lib/utils";
-import { DEFAULT_FPS, DEFAULT_CANVAS_SIZE, DEFAULT_BLUR_INTENSITY } from "@/constants/editor-constants";
+import {
+  DEFAULT_FPS,
+  DEFAULT_CANVAS_SIZE,
+  DEFAULT_BLUR_INTENSITY,
+} from "@/constants/editor-constants";
 import { buildDefaultScene } from "@/lib/scene-utils";
+import { generateThumbnail } from "@/lib/media-processing-utils";
 
 export class ProjectManager {
-  private activeProject: TProject | null = null;
-  private savedProjects: TProject[] = [];
-  private isLoading = true;
-  private isInitialized = false;
+  public activeProject: TProject | null = null;
+  public savedProjects: TProject[] = [];
+  public isLoading = true;
+  public isInitialized = false;
   private invalidProjectIds = new Set<string>();
   private listeners = new Set<() => void>();
 
@@ -254,6 +259,70 @@ export class ProjectManager {
           error instanceof Error ? error.message : "Please try again",
       });
       throw error;
+    }
+  }
+
+  async updateProjectThumbnail({
+    thumbnail,
+  }: {
+    thumbnail: string;
+  }): Promise<void> {
+    if (!this.activeProject) return;
+
+    const updatedProject = {
+      ...this.activeProject,
+      thumbnail,
+      updatedAt: new Date(),
+    };
+
+    try {
+      await storageService.saveProject({ project: updatedProject });
+      this.activeProject = updatedProject;
+      this.notify();
+      await this.loadAllProjects();
+    } catch (error) {
+      console.error("Failed to update project thumbnail:", error);
+    }
+  }
+
+  async prepareExit(): Promise<void> {
+    if (!this.activeProject) return;
+
+    try {
+      const tracks = this.editor.timeline.getTracks();
+      const mediaFiles = this.editor.media.getMediaFiles();
+
+      const firstElement = tracks
+        .flatMap((track) => track.elements)
+        .sort((a, b) => a.startTime - b.startTime)[0];
+
+      if (
+        firstElement &&
+        (firstElement.type === "video" || firstElement.type === "image")
+      ) {
+        const mediaFile = mediaFiles.find(
+          (item) => item.id === firstElement.mediaId,
+        );
+
+        if (mediaFile) {
+          let thumbnailDataUrl: string | undefined;
+
+          if (mediaFile.type === "video" && mediaFile.file) {
+            thumbnailDataUrl = await generateThumbnail({
+              videoFile: mediaFile.file,
+              timeInSeconds: 1,
+            });
+          } else if (mediaFile.type === "image" && mediaFile.url) {
+            thumbnailDataUrl = mediaFile.thumbnailUrl || mediaFile.url;
+          }
+
+          if (thumbnailDataUrl && !thumbnailDataUrl.startsWith("blob:")) {
+            await this.updateProjectThumbnail({ thumbnail: thumbnailDataUrl });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to generate project thumbnail on exit:", error);
     }
   }
 

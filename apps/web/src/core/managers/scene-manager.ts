@@ -21,8 +21,8 @@ import {
 } from "@/lib/timeline/bookmark-utils";
 
 export class SceneManager {
-  private currentScene: TScene | null = null;
-  private scenes: TScene[] = [];
+  public currentScene: TScene | null = null;
+  public scenes: TScene[] = [];
   private listeners = new Set<() => void>();
 
   constructor(private editor: EditorCore) {}

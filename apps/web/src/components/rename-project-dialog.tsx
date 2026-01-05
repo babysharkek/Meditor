@@ -18,7 +18,7 @@ export function RenameProjectDialog({
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (name: string) => void;
+  onConfirm: (newName: string) => void;
   projectName: string;
 }) {
   const [name, setName] = useState(projectName);

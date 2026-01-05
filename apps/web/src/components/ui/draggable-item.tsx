@@ -12,12 +12,13 @@ import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlaybackStore } from "@/stores/playback-store";
-import { DragData } from "@/types/timeline";
+import { setAssetDragData } from "@/lib/asset-drag";
+import type { AssetDragData } from "@/types/assets";
 
 export interface DraggableMediaItemProps {
   name: string;
   preview: ReactNode;
-  dragData: DragData;
+  dragData: AssetDragData;
   onDragStart?: (e: React.DragEvent) => void;
   onAddToTimeline?: (currentTime: number) => void;
   aspectRatio?: number;
@@ -80,14 +81,9 @@ export function DraggableMediaItem({
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setDragImage(emptyImg, 0, 0);
 
-    // Set drag data
-    e.dataTransfer.setData(
-      "application/x-media-item",
-      JSON.stringify(dragData)
-    );
+    setAssetDragData({ dataTransfer: e.dataTransfer, dragData });
     e.dataTransfer.effectAllowed = "copy";
 
-    // Set initial position and show custom drag preview
     setDragPosition({ x: e.clientX, y: e.clientY });
     setIsDragging(true);
 
@@ -103,13 +99,13 @@ export function DraggableMediaItem({
       {variant === "card" ? (
         <div
           ref={dragRef}
-          className={cn("relative group", containerClassName ?? "w-28 h-28")}
+          className={cn("group relative", containerClassName ?? "h-28 w-28")}
         >
           <div
             className={cn(
-              "flex flex-col gap-1 p-1 h-auto w-full relative cursor-default",
+              "relative flex h-auto w-full cursor-default flex-col gap-1 p-1",
               className,
-              isHighlighted && highlightClassName
+              isHighlighted && highlightClassName,
             )}
           >
             <AspectRatio
@@ -117,7 +113,7 @@ export function DraggableMediaItem({
               className={cn(
                 "bg-panel-accent relative overflow-hidden",
                 rounded && "rounded-md",
-                isDraggable && "[&::-webkit-drag-ghost]:opacity-0" // Webkit-specific ghost hiding
+                isDraggable && "[&::-webkit-drag-ghost]:opacity-0", // Webkit-specific ghost hiding
               )}
               draggable={isDraggable}
               onDragStart={isDraggable ? handleDragStart : undefined}
@@ -133,7 +129,7 @@ export function DraggableMediaItem({
             </AspectRatio>
             {showLabel && (
               <span
-                className="text-[0.7rem] text-muted-foreground truncate w-full text-left"
+                className="text-muted-foreground w-full truncate text-left text-[0.7rem]"
                 aria-label={name}
                 title={name}
               >
@@ -148,24 +144,24 @@ export function DraggableMediaItem({
         <div
           ref={dragRef}
           className={cn(
-            "relative group w-full",
-            isHighlighted && highlightClassName
+            "group relative w-full",
+            isHighlighted && highlightClassName,
           )}
         >
           <div
             className={cn(
-              "h-8 flex items-center gap-3 cursor-default w-full px-1",
+              "flex h-8 w-full cursor-default items-center gap-3 px-1",
               isDraggable && "[&::-webkit-drag-ghost]:opacity-0",
-              className
+              className,
             )}
             draggable={isDraggable}
             onDragStart={isDraggable ? handleDragStart : undefined}
             onDragEnd={isDraggable ? handleDragEnd : undefined}
           >
-            <div className="w-6 h-6 flex-shrink-0 rounded-[0.35rem] overflow-hidden">
+            <div className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-[0.35rem]">
               {preview}
             </div>
-            <span className="text-sm truncate flex-1 w-full">{name}</span>
+            <span className="w-full flex-1 truncate text-sm">{name}</span>
           </div>
         </div>
       )}
@@ -176,7 +172,7 @@ export function DraggableMediaItem({
         typeof document !== "undefined" &&
         createPortal(
           <div
-            className="fixed pointer-events-none z-9999"
+            className="z-9999 pointer-events-none fixed"
             style={{
               left: dragPosition.x - 40, // Center the preview (half of 80px)
               top: dragPosition.y - 40, // Center the preview (half of 80px)
@@ -185,9 +181,9 @@ export function DraggableMediaItem({
             <div className="w-[80px]">
               <AspectRatio
                 ratio={1}
-                className="relative rounded-md overflow-hidden shadow-2xl ring-3 ring-primary"
+                className="ring-3 ring-primary relative overflow-hidden rounded-md shadow-2xl"
               >
-                <div className="w-full h-full [&_img]:w-full [&_img]:h-full [&_img]:object-cover [&_img]:rounded-none">
+                <div className="h-full w-full [&_img]:h-full [&_img]:w-full [&_img]:rounded-none [&_img]:object-cover">
                   {preview}
                 </div>
                 {showPlusOnDrag && (
@@ -199,7 +195,7 @@ export function DraggableMediaItem({
               </AspectRatio>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );
@@ -218,8 +214,8 @@ function PlusButton({
     <Button
       size="icon"
       className={cn(
-        "absolute bottom-2 right-2 size-5 bg-background hover:bg-panel text-foreground",
-        className
+        "bg-background hover:bg-panel text-foreground absolute bottom-2 right-2 size-5",
+        className,
       )}
       onClick={(e) => {
         e.preventDefault();

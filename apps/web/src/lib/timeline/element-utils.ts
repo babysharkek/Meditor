@@ -1,4 +1,26 @@
-import { TimelineElement } from "@/types/timeline";
+import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
+import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
+import {
+  CreateTimelineElement,
+  TextElement,
+  TimelineElement,
+  AudioElement,
+  VideoElement,
+  ImageElement,
+} from "@/types/timeline";
+import type { AssetDragData } from "@/types/assets";
+
+export function isMutableElement(
+  element: TimelineElement,
+): element is AudioElement | VideoElement {
+  return element.type === "audio" || element.type === "video";
+}
+
+export function canBeHidden(
+  element: TimelineElement,
+): element is VideoElement | ImageElement | TextElement {
+  return element.type !== "audio";
+}
 
 export function checkElementOverlaps({
   elements,
@@ -51,4 +73,53 @@ export function resolveElementOverlaps({
   }
 
   return resolvedElements;
+}
+
+export function wouldElementOverlap({
+  elements,
+  startTime,
+  endTime,
+  excludeElementId,
+}: {
+  elements: TimelineElement[];
+  startTime: number;
+  endTime: number;
+  excludeElementId?: string;
+}): boolean {
+  return elements.some((el) => {
+    if (excludeElementId && el.id === excludeElementId) return false;
+    const elEnd = el.startTime + el.duration - el.trimStart - el.trimEnd;
+    return startTime < elEnd && endTime > el.startTime;
+  });
+}
+
+export function buildTextElement({
+  raw,
+  startTime,
+}: {
+  raw: TextElement | AssetDragData;
+  startTime: number;
+}): CreateTimelineElement {
+  const t = raw as Partial<TextElement>;
+
+  return {
+    type: "text",
+    name: t.name ?? DEFAULT_TEXT_ELEMENT.name,
+    content: t.content ?? DEFAULT_TEXT_ELEMENT.content,
+    duration: t.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION,
+    startTime,
+    trimStart: 0,
+    trimEnd: 0,
+    fontSize:
+      typeof t.fontSize === "number"
+        ? t.fontSize
+        : DEFAULT_TEXT_ELEMENT.fontSize,
+    fontFamily: t.fontFamily ?? DEFAULT_TEXT_ELEMENT.fontFamily,
+    color: t.color ?? DEFAULT_TEXT_ELEMENT.color,
+    backgroundColor: t.backgroundColor ?? DEFAULT_TEXT_ELEMENT.backgroundColor,
+    textAlign: t.textAlign ?? DEFAULT_TEXT_ELEMENT.textAlign,
+    fontWeight: t.fontWeight ?? DEFAULT_TEXT_ELEMENT.fontWeight,
+    fontStyle: t.fontStyle ?? DEFAULT_TEXT_ELEMENT.fontStyle,
+    textDecoration: t.textDecoration ?? DEFAULT_TEXT_ELEMENT.textDecoration,
+  };
 }

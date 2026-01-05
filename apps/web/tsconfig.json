@@ -30,6 +30,6 @@
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "src/types/**/*.d.ts"
-, "../../use-frame-cache.ts"  ],
+, "../../use-frame-cache.ts", "src/stores/timeline-store.ts"  ],
   "exclude": ["node_modules"]
 }

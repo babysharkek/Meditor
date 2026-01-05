@@ -1,9 +1,9 @@
 "use client";
 
-import { useFileUpload } from "@opencut/hooks/use-file-upload";
+import { useFileUpload } from "@/hooks/use-file-upload";
 import { processMediaFiles } from "@/lib/media-processing-utils";
 import { useMediaStore } from "@/stores/media-store";
-import { MediaFile } from "@/types/media";
+import { MediaFile } from "@/types/assets";
 import {
   ArrowDown01,
   CloudUpload,

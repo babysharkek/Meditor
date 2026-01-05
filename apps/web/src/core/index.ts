@@ -4,6 +4,7 @@ import { SceneManager } from "./managers/scene-manager";
 import { ProjectManager } from "./managers/project-manager";
 import { MediaManager } from "./managers/media-manager";
 import { RendererManager } from "./managers/renderer-manager";
+import { CommandManager } from "./managers/commands";
 import { buildScene } from "@/services/renderer/scene-builder";
 import { SceneExporter } from "@/services/renderer/scene-exporter";
 import type { ExportOptions } from "@/types/export";
@@ -12,6 +13,7 @@ import { DEFAULT_FPS } from "@/constants/editor-constants";
 export class EditorCore {
   private static instance: EditorCore | null = null;
 
+  public readonly command: CommandManager;
   public readonly playback: PlaybackManager;
   public readonly timeline: TimelineManager;
   public readonly scene: SceneManager;
@@ -20,6 +22,7 @@ export class EditorCore {
   public readonly renderer: RendererManager;
 
   private constructor() {
+    this.command = new CommandManager();
     this.playback = new PlaybackManager(this);
     this.timeline = new TimelineManager(this);
     this.scene = new SceneManager(this);
