@@ -15,11 +15,11 @@ import {
   PropertyGroup,
 } from "../../properties-panel/property-item";
 import {
-  DEFAULT_CANVAS_SIZE,
   FPS_PRESETS,
   BLUR_INTENSITY_PRESETS,
-} from "@/constants/editor-constants";
-import { useProjectStore } from "@/stores/project-store";
+  DEFAULT_BLUR_INTENSITY,
+  DEFAULT_COLOR,
+} from "@/constants/project-constants";
 import { useEditorStore } from "@/stores/editor-store";
 import { dimensionToAspectRatio } from "@/lib/editor-utils";
 import Image from "next/image";
@@ -31,6 +31,8 @@ import { useMemo, memo, useCallback } from "react";
 import { syntaxUIGradients } from "@/data/colors/syntax-ui";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useEditor } from "@/hooks/use-editor";
+import type { TProject } from "@/types/project";
 
 export function SettingsView() {
   return <ProjectSettingsTabs />;
@@ -66,7 +68,7 @@ function ProjectSettingsTabs() {
                 </Button>
               </div>
 
-              {/* Another UI, looks so beautiful I don't wanna remove it */}
+              {/* another ui, looks so beautiful I don't wanna remove it */}
               {/* <div className="flex flex-col justify-center items-center pb-5 sticky bottom-0">
                 <Button className="w-fit h-auto gap-1.5 px-3.5 py-1.5 bg-foreground hover:bg-foreground/85 text-background rounded-full">
                   <span className="text-sm">Custom</span>
@@ -85,17 +87,19 @@ function ProjectSettingsTabs() {
 function getCurrentCanvasSize({
   activeProject,
 }: {
-  activeProject: { canvasSize: { width: number; height: number } } | null;
+  activeProject: TProject;
 }) {
+  const { canvasSize } = activeProject.settings;
+
   return {
-    width: activeProject?.canvasSize.width || DEFAULT_CANVAS_SIZE.width,
-    height: activeProject?.canvasSize.height || DEFAULT_CANVAS_SIZE.height,
+    width: canvasSize.width,
+    height: canvasSize.height,
   };
 }
 
 function ProjectInfoView() {
-  const { activeProject, updateProjectFps, updateCanvasSize } =
-    useProjectStore();
+  const editor = useEditor();
+  const activeProject = editor.project.getActive();
   const { canvasPresets } = useEditorStore();
 
   const findPresetIndexByAspectRatio = ({
@@ -131,15 +135,13 @@ function ProjectInfoView() {
     const index = parseInt(value, 10);
     const preset = canvasPresets[index];
     if (preset) {
-      updateCanvasSize({
-        size: preset,
-      });
+      editor.project.updateSettings({ settings: { canvasSize: preset } });
     }
   };
 
   const handleFpsChange = (value: string) => {
     const fps = parseFloat(value);
-    updateProjectFps(fps);
+    editor.project.updateSettings({ settings: { fps } });
   };
 
   return (
@@ -147,7 +149,7 @@ function ProjectInfoView() {
       <PropertyItem direction="column">
         <PropertyItemLabel>Name</PropertyItemLabel>
         <PropertyItemValue>
-          {activeProject?.name || "Untitled project"}
+          {activeProject.metadata.name}
         </PropertyItemValue>
       </PropertyItem>
 
@@ -182,7 +184,7 @@ function ProjectInfoView() {
         <PropertyItemLabel>Frame rate</PropertyItemLabel>
         <PropertyItemValue>
           <Select
-            value={(activeProject?.fps || 30).toString()}
+            value={activeProject.settings.fps.toString()}
             onValueChange={handleFpsChange}
           >
             <SelectTrigger className="bg-panel-accent">
@@ -249,7 +251,7 @@ const BackgroundPreviews = memo(
     backgrounds: string[];
     currentBackgroundColor: string;
     isColorBackground: boolean;
-    handleColorSelect: (bg: string) => void;
+    handleColorSelect: ({ bg }: { bg: string }) => void;
     useBackgroundColor?: boolean;
   }) => {
     return useMemo(
@@ -273,7 +275,7 @@ const BackgroundPreviews = memo(
                     backgroundRepeat: "no-repeat",
                   }
             }
-            onClick={() => handleColorSelect(bg)}
+            onClick={() => handleColorSelect({ bg })}
           />
         )),
       [
@@ -290,28 +292,40 @@ const BackgroundPreviews = memo(
 BackgroundPreviews.displayName = "BackgroundPreviews";
 
 function BackgroundView() {
-  const { activeProject, updateBackgroundType } = useProjectStore();
-
+  const editor = useEditor();
+  const activeProject = editor.project.getActive();
   const blurLevels = useMemo(() => BLUR_INTENSITY_PRESETS, []);
 
   const handleBlurSelect = useCallback(
     async ({ blurIntensity }: { blurIntensity: number }) => {
-      await updateBackgroundType("blur", { blurIntensity });
+      await editor.project.updateSettings({
+        settings: { background: { type: "blur", blurIntensity } },
+      });
     },
-    [updateBackgroundType],
+    [editor.project],
   );
 
   const handleColorSelect = useCallback(
-    async (color: string) => {
-      await updateBackgroundType("color", { backgroundColor: color });
+    async ({ color }: { color: string }) => {
+      await editor.project.updateSettings({
+        settings: { background: { type: "color", color } },
+      });
     },
-    [updateBackgroundType],
+    [editor.project],
   );
 
-  const currentBlurIntensity = activeProject?.blurIntensity || 8;
-  const isBlurBackground = activeProject?.backgroundType === "blur";
-  const currentBackgroundColor = activeProject?.backgroundColor || "#000000";
-  const isColorBackground = activeProject?.backgroundType === "color";
+  const currentBlurIntensity =
+    activeProject.settings.background.type === "blur"
+      ? activeProject.settings.background.blurIntensity
+      : DEFAULT_BLUR_INTENSITY;
+
+  const currentBackgroundColor =
+    activeProject.settings.background.type === "color"
+      ? activeProject.settings.background.color
+      : DEFAULT_COLOR;
+
+  const isBlurBackground = activeProject.settings.background.type === "blur";
+  const isColorBackground = activeProject.settings.background.type === "color";
 
   const blurPreviews = useMemo(
     () =>
@@ -341,7 +355,7 @@ function BackgroundView() {
             backgrounds={colors}
             currentBackgroundColor={currentBackgroundColor}
             isColorBackground={isColorBackground}
-            handleColorSelect={handleColorSelect}
+            handleColorSelect={({ bg }) => handleColorSelect({ color: bg })}
             useBackgroundColor={true}
           />
         </div>
@@ -353,7 +367,7 @@ function BackgroundView() {
             backgrounds={patternCraftGradients}
             currentBackgroundColor={currentBackgroundColor}
             isColorBackground={isColorBackground}
-            handleColorSelect={handleColorSelect}
+            handleColorSelect={({ bg }) => handleColorSelect({ color: bg })}
           />
         </div>
       </PropertyGroup>
@@ -364,7 +378,7 @@ function BackgroundView() {
             backgrounds={syntaxUIGradients}
             currentBackgroundColor={currentBackgroundColor}
             isColorBackground={isColorBackground}
-            handleColorSelect={handleColorSelect}
+            handleColorSelect={({ bg }) => handleColorSelect({ color: bg })}
           />
         </div>
       </PropertyGroup>

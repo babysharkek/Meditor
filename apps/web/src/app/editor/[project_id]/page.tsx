@@ -14,22 +14,21 @@ import { EditorHeader } from "@/components/editor/editor-header";
 import { usePanelStore } from "@/stores/panel-store";
 import { EditorProvider } from "@/components/providers/editor-provider";
 import { Onboarding } from "@/components/editor/onboarding";
-import { useProjectInitialization } from "@/hooks/use-project-initialization";
+import { MigrationDialog } from "@/components/editor/migration-dialog";
 
 export default function Editor() {
   const params = useParams();
   const projectId = params.project_id as string;
 
-  useProjectInitialization({ projectId });
-
   return (
-    <EditorProvider>
+    <EditorProvider projectId={projectId}>
       <div className="bg-background flex h-screen w-screen flex-col overflow-hidden">
         <EditorHeader />
         <div className="min-h-0 min-w-0 flex-1">
           <EditorLayout />
         </div>
         <Onboarding />
+        <MigrationDialog />
       </div>
     </EditorProvider>
   );
@@ -48,7 +47,7 @@ function EditorLayout({}: {}) {
     setMainContent,
     setTimeline,
     propertiesPanel,
-    setPropertiesPanel, 
+    setPropertiesPanel,
   } = usePanelStore();
 
   return activePreset === "media" ? (

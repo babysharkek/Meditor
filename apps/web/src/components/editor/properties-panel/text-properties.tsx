@@ -2,7 +2,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { FontPicker } from "@/components/ui/font-picker";
 import { FontFamily } from "@/constants/font-constants";
 import { TextElement } from "@/types/timeline";
-import { useTimelineStore } from "@/stores/timeline-store";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,13 +18,15 @@ import {
   PropertyItemValue,
 } from "./property-item";
 import { ColorPicker } from "@/components/ui/color-picker";
-import { cn, uppercase } from "@/lib/utils";
+import { cn, capitalizeFirstLetter, clamp } from "@/lib/utils";
 import { Grid2x2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useEditor } from "@/hooks/use-editor";
+import { DEFAULT_COLOR } from "@/constants/project-constants";
 
 export function TextProperties({
   element,
@@ -34,88 +35,94 @@ export function TextProperties({
   element: TextElement;
   trackId: string;
 }) {
-  const { updateTextElement } = useTimelineStore();
+  const editor = useEditor();
   const { activeTab, setActiveTab } = useTextPropertiesStore();
   const containerRef = useRef<HTMLDivElement>(null);
-  // Local state for input values to allow temporary empty/invalid states
   const [fontSizeInput, setFontSizeInput] = useState(
-    element.fontSize.toString()
+    element.fontSize.toString(),
   );
   const [opacityInput, setOpacityInput] = useState(
-    Math.round(element.opacity * 100).toString()
+    Math.round(element.opacity * 100).toString(),
   );
 
-  // Track the last selected color for toggling
-  const lastSelectedColor = useRef("#000000");
+  const lastSelectedColor = useRef(DEFAULT_COLOR);
 
-  const parseAndValidateNumber = (
-    value: string,
-    min: number,
-    max: number,
-    fallback: number
-  ): number => {
-    const parsed = parseInt(value, 10);
-    if (isNaN(parsed)) return fallback;
-    return Math.max(min, Math.min(max, parsed));
-  };
-
-  const handleFontSizeChange = (value: string) => {
+  const handleFontSizeChange = ({ value }: { value: string }) => {
     setFontSizeInput(value);
 
     if (value.trim() !== "") {
-      const fontSize = parseAndValidateNumber(value, 8, 300, element.fontSize);
-      updateTextElement(trackId, element.id, { fontSize });
+      const parsed = parseInt(value, 10);
+      const fontSize = isNaN(parsed)
+        ? element.fontSize
+        : clamp({ value: parsed, min: 8, max: 300 });
+      editor.timeline.updateTextElement({
+        trackId,
+        elementId: element.id,
+        updates: { fontSize },
+      });
     }
   };
 
   const handleFontSizeBlur = () => {
-    const fontSize = parseAndValidateNumber(
-      fontSizeInput,
-      8,
-      300,
-      element.fontSize
-    );
+    const parsed = parseInt(fontSizeInput, 10);
+    const fontSize = isNaN(parsed)
+      ? element.fontSize
+      : clamp({ value: parsed, min: 8, max: 300 });
     setFontSizeInput(fontSize.toString());
-    updateTextElement(trackId, element.id, { fontSize });
+    editor.timeline.updateTextElement({
+      trackId,
+      elementId: element.id,
+      updates: { fontSize },
+    });
   };
 
-  const handleOpacityChange = (value: string) => {
+  const handleOpacityChange = ({ value }: { value: string }) => {
     setOpacityInput(value);
 
     if (value.trim() !== "") {
-      const opacityPercent = parseAndValidateNumber(
-        value,
-        0,
-        100,
-        Math.round(element.opacity * 100)
-      );
-      updateTextElement(trackId, element.id, { opacity: opacityPercent / 100 });
+      const parsed = parseInt(value, 10);
+      const opacityPercent = isNaN(parsed)
+        ? Math.round(element.opacity * 100)
+        : clamp({ value: parsed, min: 0, max: 100 });
+      editor.timeline.updateTextElement({
+        trackId,
+        elementId: element.id,
+        updates: { opacity: opacityPercent / 100 },
+      });
     }
   };
 
   const handleOpacityBlur = () => {
-    const opacityPercent = parseAndValidateNumber(
-      opacityInput,
-      0,
-      100,
-      Math.round(element.opacity * 100)
-    );
+    const parsed = parseInt(opacityInput, 10);
+    const opacityPercent = isNaN(parsed)
+      ? Math.round(element.opacity * 100)
+      : clamp({ value: parsed, min: 0, max: 100 });
     setOpacityInput(opacityPercent.toString());
-    updateTextElement(trackId, element.id, { opacity: opacityPercent / 100 });
+    editor.timeline.updateTextElement({
+      trackId,
+      elementId: element.id,
+      updates: { opacity: opacityPercent / 100 },
+    });
   };
 
-  // Update last selected color when a new color is picked
-  const handleColorChange = (color: string) => {
+  const handleColorChange = ({ color }: { color: string }) => {
     if (color !== "transparent") {
       lastSelectedColor.current = color;
     }
-    updateTextElement(trackId, element.id, { backgroundColor: color });
+    editor.timeline.updateTextElement({
+      trackId,
+      elementId: element.id,
+      updates: { backgroundColor: color },
+    });
   };
 
-  // Toggle between transparent and last selected color
-  const handleTransparentToggle = (isTransparent: boolean) => {
+  const handleTransparentToggle = ({ isTransparent }: { isTransparent: boolean }) => {
     const newColor = isTransparent ? "transparent" : lastSelectedColor.current;
-    updateTextElement(trackId, element.id, { backgroundColor: newColor });
+    editor.timeline.updateTextElement({
+      trackId,
+      elementId: element.id,
+      updates: { backgroundColor: newColor },
+    });
   };
 
   return (
@@ -137,10 +144,12 @@ export function TextProperties({
               <Textarea
                 placeholder="Name"
                 defaultValue={element.content}
-                className="min-h-18 resize-none bg-panel-accent"
+                className="min-h-18 bg-panel-accent resize-none"
                 onChange={(e) =>
-                  updateTextElement(trackId, element.id, {
-                    content: e.target.value,
+                  editor.timeline.updateTextElement({
+                    trackId,
+                    elementId: element.id,
+                    updates: { content: e.target.value },
                   })
                 }
               />
@@ -150,8 +159,10 @@ export function TextProperties({
                   <FontPicker
                     defaultValue={element.fontFamily}
                     onValueChange={(value: FontFamily) =>
-                      updateTextElement(trackId, element.id, {
-                        fontFamily: value,
+                      editor.timeline.updateTextElement({
+                        trackId,
+                        elementId: element.id,
+                        updates: { fontFamily: value },
                       })
                     }
                   />
@@ -167,9 +178,13 @@ export function TextProperties({
                       }
                       size="sm"
                       onClick={() =>
-                        updateTextElement(trackId, element.id, {
-                          fontWeight:
-                            element.fontWeight === "bold" ? "normal" : "bold",
+                        editor.timeline.updateTextElement({
+                          trackId,
+                          elementId: element.id,
+                          updates: {
+                            fontWeight:
+                              element.fontWeight === "bold" ? "normal" : "bold",
+                          },
                         })
                       }
                       className="h-8 px-3 font-bold"
@@ -182,11 +197,15 @@ export function TextProperties({
                       }
                       size="sm"
                       onClick={() =>
-                        updateTextElement(trackId, element.id, {
-                          fontStyle:
-                            element.fontStyle === "italic"
-                              ? "normal"
-                              : "italic",
+                        editor.timeline.updateTextElement({
+                          trackId,
+                          elementId: element.id,
+                          updates: {
+                            fontStyle:
+                              element.fontStyle === "italic"
+                                ? "normal"
+                                : "italic",
+                          },
                         })
                       }
                       className="h-8 px-3 italic"
@@ -201,11 +220,15 @@ export function TextProperties({
                       }
                       size="sm"
                       onClick={() =>
-                        updateTextElement(trackId, element.id, {
-                          textDecoration:
-                            element.textDecoration === "underline"
-                              ? "none"
-                              : "underline",
+                        editor.timeline.updateTextElement({
+                          trackId,
+                          elementId: element.id,
+                          updates: {
+                            textDecoration:
+                              element.textDecoration === "underline"
+                                ? "none"
+                                : "underline",
+                          },
                         })
                       }
                       className="h-8 px-3 underline"
@@ -220,11 +243,15 @@ export function TextProperties({
                       }
                       size="sm"
                       onClick={() =>
-                        updateTextElement(trackId, element.id, {
-                          textDecoration:
-                            element.textDecoration === "line-through"
-                              ? "none"
-                              : "line-through",
+                        editor.timeline.updateTextElement({
+                          trackId,
+                          elementId: element.id,
+                          updates: {
+                            textDecoration:
+                              element.textDecoration === "line-through"
+                                ? "none"
+                                : "line-through",
+                          },
                         })
                       }
                       className="h-8 px-3 line-through"
@@ -244,8 +271,10 @@ export function TextProperties({
                       max={300}
                       step={1}
                       onValueChange={([value]) => {
-                        updateTextElement(trackId, element.id, {
-                          fontSize: value,
+                        editor.timeline.updateTextElement({
+                          trackId,
+                          elementId: element.id,
+                          updates: { fontSize: value },
                         });
                         setFontSizeInput(value.toString());
                       }}
@@ -256,12 +285,9 @@ export function TextProperties({
                       value={fontSizeInput}
                       min={8}
                       max={300}
-                      onChange={(e) => handleFontSizeChange(e.target.value)}
+                      onChange={(e) => handleFontSizeChange({ value: e.target.value })}
                       onBlur={handleFontSizeBlur}
-                      className="w-12 px-2 !text-xs h-7 rounded-sm text-center bg-panel-accent
-               [appearance:textfield]
-               [&::-webkit-outer-spin-button]:appearance-none
-               [&::-webkit-inner-spin-button]:appearance-none"
+                      className="bg-panel-accent h-7 w-12 rounded-sm px-2 text-center !text-xs [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </div>
                 </PropertyItemValue>
@@ -270,12 +296,14 @@ export function TextProperties({
                 <PropertyItemLabel>Color</PropertyItemLabel>
                 <PropertyItemValue>
                   <ColorPicker
-                    value={uppercase(
+                    value={capitalizeFirstLetter({ string: 
                       (element.color || "FFFFFF").replace("#", "")
-                    )}
+                    })}
                     onChange={(color) => {
-                      updateTextElement(trackId, element.id, {
-                        color: `#${color}`,
+                      editor.timeline.updateTextElement({
+                        trackId,
+                        elementId: element.id,
+                        updates: { color: `#${color}` },
                       });
                     }}
                     containerRef={containerRef}
@@ -292,8 +320,10 @@ export function TextProperties({
                       max={100}
                       step={1}
                       onValueChange={([value]) => {
-                        updateTextElement(trackId, element.id, {
-                          opacity: value / 100,
+                        editor.timeline.updateTextElement({
+                          trackId,
+                          elementId: element.id,
+                          updates: { opacity: value / 100 },
                         });
                         setOpacityInput(value.toString());
                       }}
@@ -304,12 +334,9 @@ export function TextProperties({
                       value={opacityInput}
                       min={0}
                       max={100}
-                      onChange={(e) => handleOpacityChange(e.target.value)}
+                      onChange={(e) => handleOpacityChange({ value: e.target.value })}
                       onBlur={handleOpacityBlur}
-                      className="w-12 !text-xs h-7 rounded-sm text-center bg-panel-accent
-               [appearance:textfield]
-               [&::-webkit-outer-spin-button]:appearance-none
-               [&::-webkit-inner-spin-button]:appearance-none"
+                      className="bg-panel-accent h-7 w-12 rounded-sm text-center !text-xs [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </div>
                 </PropertyItemValue>
@@ -319,19 +346,20 @@ export function TextProperties({
                 <PropertyItemValue>
                   <div className="flex items-center gap-2">
                     <ColorPicker
-                      value={uppercase(
-                        element.backgroundColor === "transparent"
-                          ? lastSelectedColor.current.replace("#", "")
-                          : (element.backgroundColor || "#000000").replace(
-                              "#",
-                              ""
-                            )
-                      )}
-                      onChange={(color) => handleColorChange(`#${color}`)}
+                      value={capitalizeFirstLetter({
+                        string:
+                          element.backgroundColor === "transparent"
+                            ? lastSelectedColor.current.replace("#", "")
+                            : (element.backgroundColor).replace(
+                                "#",
+                                "",
+                              ),
+                      })}
+                      onChange={(color) => handleColorChange({ color: `#${color}` })}
                       containerRef={containerRef}
                       className={
                         element.backgroundColor === "transparent"
-                          ? "opacity-50 pointer-events-none"
+                          ? "pointer-events-none opacity-50"
                           : ""
                       }
                     />
@@ -342,17 +370,17 @@ export function TextProperties({
                           variant="outline"
                           size="icon"
                           onClick={() =>
-                            handleTransparentToggle(
-                              element.backgroundColor !== "transparent"
-                            )
+                            handleTransparentToggle({
+                              isTransparent: element.backgroundColor !== "transparent",
+                            })
                           }
-                          className="size-9 rounded-full bg-panel-accent p-0 overflow-hidden"
+                          className="bg-panel-accent size-9 overflow-hidden rounded-full p-0"
                         >
                           <Grid2x2
                             className={cn(
                               "text-foreground",
                               element.backgroundColor === "transparent" &&
-                                "text-primary"
+                                "text-primary",
                             )}
                           />
                         </Button>

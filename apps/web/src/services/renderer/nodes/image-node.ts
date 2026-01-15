@@ -36,7 +36,7 @@ export class ImageNode extends BaseNode<ImageNodeParams> {
     const imageTime = this.getImageTime(time);
     return (
       imageTime >= this.params.trimStart - IMAGE_EPSILON &&
-      imageTime < this.params.duration - this.params.trimEnd
+      imageTime < this.params.trimStart + this.params.duration
     );
   }
 

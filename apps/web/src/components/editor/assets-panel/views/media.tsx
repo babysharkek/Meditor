@@ -1,9 +1,6 @@
 "use client";
 
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { processMediaFiles } from "@/lib/media-processing-utils";
-import { useMediaStore } from "@/stores/media-store";
-import { MediaFile } from "@/types/assets";
+import { useState, useMemo } from "react";
 import {
   ArrowDown01,
   CloudUpload,
@@ -14,9 +11,16 @@ import {
   Music,
   Video,
 } from "lucide-react";
-import { useState, useMemo } from "react";
-import { useRevealItem } from "@/hooks/use-reveal-item";
 import { toast } from "sonner";
+import { useEditor } from "@/hooks/use-editor";
+import { useFileUpload } from "@/hooks/use-file-upload";
+import { useRevealItem } from "@/hooks/use-reveal-item";
+import { processMediaAssets } from "@/lib/media-processing-utils";
+import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
+import { canElementGoOnTrack } from "@/lib/timeline/track-utils";
+import { wouldElementOverlap } from "@/lib/timeline/element-utils";
+import type { MediaAsset } from "@/types/assets";
+import type { CreateTimelineElement, TrackType } from "@/types/timeline";
 import { Button } from "@/components/ui/button";
 import { MediaDragOverlay } from "@/components/editor/assets-panel/drag-overlay";
 import {
@@ -31,9 +35,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DraggableMediaItem } from "@/components/ui/draggable-item";
-import { useProjectStore } from "@/stores/project-store";
-import { useTimelineStore } from "@/stores/timeline-store";
+import { DraggableItem } from "@/components/ui/draggable-item";
 import {
   Tooltip,
   TooltipContent,
@@ -41,50 +43,28 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { usePanelStore } from "@/stores/panel-store";
-import { useAssetsPanelStore } from "../../../../stores/assets-panel-store";
-
-function MediaItemWithContextMenu({
-  item,
-  children,
-  onRemove,
-}: {
-  item: MediaFile;
-  children: React.ReactNode;
-  onRemove: (e: React.MouseEvent, id: string) => Promise<void>;
-}) {
-  return (
-    <ContextMenu>
-      <ContextMenuTrigger>{children}</ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem>Export clips</ContextMenuItem>
-        <ContextMenuItem
-          variant="destructive"
-          onClick={(e) => onRemove(e, item.id)}
-        >
-          Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
-  );
-}
+import { useAssetsPanelStore } from "@/stores/assets-panel-store";
 
 export function MediaView() {
-  const { mediaFiles, addMediaFile, removeMediaFile } = useMediaStore();
-  const { activeProject } = useProjectStore();
+  const editor = useEditor();
+  const mediaFiles = editor.media.getAssets();
+  const activeProject = editor.project.getActive();
+
   const { mediaViewMode, setMediaViewMode } = usePanelStore();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [sortBy, setSortBy] = useState<"name" | "type" | "duration" | "size">(
-    "name",
-  );
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const { highlightMediaId, clearHighlight } = useAssetsPanelStore();
   const { highlightedId, registerElement } = useRevealItem(
     highlightMediaId,
     clearHighlight,
   );
 
-  const processFiles = async (files: FileList | File[]) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [sortBy, setSortBy] = useState<"name" | "type" | "duration" | "size">(
+    "name",
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const processFiles = async ({ files }: { files: FileList }) => {
     if (!files || files.length === 0) return;
     if (!activeProject) {
       toast.error("No active project");
@@ -94,12 +74,16 @@ export function MediaView() {
     setIsProcessing(true);
     setProgress(0);
     try {
-      const processedItems = await processMediaFiles({
-        files: files as FileList,
-        onProgress: (p: { progress: number }) => setProgress(p.progress),
+      const processedAssets = await processMediaAssets({
+        files,
+        onProgress: (progress: { progress: number }) =>
+          setProgress(progress.progress),
       });
-      for (const item of processedItems) {
-        await addMediaFile(activeProject.id, item);
+      for (const asset of processedAssets) {
+        await editor.media.addMediaAsset({
+          projectId: activeProject.metadata.id,
+          asset,
+        });
       }
     } catch (error) {
       console.error("Error processing files:", error);
@@ -114,32 +98,76 @@ export function MediaView() {
     useFileUpload({
       accept: "image/*,video/*,audio/*",
       multiple: true,
-      onFilesSelected: processFiles,
+      onFilesSelected: (files) => processFiles({ files }),
     });
 
-  const handleRemove = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
+  const handleRemove = async ({
+    event,
+    id,
+  }: {
+    event: React.MouseEvent;
+    id: string;
+  }) => {
+    event.stopPropagation();
 
     if (!activeProject) {
       toast.error("No active project");
       return;
     }
 
-    await removeMediaFile(activeProject.id, id);
+    await editor.media.removeMediaAsset({
+      projectId: activeProject.metadata.id,
+      id,
+    });
   };
 
-  const formatDuration = (duration: number) => {
-    // Format seconds as mm:ss
-    const min = Math.floor(duration / 60);
-    const sec = Math.floor(duration % 60);
-    return `${min}:${sec.toString().padStart(2, "0")}`;
+  const addElementAtTime = ({
+    asset,
+    startTime,
+  }: {
+    asset: MediaAsset;
+    startTime: number;
+  }): boolean => {
+    const element = createElementFromMedia({ asset, startTime });
+    const trackType = getTrackTypeForMedia({ mediaType: asset.type });
+    const tracks = editor.timeline.getTracks();
+    const duration =
+      asset.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
+
+    const existingTrack = tracks.find((track) => {
+      if (
+        !canElementGoOnTrack({
+          elementType: element.type,
+          trackType: track.type,
+        })
+      ) {
+        return false;
+      }
+      return !wouldElementOverlap({
+        elements: track.elements,
+        startTime,
+        endTime: startTime + duration,
+      });
+    });
+
+    if (existingTrack) {
+      editor.timeline.addElementToTrack({
+        trackId: existingTrack.id,
+        element,
+      });
+      return true;
+    }
+
+    const newTrackId = editor.timeline.addTrack({ type: trackType });
+    editor.timeline.addElementToTrack({
+      trackId: newTrackId,
+      element,
+    });
+    return true;
   };
 
   const filteredMediaItems = useMemo(() => {
-    let filtered = mediaFiles.filter((item) => {
-      if (item.ephemeral) return false;
-      return true;
-    });
+    const filtered = mediaFiles.filter((item) => !item.ephemeral);
 
     filtered.sort((a, b) => {
       let valueA: string | number;
@@ -178,84 +206,16 @@ export function MediaView() {
     const previews = new Map<string, React.ReactNode>();
 
     filteredMediaItems.forEach((item) => {
-      let preview: React.ReactNode;
-
-      if (item.type === "image") {
-        preview = (
-          <div className="flex h-full w-full items-center justify-center">
-            <img
-              src={item.url}
-              alt={item.name}
-              className="max-h-full w-full object-cover"
-              loading="lazy"
-            />
-          </div>
-        );
-      } else if (item.type === "video") {
-        if (item.thumbnailUrl) {
-          preview = (
-            <div className="relative h-full w-full">
-              <img
-                src={item.thumbnailUrl}
-                alt={item.name}
-                className="h-full w-full rounded object-cover"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 flex items-center justify-center rounded bg-black/20">
-                <Video className="h-6 w-6 text-white drop-shadow-md" />
-              </div>
-              {item.duration && (
-                <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 text-xs text-white">
-                  {formatDuration(item.duration)}
-                </div>
-              )}
-            </div>
-          );
-        } else {
-          preview = (
-            <div className="bg-muted/30 text-muted-foreground flex h-full w-full flex-col items-center justify-center rounded">
-              <Video className="mb-1 h-6 w-6" />
-              <span className="text-xs">Video</span>
-              {item.duration && (
-                <span className="text-xs opacity-70">
-                  {formatDuration(item.duration)}
-                </span>
-              )}
-            </div>
-          );
-        }
-      } else if (item.type === "audio") {
-        preview = (
-          <div className="bg-linear-to-br text-muted-foreground flex h-full w-full flex-col items-center justify-center rounded border border-green-500/20 from-green-500/20 to-emerald-500/20">
-            <Music className="mb-1 h-6 w-6" />
-            <span className="text-xs">Audio</span>
-            {item.duration && (
-              <span className="text-xs opacity-70">
-                {formatDuration(item.duration)}
-              </span>
-            )}
-          </div>
-        );
-      } else {
-        preview = (
-          <div className="bg-muted/30 text-muted-foreground flex h-full w-full flex-col items-center justify-center rounded">
-            <Image className="h-6 w-6" />
-            <span className="mt-1 text-xs">Unknown</span>
-          </div>
-        );
-      }
-
-      previews.set(item.id, preview);
+      previews.set(item.id, <MediaPreview item={item} />);
     });
 
     return previews;
   }, [filteredMediaItems]);
 
-  const renderPreview = (item: MediaFile) => previewComponents.get(item.id);
+  const renderPreview = (item: MediaAsset) => previewComponents.get(item.id);
 
   return (
     <>
-      {/* native file picker, visually hidden */}
       <input {...fileInputProps} />
 
       <div
@@ -265,16 +225,15 @@ export function MediaView() {
         <div className="bg-panel p-3 pb-2">
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              size="lg"
+              variant="foreground"
               onClick={openFilePicker}
               disabled={isProcessing}
-              className="!bg-background h-9 flex-1 items-center justify-center px-4 opacity-100 transition-opacity hover:opacity-75"
+              className="w-full"
             >
               {isProcessing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
               ) : (
-                <CloudUpload className="h-4 w-4" />
+                <CloudUpload className="size-4" />
               )}
               <span>Upload</span>
             </Button>
@@ -328,70 +287,70 @@ export function MediaView() {
                         </DropdownMenuTrigger>
                       </TooltipTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            if (sortBy === "name") {
+                        <SortMenuItem
+                          label="Name"
+                          sortKey="name"
+                          currentSortBy={sortBy}
+                          currentSortOrder={sortOrder}
+                          onSort={({ key }) => {
+                            if (sortBy === key) {
                               setSortOrder(
                                 sortOrder === "asc" ? "desc" : "asc",
                               );
                             } else {
-                              setSortBy("name");
+                              setSortBy(key);
                               setSortOrder("asc");
                             }
                           }}
-                        >
-                          Name{" "}
-                          {sortBy === "name" &&
-                            (sortOrder === "asc" ? "↑" : "↓")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            if (sortBy === "type") {
+                        />
+                        <SortMenuItem
+                          label="Type"
+                          sortKey="type"
+                          currentSortBy={sortBy}
+                          currentSortOrder={sortOrder}
+                          onSort={({ key }) => {
+                            if (sortBy === key) {
                               setSortOrder(
                                 sortOrder === "asc" ? "desc" : "asc",
                               );
                             } else {
-                              setSortBy("type");
+                              setSortBy(key);
                               setSortOrder("asc");
                             }
                           }}
-                        >
-                          Type{" "}
-                          {sortBy === "type" &&
-                            (sortOrder === "asc" ? "↑" : "↓")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            if (sortBy === "duration") {
+                        />
+                        <SortMenuItem
+                          label="Duration"
+                          sortKey="duration"
+                          currentSortBy={sortBy}
+                          currentSortOrder={sortOrder}
+                          onSort={({ key }) => {
+                            if (sortBy === key) {
                               setSortOrder(
                                 sortOrder === "asc" ? "desc" : "asc",
                               );
                             } else {
-                              setSortBy("duration");
+                              setSortBy(key);
                               setSortOrder("asc");
                             }
                           }}
-                        >
-                          Duration{" "}
-                          {sortBy === "duration" &&
-                            (sortOrder === "asc" ? "↑" : "↓")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            if (sortBy === "size") {
+                        />
+                        <SortMenuItem
+                          label="File size"
+                          sortKey="size"
+                          currentSortBy={sortBy}
+                          currentSortOrder={sortOrder}
+                          onSort={({ key }) => {
+                            if (sortBy === key) {
                               setSortOrder(
                                 sortOrder === "asc" ? "desc" : "asc",
                               );
                             } else {
-                              setSortBy("size");
+                              setSortBy(key);
                               setSortOrder("asc");
                             }
                           }}
-                        >
-                          File Size{" "}
-                          {sortBy === "size" &&
-                            (sortOrder === "asc" ? "↑" : "↓")}
-                        </DropdownMenuItem>
+                        />
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <TooltipContent>
@@ -419,17 +378,19 @@ export function MediaView() {
               />
             ) : mediaViewMode === "grid" ? (
               <GridView
-                filteredMediaItems={filteredMediaItems}
+                items={filteredMediaItems}
                 renderPreview={renderPreview}
-                handleRemove={handleRemove}
+                onRemove={handleRemove}
+                onAddToTimeline={addElementAtTime}
                 highlightedId={highlightedId}
                 registerElement={registerElement}
               />
             ) : (
               <ListView
-                filteredMediaItems={filteredMediaItems}
+                items={filteredMediaItems}
                 renderPreview={renderPreview}
-                handleRemove={handleRemove}
+                onRemove={handleRemove}
+                onAddToTimeline={addElementAtTime}
                 highlightedId={highlightedId}
                 registerElement={registerElement}
               />
@@ -441,21 +402,52 @@ export function MediaView() {
   );
 }
 
+function MediaItemWithContextMenu({
+  item,
+  children,
+  onRemove,
+}: {
+  item: MediaAsset;
+  children: React.ReactNode;
+  onRemove: ({ event, id }: { event: React.MouseEvent; id: string }) => void;
+}) {
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>{children}</ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem>Export clips</ContextMenuItem>
+        <ContextMenuItem
+          variant="destructive"
+          onClick={(event) => onRemove({ event, id: item.id })}
+        >
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}
+
 function GridView({
-  filteredMediaItems,
+  items,
   renderPreview,
-  handleRemove,
+  onRemove,
+  onAddToTimeline,
   highlightedId,
   registerElement,
 }: {
-  filteredMediaItems: MediaFile[];
-  renderPreview: (item: MediaFile) => React.ReactNode;
-  handleRemove: (e: React.MouseEvent, id: string) => Promise<void>;
+  items: MediaAsset[];
+  renderPreview: (item: MediaAsset) => React.ReactNode;
+  onRemove: ({ event, id }: { event: React.MouseEvent; id: string }) => void;
+  onAddToTimeline: ({
+    asset,
+    startTime,
+  }: {
+    asset: MediaAsset;
+    startTime: number;
+  }) => boolean;
   highlightedId: string | null;
   registerElement: (id: string, element: HTMLElement | null) => void;
 }) {
-  const { addElementAtTime } = useTimelineStore();
-
   return (
     <div
       className="grid gap-2"
@@ -463,22 +455,23 @@ function GridView({
         gridTemplateColumns: "repeat(auto-fill, 160px)",
       }}
     >
-      {filteredMediaItems.map((item) => (
+      {items.map((item) => (
         <div key={item.id} ref={(el) => registerElement(item.id, el)}>
-          <MediaItemWithContextMenu item={item} onRemove={handleRemove}>
-            <DraggableMediaItem
+          <MediaItemWithContextMenu item={item} onRemove={onRemove}>
+            <DraggableItem
               name={item.name}
               preview={renderPreview(item)}
               dragData={{
                 id: item.id,
-                type: item.type,
+                type: "media",
+                mediaType: item.type,
                 name: item.name,
               }}
-              showPlusOnDrag={false}
-              onAddToTimeline={(currentTime) =>
-                addElementAtTime(item, currentTime)
+              shouldShowPlusOnDrag={false}
+              onAddToTimeline={({ currentTime }) =>
+                onAddToTimeline({ asset: item, startTime: currentTime })
               }
-              rounded={false}
+              isRounded={false}
               variant="card"
               isHighlighted={highlightedId === item.id}
             />
@@ -490,36 +483,43 @@ function GridView({
 }
 
 function ListView({
-  filteredMediaItems,
+  items,
   renderPreview,
-  handleRemove,
+  onRemove,
+  onAddToTimeline,
   highlightedId,
   registerElement,
 }: {
-  filteredMediaItems: MediaFile[];
-  renderPreview: (item: MediaFile) => React.ReactNode;
-  handleRemove: (e: React.MouseEvent, id: string) => Promise<void>;
+  items: MediaAsset[];
+  renderPreview: (item: MediaAsset) => React.ReactNode;
+  onRemove: ({ event, id }: { event: React.MouseEvent; id: string }) => void;
+  onAddToTimeline: ({
+    asset,
+    startTime,
+  }: {
+    asset: MediaAsset;
+    startTime: number;
+  }) => boolean;
   highlightedId: string | null;
   registerElement: (id: string, element: HTMLElement | null) => void;
 }) {
-  const { addElementAtTime } = useTimelineStore();
-
   return (
     <div className="space-y-1">
-      {filteredMediaItems.map((item) => (
+      {items.map((item) => (
         <div key={item.id} ref={(el) => registerElement(item.id, el)}>
-          <MediaItemWithContextMenu item={item} onRemove={handleRemove}>
-            <DraggableMediaItem
+          <MediaItemWithContextMenu item={item} onRemove={onRemove}>
+            <DraggableItem
               name={item.name}
               preview={renderPreview(item)}
               dragData={{
                 id: item.id,
-                type: item.type,
+                type: "media",
+                mediaType: item.type,
                 name: item.name,
               }}
-              showPlusOnDrag={false}
-              onAddToTimeline={(currentTime) =>
-                addElementAtTime(item, currentTime)
+              shouldShowPlusOnDrag={false}
+              onAddToTimeline={({ currentTime }) =>
+                onAddToTimeline({ asset: item, startTime: currentTime })
               }
               variant="compact"
               isHighlighted={highlightedId === item.id}
@@ -529,4 +529,177 @@ function ListView({
       ))}
     </div>
   );
+}
+
+function MediaPreview({ item }: { item: MediaAsset }) {
+  const formatDuration = (duration: number) => {
+    const min = Math.floor(duration / 60);
+    const sec = Math.floor(duration % 60);
+    return `${min}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  if (item.type === "image") {
+    return (
+      <div className="flex size-full items-center justify-center">
+        <img
+          src={item.url}
+          alt={item.name}
+          className="max-h-full w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
+  if (item.type === "video") {
+    if (item.thumbnailUrl) {
+      return (
+        <div className="relative size-full">
+          <img
+            src={item.thumbnailUrl}
+            alt={item.name}
+            className="size-full rounded object-cover"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 flex items-center justify-center rounded bg-black/20">
+            <Video className="size-6 text-white drop-shadow-md" />
+          </div>
+          {item.duration && (
+            <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 text-xs text-white">
+              {formatDuration(item.duration)}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-muted/30 text-muted-foreground flex size-full flex-col items-center justify-center rounded">
+        <Video className="mb-1 size-6" />
+        <span className="text-xs">Video</span>
+        {item.duration && (
+          <span className="text-xs opacity-70">
+            {formatDuration(item.duration)}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (item.type === "audio") {
+    return (
+      <div className="bg-linear-to-br text-muted-foreground flex size-full flex-col items-center justify-center rounded border border-green-500/20 from-green-500/20 to-emerald-500/20">
+        <Music className="mb-1 size-6" />
+        <span className="text-xs">Audio</span>
+        {item.duration && (
+          <span className="text-xs opacity-70">
+            {formatDuration(item.duration)}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-muted/30 text-muted-foreground flex size-full flex-col items-center justify-center rounded">
+      <Image className="size-6" />
+      <span className="mt-1 text-xs">Unknown</span>
+    </div>
+  );
+}
+
+function SortMenuItem({
+  label,
+  sortKey,
+  currentSortBy,
+  currentSortOrder,
+  onSort,
+}: {
+  label: string;
+  sortKey: "name" | "type" | "duration" | "size";
+  currentSortBy: string;
+  currentSortOrder: "asc" | "desc";
+  onSort: ({ key }: { key: "name" | "type" | "duration" | "size" }) => void;
+}) {
+  const isActive = currentSortBy === sortKey;
+  const arrow = isActive ? (currentSortOrder === "asc" ? "↑" : "↓") : "";
+
+  return (
+    <DropdownMenuItem onClick={() => onSort({ key: sortKey })}>
+      {label} {arrow}
+    </DropdownMenuItem>
+  );
+}
+
+function getTrackTypeForMedia({
+  mediaType,
+}: {
+  mediaType: MediaAsset["type"];
+}): TrackType {
+  switch (mediaType) {
+    case "video":
+    case "image":
+      return "video";
+    case "audio":
+      return "audio";
+    default:
+      return "video";
+  }
+}
+
+function createElementFromMedia({
+  asset,
+  startTime,
+}: {
+  asset: MediaAsset;
+  startTime: number;
+}): CreateTimelineElement {
+  const duration =
+    asset.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
+
+  switch (asset.type) {
+    case "video":
+      return {
+        type: "video",
+        name: asset.name,
+        mediaId: asset.id,
+        startTime,
+        duration,
+        trimStart: 0,
+        trimEnd: 0,
+        muted: false,
+        hidden: false,
+        transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
+        opacity: 1,
+      };
+    case "image":
+      return {
+        type: "image",
+        name: asset.name,
+        mediaId: asset.id,
+        startTime,
+        duration,
+        trimStart: 0,
+        trimEnd: 0,
+        hidden: false,
+        transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
+        opacity: 1,
+      };
+    case "audio":
+      return {
+        type: "audio",
+        sourceType: "upload",
+        name: asset.name,
+        mediaId: asset.id,
+        startTime,
+        duration,
+        trimStart: 0,
+        trimEnd: 0,
+        volume: 1,
+        muted: false,
+        buffer: new AudioBuffer({ length: 1, sampleRate: 44100 }),
+      };
+    default:
+      throw new Error(`Unsupported media type: ${asset.type}`);
+  }
 }

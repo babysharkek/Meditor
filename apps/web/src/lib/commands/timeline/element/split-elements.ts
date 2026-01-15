@@ -6,6 +6,7 @@ import { EditorCore } from "@/core";
 export class SplitElementsCommand extends Command {
   private savedState: TimelineTrack[] | null = null;
   private newElementIds: string[] = [];
+  private affectedElementIds: Set<string> = new Set();
 
   constructor(
     private elements: { trackId: string; elementId: string }[],
@@ -15,10 +16,15 @@ export class SplitElementsCommand extends Command {
     super();
   }
 
+  get splitElementIds(): string[] {
+    return Array.from(this.affectedElementIds);
+  }
+
   execute(): void {
     const editor = EditorCore.getInstance();
     this.savedState = editor.timeline.getTracks();
     this.newElementIds = [];
+    this.affectedElementIds.clear();
 
     const updatedTracks = this.savedState.map((track) => {
       const elementsToSplit = this.elements.filter(
@@ -41,9 +47,7 @@ export class SplitElementsCommand extends Command {
           }
 
           const effectiveStart = element.startTime;
-          const effectiveEnd =
-            element.startTime +
-            (element.duration - element.trimStart - element.trimEnd);
+          const effectiveEnd = element.startTime + element.duration;
 
           if (
             this.splitTime <= effectiveStart ||
@@ -53,30 +57,31 @@ export class SplitElementsCommand extends Command {
           }
 
           const relativeTime = this.splitTime - element.startTime;
-          const firstDuration = relativeTime;
-          const secondDuration =
-            element.duration -
-            element.trimStart -
-            element.trimEnd -
-            relativeTime;
+          const leftVisibleDuration = relativeTime;
+          const rightVisibleDuration = element.duration - relativeTime;
 
           if (this.retainSide === "left") {
+            this.affectedElementIds.add(element.id);
             return [
               {
                 ...element,
-                trimEnd: element.trimEnd + secondDuration,
+                duration: leftVisibleDuration,
+                trimEnd: element.trimEnd + rightVisibleDuration,
                 name: `${element.name} (left)`,
               },
             ];
           }
 
           if (this.retainSide === "right") {
+            const newId = generateUUID();
+            this.affectedElementIds.add(newId);
             return [
               {
                 ...element,
-                id: generateUUID(),
+                id: newId,
                 startTime: this.splitTime,
-                trimStart: element.trimStart + firstDuration,
+                duration: rightVisibleDuration,
+                trimStart: element.trimStart + leftVisibleDuration,
                 name: `${element.name} (right)`,
               },
             ];
@@ -84,19 +89,23 @@ export class SplitElementsCommand extends Command {
 
           // "both" - split into two pieces
           const secondElementId = generateUUID();
+          this.affectedElementIds.add(element.id);
+          this.affectedElementIds.add(secondElementId);
           this.newElementIds.push(secondElementId);
 
           return [
             {
               ...element,
-              trimEnd: element.trimEnd + secondDuration,
+              duration: leftVisibleDuration,
+              trimEnd: element.trimEnd + rightVisibleDuration,
               name: `${element.name} (left)`,
             },
             {
               ...element,
               id: secondElementId,
               startTime: this.splitTime,
-              trimStart: element.trimStart + firstDuration,
+              duration: rightVisibleDuration,
+              trimStart: element.trimStart + leftVisibleDuration,
               name: `${element.name} (right)`,
             },
           ];

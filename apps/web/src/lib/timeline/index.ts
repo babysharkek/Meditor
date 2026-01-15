@@ -12,11 +12,7 @@ export function calculateTotalDuration({
 
   const trackEndTimes = tracks.map((track) =>
     track.elements.reduce((maxEnd, element) => {
-      const elementEnd =
-        element.startTime +
-        element.duration -
-        element.trimStart -
-        element.trimEnd;
+      const elementEnd = element.startTime + element.duration;
       return Math.max(maxEnd, elementEnd);
     }, 0),
   );

@@ -9,7 +9,7 @@ export function useEditor(): EditorCore {
     const unsubscribers = [
       editor.playback.subscribe(forceUpdate),
       editor.timeline.subscribe(forceUpdate),
-      editor.scene.subscribe(forceUpdate),
+      editor.scenes.subscribe(forceUpdate),
       editor.project.subscribe(forceUpdate),
       editor.media.subscribe(forceUpdate),
       editor.renderer.subscribe(forceUpdate),

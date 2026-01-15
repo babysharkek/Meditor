@@ -1,15 +1,5 @@
-import { TScene } from "@/types/project";
+import { TScene } from "@/types/timeline";
 import { generateUUID } from "@/lib/utils";
-
-export function getActiveScene({
-  scenes,
-  currentSceneId,
-}: {
-  scenes: TScene[];
-  currentSceneId: string;
-}): TScene | null {
-  return scenes.find((s) => s.id === currentSceneId) ?? null;
-}
 
 export function getMainScene({ scenes }: { scenes: TScene[] }): TScene | null {
   return scenes.find((scene) => scene.isMain) || null;
@@ -22,6 +12,8 @@ export function ensureMainScene({ scenes }: { scenes: TScene[] }): TScene[] {
       id: generateUUID(),
       name: "Main scene",
       isMain: true,
+      tracks: [],
+      bookmarks: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -41,6 +33,8 @@ export function buildDefaultScene({
     id: generateUUID(),
     name,
     isMain,
+    tracks: [],
+    bookmarks: [],
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -69,13 +63,6 @@ export function getFallbackSceneAfterDelete({
     return scenes.find((s) => s.id === currentSceneId) || null;
   }
   return getMainScene({ scenes });
-}
-
-export function normalizeScenes({ scenes }: { scenes: TScene[] }): TScene[] {
-  return scenes.map((scene) => ({
-    ...scene,
-    isMain: scene.isMain || false,
-  }));
 }
 
 export function findCurrentScene({

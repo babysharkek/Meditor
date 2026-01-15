@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { env } from "@/env";
+import { webEnv } from "@opencut/env/web";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { isTranscriptionConfigured } from "@/lib/transcription-utils";
 
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
       iv 
     });
 
-    const response = await fetch(env.MODAL_TRANSCRIPTION_URL, {
+    const response = await fetch(webEnv.MODAL_TRANSCRIPTION_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

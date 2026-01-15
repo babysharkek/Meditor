@@ -1,4 +1,11 @@
-import { useState, useCallback, useEffect, RefObject } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  type RefObject,
+  type WheelEvent as ReactWheelEvent,
+} from "react";
+import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 
 interface UseTimelineZoomProps {
   containerRef: RefObject<HTMLDivElement>;
@@ -8,7 +15,7 @@ interface UseTimelineZoomProps {
 interface UseTimelineZoomReturn {
   zoomLevel: number;
   setZoomLevel: (zoomLevel: number | ((prev: number) => number)) => void;
-  handleWheel: (e: React.WheelEvent) => void;
+  handleWheel: (event: ReactWheelEvent) => void;
 }
 
 export function useTimelineZoom({
@@ -17,31 +24,46 @@ export function useTimelineZoom({
 }: UseTimelineZoomProps): UseTimelineZoomReturn {
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    // Only zoom if user is using pinch gesture (ctrlKey or metaKey is true)
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -0.15 : 0.15;
-      setZoomLevel((prev) => Math.max(0.1, Math.min(10, prev + delta)));
-    }
-    // For horizontal scrolling (when shift is held or horizontal wheel movement),
-    // let the event bubble up to allow ScrollArea to handle it
-    else if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-      // Don't prevent default - let ScrollArea handle horizontal scrolling
+  const handleWheel = useCallback((event: ReactWheelEvent) => {
+    const isZoomGesture = event.ctrlKey || event.metaKey;
+    const isHorizontalScrollGesture =
+      event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY);
+
+    // allow scrollarea to handle horizontal scroll
+    if (isHorizontalScrollGesture) {
       return;
     }
-    // Otherwise, allow normal scrolling
+
+    // pinch-zoom (ctrl/meta + wheel)
+    if (isZoomGesture) {
+      event.preventDefault();
+      const zoomMultiplier = event.deltaY > 0 ? 1 / 1.1 : 1.1;
+      setZoomLevel((prev) =>
+        Math.max(
+          TIMELINE_CONSTANTS.ZOOM_MIN,
+          Math.min(TIMELINE_CONSTANTS.ZOOM_MAX, prev * zoomMultiplier),
+        ),
+      );
+      // for horizontal scrolling (when shift is held or horizontal wheel movement),
+      // let the event bubble up to allow ScrollArea to handle it
+      return;
+    }
   }, []);
 
-  // Prevent browser zooming in/out when in timeline
+  // prevent browser zoom in the timeline
   useEffect(() => {
-    const preventZoom = (e: WheelEvent) => {
+    const preventZoom = ({
+      ctrlKey,
+      metaKey,
+      target,
+      preventDefault,
+    }: WheelEvent) => {
       if (
         isInTimeline &&
-        (e.ctrlKey || e.metaKey) &&
-        containerRef.current?.contains(e.target as Node)
+        (ctrlKey || metaKey) &&
+        containerRef.current?.contains(target as Node)
       ) {
-        e.preventDefault();
+        preventDefault();
       }
     };
 

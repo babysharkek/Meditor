@@ -35,7 +35,7 @@ export class DeleteElementsCommand extends Command {
       })
       .filter(
         (track) =>
-          track.elements.length > 0 || (track.type === "media" && track.isMain),
+          track.elements.length > 0 || (track.type === "video" && track.isMain),
       );
 
     editor.timeline.updateTracks(updatedTracks);

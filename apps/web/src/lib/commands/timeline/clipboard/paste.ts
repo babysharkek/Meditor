@@ -1,34 +1,38 @@
 import { Command } from "@/lib/commands/base-command";
 import { EditorCore } from "@/core";
-import type { TimelineTrack, TimelineElement } from "@/types/timeline";
+import type {
+  TimelineTrack,
+  TimelineElement,
+  ClipboardItem,
+} from "@/types/timeline";
 import { generateUUID } from "@/lib/utils";
 
 export class PasteCommand extends Command {
   private savedState: TimelineTrack[] | null = null;
   private pastedElementIds: string[] = [];
 
-  constructor(private time: number) {
+  constructor(
+    private time: number,
+    private clipboardItems: ClipboardItem[],
+  ) {
     super();
   }
 
   execute(): void {
+    if (this.clipboardItems.length === 0) return;
+
     const editor = EditorCore.getInstance();
     this.savedState = editor.timeline.getTracks();
     this.pastedElementIds = [];
 
-    const clipboard = (editor.timeline as any).getClipboard?.();
-    if (!clipboard || clipboard.items.length === 0) {
-      return;
-    }
-
     const minStart = Math.min(
-      ...clipboard.items.map((x: any) => x.element.startTime),
+      ...this.clipboardItems.map((item) => item.element.startTime),
     );
 
     const updatedTracks = this.savedState.map((track) => {
       const elementsToAdd: TimelineElement[] = [];
 
-      for (const item of clipboard.items) {
+      for (const item of this.clipboardItems) {
         if (item.trackType !== track.type) continue;
 
         const relativeOffset = item.element.startTime - minStart;
@@ -49,7 +53,7 @@ export class PasteCommand extends Command {
       return elementsToAdd.length > 0
         ? { ...track, elements: [...track.elements, ...elementsToAdd] }
         : track;
-    });
+    }) as TimelineTrack[];
 
     editor.timeline.updateTracks(updatedTracks);
   }

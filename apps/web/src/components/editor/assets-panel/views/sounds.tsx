@@ -97,7 +97,7 @@ function SoundEffectsView() {
     loadMore,
     hasNextPage,
     isLoadingMore,
-  } = useSoundSearch(searchQuery, showCommercialOnly);
+  } = useSoundSearch({ query: searchQuery, commercialOnly: showCommercialOnly });
 
   // Audio playback state
   const [playingId, setPlayingId] = useState<number | null>(null);
@@ -120,8 +120,8 @@ function SoundEffectsView() {
       const fetchTopSounds = async () => {
         try {
           if (!ignore) {
-            setLoading(true);
-            setError(null);
+            setLoading({ loading: true });
+            setError({ error: null });
           }
 
           const response = await fetch(
@@ -134,23 +134,24 @@ function SoundEffectsView() {
             }
 
             const data = await response.json();
-            setTopSoundEffects(data.results);
-            setHasLoaded(true);
+            setTopSoundEffects({ sounds: data.results });
+            setHasLoaded({ loaded: true });
 
-            setCurrentPage(1);
-            setHasNextPage(!!data.next);
-            setTotalCount(data.count);
+            setCurrentPage({ page: 1 });
+            setHasNextPage({ hasNext: !!data.next });
+            setTotalCount({ count: data.count });
           }
         } catch (error) {
           if (!ignore) {
             console.error("Failed to fetch top sounds:", error);
-            setError(
-              error instanceof Error ? error.message : "Failed to load sounds"
-            );
+            setError({
+              error:
+                error instanceof Error ? error.message : "Failed to load sounds",
+            });
           }
         } finally {
           if (!ignore) {
-            setLoading(false);
+            setLoading({ loading: false });
           }
         }
       };
@@ -183,7 +184,7 @@ function SoundEffectsView() {
 
   const handleScrollWithPosition = (event: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop } = event.currentTarget;
-    setScrollPosition(scrollTop);
+    setScrollPosition({ position: scrollTop });
     handleScroll(event);
   };
 
@@ -227,9 +228,9 @@ function SoundEffectsView() {
           className="bg-panel-accent w-full"
           containerClassName="w-full"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery({ query: e.target.value })}
           showClearIcon
-          onClear={() => setSearchQuery("")}
+          onClear={() => setSearchQuery({ query: "" })}
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -244,7 +245,7 @@ function SoundEffectsView() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuCheckboxItem
               checked={showCommercialOnly}
-              onCheckedChange={toggleCommercialFilter}
+              onCheckedChange={() => toggleCommercialFilter()}
             >
               Show only commercially licensed
             </DropdownMenuCheckboxItem>
@@ -278,8 +279,8 @@ function SoundEffectsView() {
                 sound={sound}
                 isPlaying={playingId === sound.id}
                 onPlay={() => playSound(sound)}
-                isSaved={isSoundSaved(sound.id)}
-                onToggleSaved={() => toggleSavedSound(sound)}
+                isSaved={isSoundSaved({ soundId: sound.id })}
+                onToggleSaved={() => toggleSavedSound({ soundEffect: sound })}
               />
             ))}
             {!isLoading && !isSearching && displayedSounds.length === 0 && (
@@ -464,9 +465,9 @@ function SavedSoundsView() {
                 sound={convertToSoundEffect(sound)}
                 isPlaying={playingId === sound.id}
                 onPlay={() => playSound(sound)}
-                isSaved={isSoundSaved(sound.id)}
+                isSaved={isSoundSaved({ soundId: sound.id })}
                 onToggleSaved={() =>
-                  toggleSavedSound(convertToSoundEffect(sound))
+                  toggleSavedSound({ soundEffect: convertToSoundEffect(sound) })
                 }
               />
             ))}
@@ -509,7 +510,7 @@ function AudioItem({
 
   const handleAddToTimeline = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    await addSoundToTimeline(sound);
+    await addSoundToTimeline({ sound });
   };
 
   return (

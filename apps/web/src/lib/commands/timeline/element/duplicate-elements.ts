@@ -40,8 +40,6 @@ export class DuplicateElementsCommand extends Command {
           return [element];
         }
 
-        const effectiveDuration =
-          element.duration - element.trimStart - element.trimEnd;
         const newId = generateUUID();
         this.duplicatedIds.push(newId);
 
@@ -51,7 +49,7 @@ export class DuplicateElementsCommand extends Command {
             ...element,
             id: newId,
             name: `${element.name} (copy)`,
-            startTime: element.startTime + effectiveDuration + 0.1,
+            startTime: element.startTime + element.duration + 0.1,
           },
         ];
       });

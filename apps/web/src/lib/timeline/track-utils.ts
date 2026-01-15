@@ -1,8 +1,4 @@
-import type {
-  TrackType,
-  TimelineTrack,
-  TimelineElement,
-} from "@/types/timeline";
+import type { TrackType, TimelineTrack, ElementType } from "@/types/timeline";
 import {
   TRACK_COLORS,
   TRACK_HEIGHTS,
@@ -12,6 +8,11 @@ import { generateUUID } from "@/lib/utils";
 
 export function getTrackColor({ type }: { type: TrackType }) {
   return TRACK_COLORS[type];
+}
+
+export function getTrackClasses({ type }: { type: TrackType }) {
+  const colors = TRACK_COLORS[type];
+  return `${colors.solid} ${colors.background} ${colors.border}`.trim();
 }
 
 export function getTrackHeight({ type }: { type: TrackType }): number {
@@ -51,7 +52,7 @@ export function getMainTrack({
 }: {
   tracks: TimelineTrack[];
 }): TimelineTrack | null {
-  return tracks.find((track) => track.type === "media" && track.isMain) ?? null;
+  return tracks.find((track) => track.type === "video" && track.isMain) ?? null;
 }
 
 export function ensureMainTrack({
@@ -60,14 +61,14 @@ export function ensureMainTrack({
   tracks: TimelineTrack[];
 }): TimelineTrack[] {
   const hasMainTrack = tracks.some(
-    (track) => track.type === "media" && track.isMain,
+    (track) => track.type === "video" && track.isMain,
   );
 
   if (!hasMainTrack) {
     const mainTrack: TimelineTrack = {
       id: generateUUID(),
       name: "Main Track",
-      type: "media",
+      type: "video",
       elements: [],
       muted: false,
       isMain: true,
@@ -82,13 +83,14 @@ export function canElementGoOnTrack({
   elementType,
   trackType,
 }: {
-  elementType: TimelineElement["type"];
+  elementType: ElementType;
   trackType: TrackType;
 }): boolean {
   if (elementType === "text") return trackType === "text";
   if (elementType === "audio") return trackType === "audio";
+  if (elementType === "sticker") return trackType === "sticker";
   if (elementType === "video" || elementType === "image") {
-    return trackType === "media";
+    return trackType === "video";
   }
   return false;
 }
@@ -97,7 +99,7 @@ export function validateElementTrackCompatibility({
   element,
   track,
 }: {
-  element: { type: TimelineElement["type"] };
+  element: { type: ElementType };
   track: { type: TrackType };
 }): { isValid: boolean; errorMessage?: string } {
   const isValid = canElementGoOnTrack({

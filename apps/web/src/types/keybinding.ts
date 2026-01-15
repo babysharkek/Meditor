@@ -1,4 +1,4 @@
-import { ActionWithOptionalArgs } from "@/constants/actions-constants";
+import type { TActionWithOptionalArgs } from "@/lib/actions";
 
 /**
  * Alt is also regarded as macOS OPTION (⌥) key
@@ -13,8 +13,6 @@ export type ModifierKeys =
   | "ctrl+alt"
   | "ctrl+alt+shift";
 
-/* eslint-disable prettier/prettier */
-// prettier-ignore
 export type Key =
   | "a"
   | "b"
@@ -77,5 +75,5 @@ export type SingleCharacterShortcutKey = `${Key}`;
 export type ShortcutKey = ModifierBasedShortcutKey | SingleCharacterShortcutKey;
 
 export type KeybindingConfig = {
-  [key in ShortcutKey]?: ActionWithOptionalArgs;
+  [key in ShortcutKey]?: TActionWithOptionalArgs;
 };

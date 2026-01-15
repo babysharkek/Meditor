@@ -1,7 +1,8 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { useTimelineStore } from "@/stores/timeline-store";
-import { useMediaStore } from "@/stores/media-store";
-import { Input, ALL_FORMATS, BlobSource, VideoSampleSink } from "mediabunny";
+import { Input, ALL_FORMATS, BlobSource } from "mediabunny";
+import { canHaveAudio } from "@/lib/timeline";
+import { mediaSupportsAudio } from "@/lib/media-utils";
+import { useEditor } from "@/hooks/use-editor";
 
 let ffmpeg: FFmpeg | null = null;
 
@@ -48,13 +49,14 @@ export async function getVideoInfo({
   };
 }
 
-// Audio mixing for timeline - keeping FFmpeg for now due to complexity
+// audio mixing for timeline - keeping ffmpeg for now due to complexity
 // TODO: Replace with Mediabunny audio processing when implementing canvas preview
 export const extractTimelineAudio = async (
   onProgress?: (progress: number) => void,
 ): Promise<Blob> => {
   // Create fresh FFmpeg instance for this operation
   const ffmpeg = new FFmpeg();
+  const editor = useEditor();
 
   try {
     await ffmpeg.load();
@@ -63,11 +65,8 @@ export const extractTimelineAudio = async (
     throw new Error("Unable to initialize audio processing. Please try again.");
   }
 
-  const timeline = useTimelineStore.getState();
-  const mediaStore = useMediaStore.getState();
-
-  const tracks = timeline.tracks;
-  const totalDuration = timeline.getTotalDuration();
+  const tracks = editor.timeline.getTracks();
+  const totalDuration = editor.timeline.getTotalDuration();
 
   if (totalDuration === 0) {
     const emptyAudioData = new ArrayBuffer(44);
@@ -93,15 +92,52 @@ export const extractTimelineAudio = async (
     if (track.muted) continue;
 
     for (const element of track.elements) {
-      if (element.type === "media") {
-        const mediaFile = mediaStore.mediaFiles.find(
-          (m) => m.id === element.mediaId,
-        );
-        if (!mediaFile) continue;
+      if (!canHaveAudio(element)) continue;
 
-        if (mediaFile.type === "video" || mediaFile.type === "audio") {
+      if (element.type === "audio") {
+        if (element.sourceType === "upload") {
+          const mediaAsset = editor.media
+            .getAssets()
+            .find((asset) => asset.id === element.mediaId);
+          if (!mediaAsset) continue;
+
           audioElements.push({
-            file: mediaFile.file,
+            file: mediaAsset.file,
+            startTime: element.startTime,
+            duration: element.duration,
+            trimStart: element.trimStart,
+            trimEnd: element.trimEnd,
+            trackMuted: track.muted || false,
+          });
+        } else {
+          // library audio - fetch from sourceUrl
+          try {
+            const response = await fetch(element.sourceUrl);
+            const blob = await response.blob();
+            const file = new File([blob], `${element.name}.mp3`, {
+              type: "audio/mpeg",
+            });
+            audioElements.push({
+              file,
+              startTime: element.startTime,
+              duration: element.duration,
+              trimStart: element.trimStart,
+              trimEnd: element.trimEnd,
+              trackMuted: track.muted || false,
+            });
+          } catch (error) {
+            console.warn("Failed to fetch library audio:", error);
+          }
+        }
+      } else if (element.type === "video") {
+        const mediaAsset = editor.media
+          .getAssets()
+          .find((asset) => asset.id === element.mediaId);
+        if (!mediaAsset) continue;
+
+        if (mediaSupportsAudio({ media: mediaAsset })) {
+          audioElements.push({
+            file: mediaAsset.file,
             startTime: element.startTime,
             duration: element.duration,
             trimStart: element.trimStart,
@@ -148,8 +184,7 @@ export const extractTimelineAudio = async (
       }
 
       const actualStart = element.trimStart;
-      const actualDuration =
-        element.duration - element.trimStart - element.trimEnd;
+      const actualDuration = element.duration;
 
       const filterName = `audio_${i}`;
       filterInputs.push(

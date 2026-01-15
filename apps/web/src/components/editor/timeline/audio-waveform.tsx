@@ -2,13 +2,46 @@ import React, { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 
 interface AudioWaveformProps {
-  audioUrl: string;
+  audioUrl?: string;
+  audioBuffer?: AudioBuffer;
   height?: number;
   className?: string;
 }
 
+function extractPeaks({
+  buffer,
+  length = 512,
+}: {
+  buffer: AudioBuffer;
+  length?: number;
+}): number[][] {
+  const channels = buffer.numberOfChannels;
+  const peaks: number[][] = [];
+
+  for (let c = 0; c < channels; c++) {
+    const data = buffer.getChannelData(c);
+    const step = Math.floor(data.length / length);
+    const channelPeaks: number[] = [];
+
+    for (let i = 0; i < length; i++) {
+      const start = i * step;
+      const end = Math.min(start + step, data.length);
+      let max = 0;
+      for (let j = start; j < end; j++) {
+        const abs = Math.abs(data[j]);
+        if (abs > max) max = abs;
+      }
+      channelPeaks.push(max);
+    }
+    peaks.push(channelPeaks);
+  }
+
+  return peaks;
+}
+
 const AudioWaveform: React.FC<AudioWaveformProps> = ({
   audioUrl,
+  audioBuffer,
   height = 32,
   className = "",
 }) => {
@@ -22,7 +55,7 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
     let ws = wavesurfer.current;
 
     const initWaveSurfer = async () => {
-      if (!waveformRef.current || !audioUrl) return;
+      if (!waveformRef.current || (!audioUrl && !audioBuffer)) return;
 
       try {
         // Clear any existing instance safely
@@ -74,7 +107,12 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
           }
         });
 
-        await newWaveSurfer.load(audioUrl);
+        if (audioBuffer) {
+          const peaks = extractPeaks({ buffer: audioBuffer });
+          newWaveSurfer.load("", peaks, audioBuffer.duration);
+        } else if (audioUrl) {
+          await newWaveSurfer.load(audioUrl);
+        }
       } catch (err) {
         if (mounted) {
           console.error("Failed to initialize WaveSurfer:", err);
@@ -130,7 +168,7 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
         });
       }
     };
-  }, [audioUrl, height]);
+  }, [audioUrl, audioBuffer, height]);
 
   if (error) {
     return (

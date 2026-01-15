@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { PropertyGroup } from "../../properties-panel/property-item";
 import { PanelBaseView as BaseView } from "@/components/editor/panel-base-view";
-import { Language, LanguageSelect } from "@/components/language-select";
+import { LanguageSelect } from "@/components/language-select";
 import { useState, useRef, useEffect } from "react";
 import { extractTimelineAudio } from "@/lib/mediabunny-utils";
 import { encryptWithRandomKey, arrayBufferToBase64 } from "@/lib/zk-encryption";
-import { useTimelineStore } from "@/stores/timeline-store";
+import { useEditor } from "@/hooks/use-editor";
 import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
+import { LANGUAGES } from "@/constants/captions-constants";
 import { Loader2, Shield, Trash2, Upload } from "lucide-react";
 import {
   Dialog,
@@ -18,17 +19,11 @@ import {
 } from "@/components/ui/dialog";
 import { TextElement } from "@/types/timeline";
 
-export const languages: Language[] = [
-  { code: "US", name: "English" },
-  { code: "ES", name: "Spanish" },
-  { code: "IT", name: "Italian" },
-  { code: "FR", name: "French" },
-  { code: "DE", name: "German" },
-  { code: "PT", name: "Portuguese" },
-  { code: "RU", name: "Russian" },
-  { code: "JP", name: "Japanese" },
-  { code: "CN", name: "Chinese" },
-];
+interface TranscriptionSegment {
+  text: string;
+  start: number;
+  end: number;
+}
 
 const PRIVACY_DIALOG_KEY = "opencut-transcription-privacy-accepted";
 
@@ -40,9 +35,8 @@ export function Captions() {
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
   const [hasAcceptedPrivacy, setHasAcceptedPrivacy] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { insertTrackAt, addElementToTrack } = useTimelineStore();
+  const editor = useEditor();
 
-  // Check if user has already accepted privacy on mount
   useEffect(() => {
     const hasAccepted = localStorage.getItem(PRIVACY_DIALOG_KEY) === "true";
     setHasAcceptedPrivacy(hasAccepted);
@@ -57,12 +51,8 @@ export function Captions() {
       const audioBlob = await extractTimelineAudio();
 
       setProcessingStep("Encrypting audio...");
-
-      // Encrypt the audio with a random key (zero-knowledge)
       const audioBuffer = await audioBlob.arrayBuffer();
       const encryptionResult = await encryptWithRandomKey(audioBuffer);
-
-      // Convert encrypted data to blob for upload
       const encryptedBlob = new Blob([encryptionResult.encryptedData]);
 
       setProcessingStep("Uploading...");
@@ -79,7 +69,6 @@ export function Captions() {
 
       const { uploadUrl, fileName } = await uploadResponse.json();
 
-      // Upload to R2
       await fetch(uploadUrl, {
         method: "PUT",
         body: encryptedBlob,
@@ -87,7 +76,6 @@ export function Captions() {
 
       setProcessingStep("Transcribing...");
 
-      // Call Modal transcription API with encryption parameters
       const transcriptionResponse = await fetch("/api/transcribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -95,7 +83,6 @@ export function Captions() {
           filename: fileName,
           language:
             selectedCountry === "auto" ? "auto" : selectedCountry.toLowerCase(),
-          // Send the raw encryption key and IV (zero-knowledge)
           decryptionKey: arrayBufferToBase64(encryptionResult.key),
           iv: arrayBufferToBase64(encryptionResult.iv),
         }),
@@ -116,32 +103,23 @@ export function Captions() {
         duration: number;
       }> = [];
 
-      let globalEndTime = 0; // Track the end time of the last caption globally
+      let globalEndTime = 0;
 
-      segments.forEach((segment: any) => {
+      segments.forEach((segment: TranscriptionSegment) => {
         const words = segment.text.trim().split(/\s+/);
         const segmentDuration = segment.end - segment.start;
         const wordsPerSecond = words.length / segmentDuration;
 
-        // Split into chunks of 2-4 words
         const chunks: string[] = [];
         for (let i = 0; i < words.length; i += 3) {
           chunks.push(words.slice(i, i + 3).join(" "));
         }
 
-        // Calculate timing for each chunk to place them sequentially
         let chunkStartTime = segment.start;
         chunks.forEach((chunk) => {
           const chunkWords = chunk.split(/\s+/).length;
-          const chunkDuration = Math.max(0.8, chunkWords / wordsPerSecond); // Minimum 0.8s per chunk
-
-          let adjustedStartTime = chunkStartTime;
-
-          // Prevent overlapping: if this caption would start before the last one ends,
-          // start it right after the last one ends
-          if (adjustedStartTime < globalEndTime) {
-            adjustedStartTime = globalEndTime;
-          }
+          const chunkDuration = Math.max(0.8, chunkWords / wordsPerSecond);
+          const adjustedStartTime = Math.max(chunkStartTime, globalEndTime);
 
           shortCaptions.push({
             text: chunk,
@@ -149,28 +127,26 @@ export function Captions() {
             duration: chunkDuration,
           });
 
-          // Update global end time
           globalEndTime = adjustedStartTime + chunkDuration;
-
-          // Next chunk starts when this one ends (for within-segment timing)
           chunkStartTime += chunkDuration;
         });
       });
 
-      // Create a single track for all captions
-      const captionTrackId = insertTrackAt("text", 0);
+      const captionTrackId = editor.timeline.addTrack({ type: "text", index: 0 });
 
-      // Add all caption elements to the same track
       shortCaptions.forEach((caption, index) => {
-        addElementToTrack(captionTrackId, {
-          ...DEFAULT_TEXT_ELEMENT,
-          name: `Caption ${index + 1}`,
-          content: caption.text,
-          duration: caption.duration,
-          startTime: caption.startTime,
-          fontSize: 65, // Larger for captions
-          fontWeight: "bold", // Bold for captions
-        } as TextElement);
+        editor.timeline.addElementToTrack({
+          trackId: captionTrackId,
+          element: {
+            ...DEFAULT_TEXT_ELEMENT,
+            name: `Caption ${index + 1}`,
+            content: caption.text,
+            duration: caption.duration,
+            startTime: caption.startTime,
+            fontSize: 65,
+            fontWeight: "bold",
+          } as TextElement,
+        });
       });
 
       console.log(
@@ -194,7 +170,7 @@ export function Captions() {
           selectedCountry={selectedCountry}
           onSelect={setSelectedCountry}
           containerRef={containerRef}
-          languages={languages}
+          languages={LANGUAGES}
         />
       </PropertyGroup>
 
@@ -216,7 +192,7 @@ export function Captions() {
           }}
           disabled={isProcessing}
         >
-          {isProcessing && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+          {isProcessing && <Loader2 className="mr-1 size-4 animate-spin" />}
           {isProcessing ? processingStep : "Generate transcript"}
         </Button>
 
@@ -224,8 +200,8 @@ export function Captions() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Audio Processing Notice
+                <Shield className="size-5" />
+                Audio processing notice
               </DialogTitle>
               <DialogDescription className="space-y-3">
                 <p>
@@ -235,7 +211,7 @@ export function Captions() {
 
                 <div className="space-y-2 pt-2">
                   <div className="flex items-start gap-2">
-                    <Shield className="h-4 w-4 flex-shrink-0" />
+                    <Shield className="size-4 flex-shrink-0" />
                     <span className="text-sm">
                       Zero-knowledge encryption - we cannot decrypt your files
                       even if we wanted to
@@ -243,7 +219,7 @@ export function Captions() {
                   </div>
 
                   <div className="flex items-start gap-2">
-                    <Shield className="h-4 w-4 flex-shrink-0" />
+                    <Shield className="size-4 flex-shrink-0" />
                     <span className="text-sm">
                       Encryption keys generated randomly in your browser, never
                       stored anywhere
@@ -251,7 +227,7 @@ export function Captions() {
                   </div>
 
                   <div className="flex items-start gap-2">
-                    <Upload className="h-4 w-4 flex-shrink-0" />
+                    <Upload className="size-4 flex-shrink-0" />
                     <span className="text-sm">
                       Audio encrypted before upload - raw audio never leaves
                       your device
@@ -259,7 +235,7 @@ export function Captions() {
                   </div>
 
                   <div className="flex items-start gap-2">
-                    <Trash2 className="h-4 w-4 flex-shrink-0" />
+                    <Trash2 className="size-4 flex-shrink-0" />
                     <span className="text-sm">
                       Everything permanently deleted within seconds after
                       transcription
@@ -292,7 +268,7 @@ export function Captions() {
                 }}
                 disabled={isProcessing}
               >
-                Continue & Generate Captions
+                Continue & generate captions
               </Button>
             </DialogFooter>
           </DialogContent>

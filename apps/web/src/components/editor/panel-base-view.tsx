@@ -53,7 +53,7 @@ export function PanelBaseView({
           className="flex flex-col h-full"
         >
           <div className="sticky top-0 z-10 bg-panel">
-            <div className="px-3 pt-3.5 pb-0">
+            <div className="px-3 pt-3 pb-0">
               <TabsList>
                 {tabs.map((tab) => (
                   <TabsTrigger key={tab.value} value={tab.value}>
@@ -67,7 +67,7 @@ export function PanelBaseView({
                 ))}
               </TabsList>
             </div>
-            <Separator className="mt-3.5" />
+            <Separator className="mt-3" />
           </div>
           {tabs.map((tab) => (
             <TabsContent

@@ -1,4 +1,4 @@
-import type { TimelineTrack, TimelineElement } from "@/types/timeline";
+import type { TimelineTrack, ElementType } from "@/types/timeline";
 import { TRACK_HEIGHTS, TRACK_GAP } from "@/constants/timeline-constants";
 import { wouldElementOverlap } from "./element-utils";
 import type { ComputeDropTargetParams, DropTarget } from "@/types/timeline";
@@ -34,19 +34,20 @@ function isCompatible({
   elementType,
   trackType,
 }: {
-  elementType: TimelineElement["type"];
+  elementType: ElementType;
   trackType: TimelineTrack["type"];
 }): boolean {
   if (elementType === "text") return trackType === "text";
   if (elementType === "audio") return trackType === "audio";
+  if (elementType === "sticker") return trackType === "sticker";
   if (elementType === "video" || elementType === "image") {
-    return trackType === "media";
+    return trackType === "video";
   }
   return false;
 }
 
 function getMainTrackIndex({ tracks }: { tracks: TimelineTrack[] }): number {
-  return tracks.findIndex((t) => t.type === "media" && t.isMain);
+  return tracks.findIndex((t) => t.type === "video" && t.isMain);
 }
 
 function findInsertIndex({
@@ -55,7 +56,7 @@ function findInsertIndex({
   preferredIndex,
   insertAbove,
 }: {
-  elementType: TimelineElement["type"];
+  elementType: ElementType;
   tracks: TimelineTrack[];
   preferredIndex: number;
   insertAbove: boolean;
@@ -154,7 +155,7 @@ export function computeDropTarget({
 
   const endTime = xPosition + elementDuration;
   const hasOverlap = wouldElementOverlap({
-    elements: track.elements as TimelineElement[],
+    elements: track.elements,
     startTime: xPosition,
     endTime,
   });
@@ -205,7 +206,7 @@ export function getDropLineY({
     dropTarget.trackIndex <= tracks.length
   ) {
     if (dropTarget.trackIndex > 0 && dropTarget.trackIndex <= tracks.length) {
-      y += TRACK_HEIGHTS[tracks[dropTarget.trackIndex - 1]?.type ?? "media"];
+      y += TRACK_HEIGHTS[tracks[dropTarget.trackIndex - 1]?.type ?? "video"];
     }
   }
 

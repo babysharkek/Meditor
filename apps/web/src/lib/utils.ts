@@ -38,15 +38,15 @@ export function generateUUID(): string {
   );
 }
 
-export function isTypableDOMElement({ el }: { el: HTMLElement }): boolean {
-  if (el.isContentEditable) return true;
+export function isTypableDOMElement({ element }: { element: HTMLElement }): boolean {
+  if (element.isContentEditable) return true;
 
-  if (el.tagName === "INPUT") {
-    return !(el as HTMLInputElement).disabled;
+  if (element.tagName === "INPUT") {
+    return !(element as HTMLInputElement).disabled;
   }
 
-  if (el.tagName === "TEXTAREA") {
-    return !(el as HTMLTextAreaElement).disabled;
+  if (element.tagName === "TEXTAREA") {
+    return !(element as HTMLTextAreaElement).disabled;
   }
 
   return false;
@@ -54,4 +54,16 @@ export function isTypableDOMElement({ el }: { el: HTMLElement }): boolean {
 
 export function isAppleDevice(): boolean {
   return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform);
+}
+
+export function clamp({
+  value,
+  min,
+  max,
+}: {
+  value: number;
+  min: number;
+  max: number;
+}): number {
+  return Math.max(min, Math.min(max, value));
 }

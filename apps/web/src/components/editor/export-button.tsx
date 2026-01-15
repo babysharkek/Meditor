@@ -13,12 +13,12 @@ import {
   exportProject,
   getExportMimeType,
   getExportFileExtension,
-  DEFAULT_EXPORT_OPTIONS,
 } from "@/lib/export-utils";
 import { Check, Copy, Download, RotateCcw, X } from "lucide-react";
 import { ExportFormat, ExportQuality, ExportResult } from "@/types/export";
 import { PropertyGroup } from "./properties-panel/property-item";
 import { useEditor } from "@/hooks/use-editor";
+import { DEFAULT_EXPORT_OPTIONS } from "@/constants/export-constants";
 
 export function ExportButton() {
   const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false);
@@ -28,7 +28,7 @@ export function ExportButton() {
     setIsExportPopoverOpen(true);
   };
 
-  const hasProject = !!editor.project.activeProject;
+  const hasProject = !!editor.project.getActive();
 
   return (
     <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
@@ -70,7 +70,7 @@ function ExportPopover({
   onOpenChange: (open: boolean) => void;
 }) {
   const editor = useEditor();
-  const activeProject = editor.project.activeProject;
+  const activeProject = editor.project.getActive();
   const [format, setFormat] = useState<ExportFormat>(
     DEFAULT_EXPORT_OPTIONS.format,
   );
@@ -94,10 +94,10 @@ function ExportPopover({
     const result = await exportProject({
       format,
       quality,
-      fps: activeProject.fps,
+      fps: activeProject.settings.fps,
       includeAudio,
-      onProgress: setProgress,
-      onCancel: () => false, // TODO: Add cancel functionality
+      onProgress: ({ progress }) => setProgress(progress),
+      onCancel: () => false, // TODO: add cancel functionality
     });
 
     setIsExporting(false);
@@ -112,7 +112,7 @@ function ExportPopover({
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${activeProject.name}${extension}`;
+      a.download = `${activeProject.metadata.name}${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -287,7 +287,7 @@ function ExportError({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-1.5">
-        <p className="text-sm font-medium text-destructive">Export failed</p>
+        <p className="text-destructive text-sm font-medium">Export failed</p>
         <p className="text-muted-foreground text-xs">{error}</p>
       </div>
 

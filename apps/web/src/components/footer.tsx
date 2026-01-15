@@ -47,8 +47,7 @@ export function Footer() {
               <span className="text-lg font-bold">OpenCut</span>
             </div>
             <p className="text-muted-foreground mb-5 text-sm md:text-left">
-              The open source video editor that gets the job done. Simple,
-              powerful, and works on any platform.
+              The privacy-first video editor that feels simple to use.
             </p>
             <div className="flex justify-start gap-3">
               <Link
@@ -81,15 +80,23 @@ export function Footer() {
           <div className="flex items-start justify-start gap-12 py-2">
             {(Object.keys(links) as Category[]).map((category) => (
               <div key={category} className="flex flex-col gap-2">
-                <h3 className="text-foreground font-semibold">{capitalizeFirstLetter({ string: category })}</h3>
+                <h3 className="text-foreground font-semibold">
+                  {capitalizeFirstLetter({ string: category })}
+                </h3>
                 <ul className="space-y-2 text-sm">
                   {links[category].map((link) => (
                     <li key={link.href}>
                       <Link
                         href={link.href}
                         className="text-muted-foreground hover:text-foreground transition-colors"
-                        target={link.href.startsWith("http") ? "_blank" : undefined}
-                        rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                        target={
+                          link.href.startsWith("http") ? "_blank" : undefined
+                        }
+                        rel={
+                          link.href.startsWith("http")
+                            ? "noopener noreferrer"
+                            : undefined
+                        }
                       >
                         {link.label}
                       </Link>
@@ -104,7 +111,9 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="flex flex-col items-start justify-between gap-4 pt-2 md:flex-row">
           <div className="text-muted-foreground flex items-center gap-4 text-sm">
-            <span>© 2025 OpenCut, All Rights Reserved</span>
+            <span>
+              © {new Date().getFullYear()} OpenCut, All Rights Reserved
+            </span>
           </div>
         </div>
       </div>

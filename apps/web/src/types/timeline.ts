@@ -1,4 +1,14 @@
-export type TrackType = "media" | "text" | "audio";
+export interface TScene {
+  id: string;
+  name: string;
+  isMain: boolean;
+  tracks: TimelineTrack[];
+  bookmarks: number[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type TrackType = "video" | "text" | "audio" | "sticker";
 
 interface BaseTrack {
   id: string;
@@ -6,10 +16,10 @@ interface BaseTrack {
   muted?: boolean;
 }
 
-export interface MediaTrack extends BaseTrack {
-  type: "media";
+export interface VideoTrack extends BaseTrack {
+  type: "video";
   elements: (VideoElement | ImageElement)[];
-  isMain?: boolean;
+  isMain: boolean;
 }
 
 export interface TextTrack extends BaseTrack {
@@ -22,7 +32,21 @@ export interface AudioTrack extends BaseTrack {
   elements: AudioElement[];
 }
 
-export type TimelineTrack = MediaTrack | TextTrack | AudioTrack;
+export interface StickerTrack extends BaseTrack {
+  type: "sticker";
+  elements: StickerElement[];
+}
+
+export type TimelineTrack = VideoTrack | TextTrack | AudioTrack | StickerTrack;
+
+export interface Transform {
+  scale: number;
+  position: {
+    x: number;
+    y: number;
+  };
+  rotate: number;
+}
 
 interface BaseTimelineElement {
   id: string;
@@ -33,25 +57,40 @@ interface BaseTimelineElement {
   trimEnd: number;
 }
 
-export interface AudioElement extends BaseTimelineElement {
+interface BaseAudioElement extends BaseTimelineElement {
   type: "audio";
-  mediaId: string;
   volume: number;
   muted?: boolean;
   buffer: AudioBuffer;
 }
+
+export interface UploadAudioElement extends BaseAudioElement {
+  sourceType: "upload";
+  mediaId: string;
+}
+
+export interface LibraryAudioElement extends BaseAudioElement {
+  sourceType: "library";
+  sourceUrl: string;
+}
+
+export type AudioElement = UploadAudioElement | LibraryAudioElement;
 
 export interface VideoElement extends BaseTimelineElement {
   type: "video";
   mediaId: string;
   muted?: boolean;
   hidden?: boolean;
+  transform: Transform;
+  opacity: number;
 }
 
 export interface ImageElement extends BaseTimelineElement {
   type: "image";
   mediaId: string;
   hidden?: boolean;
+  transform: Transform;
+  opacity: number;
 }
 
 export interface TextElement extends BaseTimelineElement {
@@ -66,23 +105,43 @@ export interface TextElement extends BaseTimelineElement {
   fontStyle: "normal" | "italic";
   textDecoration: "none" | "underline" | "line-through";
   hidden?: boolean;
+  transform: Transform;
+  opacity: number;
+}
+
+export interface StickerElement extends BaseTimelineElement {
+  type: "sticker";
+  iconName: string;
+  hidden?: boolean;
+  transform: Transform;
+  opacity: number;
+  color?: string;
 }
 
 export type TimelineElement =
   | AudioElement
   | VideoElement
   | ImageElement
-  | TextElement;
+  | TextElement
+  | StickerElement;
 
-export type CreateAudioElement = Omit<AudioElement, "id">;
+export type ElementType = TimelineElement["type"];
+
+export type CreateUploadAudioElement = Omit<UploadAudioElement, "id">;
+export type CreateLibraryAudioElement = Omit<LibraryAudioElement, "id">;
+export type CreateAudioElement =
+  | CreateUploadAudioElement
+  | CreateLibraryAudioElement;
 export type CreateVideoElement = Omit<VideoElement, "id">;
 export type CreateImageElement = Omit<ImageElement, "id">;
 export type CreateTextElement = Omit<TextElement, "id">;
+export type CreateStickerElement = Omit<StickerElement, "id">;
 export type CreateTimelineElement =
   | CreateAudioElement
   | CreateVideoElement
   | CreateImageElement
-  | CreateTextElement;
+  | CreateTextElement
+  | CreateStickerElement;
 
 // ---- Drag State ----
 
@@ -104,7 +163,7 @@ export interface DropTarget {
 }
 
 export interface ComputeDropTargetParams {
-  elementType: TimelineElement["type"];
+  elementType: ElementType;
   mouseX: number;
   mouseY: number;
   tracks: TimelineTrack[];
@@ -113,4 +172,9 @@ export interface ComputeDropTargetParams {
   elementDuration: number;
   pixelsPerSecond: number;
   zoomLevel: number;
+}
+
+export interface ClipboardItem {
+  trackType: TrackType;
+  element: CreateTimelineElement;
 }

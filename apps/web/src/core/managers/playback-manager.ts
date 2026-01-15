@@ -1,13 +1,12 @@
 import type { EditorCore } from "@/core";
-import { DEFAULT_FPS } from "@/constants/editor-constants";
 
 export class PlaybackManager {
-  public isPlaying = false;
-  public currentTime = 0;
-  public volume = 1;
-  public muted = false;
-  public previousVolume = 1;
-  public speed = 1.0;
+  private isPlaying = false;
+  private currentTime = 0;
+  private volume = 1;
+  private muted = false;
+  private previousVolume = 1;
+  private speed = 1.0;
   private listeners = new Set<() => void>();
   private playbackTimer: number | null = null;
   private lastUpdate = 0;
@@ -18,7 +17,8 @@ export class PlaybackManager {
     const duration = this.editor.timeline.getTotalDuration();
 
     if (duration > 0) {
-      const fps = this.editor.project.getActiveFps() ?? DEFAULT_FPS;
+      const activeProject = this.editor.project.getActive();
+      const fps = activeProject.settings.fps;
       const frameOffset = 1 / fps;
       const endThreshold = Math.max(0, duration - frameOffset);
 
@@ -158,7 +158,8 @@ export class PlaybackManager {
     const duration = this.editor.timeline.getTotalDuration();
 
     if (duration > 0 && newTime >= duration) {
-      const fps = this.editor.project.getActiveFps() ?? DEFAULT_FPS;
+      const activeProject = this.editor.project.getActive();
+      const fps = activeProject.settings.fps;
       const frameOffset = 1 / fps;
       const stopTime = Math.max(0, duration - frameOffset);
 

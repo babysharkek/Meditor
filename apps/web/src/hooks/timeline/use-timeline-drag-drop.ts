@@ -1,17 +1,17 @@
 import { useState, useCallback, type RefObject } from "react";
 import { useEditor } from "@/hooks/use-editor";
-import { processMediaFiles } from "@/lib/media-processing-utils";
+import { processMediaAssets } from "@/lib/media-processing-utils";
 import { toast } from "sonner";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { DEFAULT_FPS } from "@/constants/editor-constants";
 import { snapTimeToFrame } from "@/lib/time-utils";
-import { buildTextElement } from "@/lib/timeline/element-utils";
+import {
+  buildTextElement,
+  buildStickerElement,
+} from "@/lib/timeline/element-utils";
 import { computeDropTarget } from "@/lib/timeline/drop-utils";
-import { getAssetDragData, hasAssetDragData } from "@/lib/asset-drag";
-import type { TrackType, DropTarget } from "@/types/timeline";
-import type { MediaAssetDragData } from "@/types/assets";
-
-type DragElementType = "video" | "image" | "audio" | "text";
+import { getDragData, hasDragData } from "@/lib/drag-data";
+import type { TrackType, DropTarget, ElementType } from "@/types/timeline";
+import type { MediaDragData, StickerDragData } from "@/types/drag";
 
 interface UseTimelineDragDropProps {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -27,34 +27,30 @@ export function useTimelineDragDrop({
   const editor = useEditor();
   const [isDragOver, setIsDragOver] = useState(false);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
-  const [dragElementType, setDragElementType] =
-    useState<DragElementType | null>(null);
+  const [dragElementType, setElementType] = useState<ElementType | null>(null);
 
-  const tracks = editor.timeline.sortedTracks;
-  const currentTime = editor.playback.currentTime;
-  const mediaFiles = editor.media.mediaFiles;
-  const activeProject = editor.project.activeProject;
+  const tracks = editor.timeline.getTracks();
+  const currentTime = editor.playback.getCurrentTime();
+  const mediaAssets = editor.media.getAssets();
+  const activeProject = editor.project.getActive();
 
   const getSnappedTime = useCallback(
     ({ time }: { time: number }) => {
-      const projectFps = activeProject?.fps ?? DEFAULT_FPS;
+      const projectFps = activeProject.settings.fps;
       return snapTimeToFrame({ time, fps: projectFps });
     },
-    [activeProject?.fps],
+    [activeProject.settings.fps],
   );
 
-  const getDragElementType = useCallback(
-    ({
-      dataTransfer,
-    }: {
-      dataTransfer: DataTransfer;
-    }): DragElementType | null => {
-      const dragData = getAssetDragData({ dataTransfer });
+  const getElementType = useCallback(
+    ({ dataTransfer }: { dataTransfer: DataTransfer }): ElementType | null => {
+      const dragData = getDragData({ dataTransfer });
       if (!dragData) return null;
 
       if (dragData.type === "text") return "text";
+      if (dragData.type === "sticker") return "sticker";
       if (dragData.type === "media") {
-        return dragData.mediaType as DragElementType;
+        return dragData.mediaType as ElementType;
       }
       return null;
     },
@@ -66,24 +62,24 @@ export function useTimelineDragDrop({
       elementType,
       mediaId,
     }: {
-      elementType: DragElementType;
+      elementType: ElementType;
       mediaId?: string;
     }): number => {
-      if (elementType === "text") {
+      if (elementType === "text" || elementType === "sticker") {
         return TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
       }
       if (mediaId) {
-        const media = mediaFiles.find((m) => m.id === mediaId);
+        const media = mediaAssets.find((m) => m.id === mediaId);
         return media?.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
       }
       return TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
     },
-    [mediaFiles],
+    [mediaAssets],
   );
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    const hasAsset = hasAssetDragData({ dataTransfer: e.dataTransfer });
+    const hasAsset = hasDragData({ dataTransfer: e.dataTransfer });
     const hasFiles = e.dataTransfer.types.includes("Files");
     if (!hasAsset && !hasFiles) return;
     setIsDragOver(true);
@@ -98,9 +94,9 @@ export function useTimelineDragDrop({
 
       const hasFiles = e.dataTransfer.types.includes("Files");
       const isExternal =
-        hasFiles && !hasAssetDragData({ dataTransfer: e.dataTransfer });
+        hasFiles && !hasDragData({ dataTransfer: e.dataTransfer });
 
-      let elementType = getDragElementType({ dataTransfer: e.dataTransfer });
+      let elementType = getElementType({ dataTransfer: e.dataTransfer });
 
       // external drops default to video until determined on drop
       if (!elementType && hasFiles) {
@@ -109,9 +105,9 @@ export function useTimelineDragDrop({
 
       if (!elementType) return;
 
-      setDragElementType(elementType);
+      setElementType(elementType);
 
-      const dragData = getAssetDragData({ dataTransfer: e.dataTransfer });
+      const dragData = getDragData({ dataTransfer: e.dataTransfer });
       const duration = getElementDuration({
         elementType,
         mediaId: dragData?.type === "media" ? dragData.id : undefined,
@@ -142,7 +138,7 @@ export function useTimelineDragDrop({
       tracks,
       currentTime,
       zoomLevel,
-      getDragElementType,
+      getElementType,
       getElementDuration,
       getSnappedTime,
     ],
@@ -162,7 +158,7 @@ export function useTimelineDragDrop({
         ) {
           setIsDragOver(false);
           setDropTarget(null);
-          setDragElementType(null);
+          setElementType(null);
         }
       }
     },
@@ -192,9 +188,7 @@ export function useTimelineDragDrop({
 
       const element = buildTextElement({
         raw: {
-          id: "",
           name: dragData.name ?? "",
-          type: "text",
           content: dragData.content ?? "",
         },
         startTime: target.xPosition,
@@ -205,19 +199,44 @@ export function useTimelineDragDrop({
     [editor.timeline, tracks],
   );
 
-  const executeMediaDrop = useCallback(
+  const executeStickerDrop = useCallback(
     ({
       target,
       dragData,
     }: {
       target: DropTarget;
-      dragData: MediaAssetDragData;
+      dragData: StickerDragData;
     }) => {
-      const mediaItem = mediaFiles.find((m) => m.id === dragData.id);
-      if (!mediaItem) return;
+      let trackId: string;
+
+      if (target.isNewTrack) {
+        trackId = editor.timeline.addTrack({
+          type: "sticker",
+          index: target.trackIndex,
+        });
+      } else {
+        const track = tracks[target.trackIndex];
+        if (!track) return;
+        trackId = track.id;
+      }
+
+      const element = buildStickerElement({
+        iconName: dragData.iconName,
+        startTime: target.xPosition,
+      });
+
+      editor.timeline.addElementToTrack({ trackId, element });
+    },
+    [editor.timeline, tracks],
+  );
+
+  const executeMediaDrop = useCallback(
+    ({ target, dragData }: { target: DropTarget; dragData: MediaDragData }) => {
+      const mediaAsset = mediaAssets.find((m) => m.id === dragData.id);
+      if (!mediaAsset) return;
 
       const trackType: TrackType =
-        dragData.mediaType === "audio" ? "audio" : "media";
+        dragData.mediaType === "audio" ? "audio" : "video";
       let trackId: string;
 
       if (target.isNewTrack) {
@@ -232,15 +251,16 @@ export function useTimelineDragDrop({
       }
 
       const duration =
-        mediaItem.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
+        mediaAsset.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
 
       if (dragData.mediaType === "audio") {
         editor.timeline.addElementToTrack({
           trackId,
           element: {
             type: "audio",
-            mediaId: mediaItem.id,
-            name: mediaItem.name,
+            sourceType: "upload",
+            mediaId: mediaAsset.id,
+            name: mediaAsset.name,
             duration,
             startTime: target.xPosition,
             trimStart: 0,
@@ -255,12 +275,21 @@ export function useTimelineDragDrop({
           trackId,
           element: {
             type: "video",
-            mediaId: mediaItem.id,
-            name: mediaItem.name,
+            mediaId: mediaAsset.id,
+            name: mediaAsset.name,
             duration,
             startTime: target.xPosition,
             trimStart: 0,
             trimEnd: 0,
+            transform: {
+              scale: 1,
+              position: {
+                x: 0,
+                y: 0,
+              },
+              rotate: 0,
+            },
+            opacity: 1,
           },
         });
       } else {
@@ -268,38 +297,47 @@ export function useTimelineDragDrop({
           trackId,
           element: {
             type: "image",
-            mediaId: mediaItem.id,
-            name: mediaItem.name,
+            mediaId: mediaAsset.id,
+            name: mediaAsset.name,
             duration,
             startTime: target.xPosition,
             trimStart: 0,
             trimEnd: 0,
+            transform: {
+              scale: 1,
+              position: {
+                x: 0,
+                y: 0,
+              },
+              rotate: 0,
+            },
+            opacity: 1,
           },
         });
       }
     },
-    [editor.timeline, mediaFiles, tracks],
+    [editor.timeline, mediaAssets, tracks],
   );
 
   const executeFileDrop = useCallback(
     async ({ files }: { files: File[] }) => {
       if (!activeProject) return;
 
-      const processedItems = await processMediaFiles({ files });
+      const processedAssets = await processMediaAssets({ files });
 
-      for (const item of processedItems) {
-        await editor.media.addMediaFile({
-          projectId: activeProject.id,
-          file: item,
+      for (const asset of processedAssets) {
+        await editor.media.addMediaAsset({
+          projectId: activeProject.metadata.id,
+          asset,
         });
 
-        const added = editor.media.mediaFiles.find(
-          (m) => m.name === item.name && m.url === item.url,
-        );
+        const added = editor.media
+          .getAssets()
+          .find((m) => m.name === asset.name && m.url === asset.url);
 
         if (added) {
           const trackType: TrackType =
-            added.type === "audio" ? "audio" : "media";
+            added.type === "audio" ? "audio" : "video";
           const trackId = editor.timeline.addTrack({
             type: trackType,
             index: 0,
@@ -313,6 +351,7 @@ export function useTimelineDragDrop({
               trackId,
               element: {
                 type: "audio",
+                sourceType: "upload",
                 mediaId: added.id,
                 name: added.name,
                 duration,
@@ -335,6 +374,15 @@ export function useTimelineDragDrop({
                 startTime: currentTime,
                 trimStart: 0,
                 trimEnd: 0,
+                transform: {
+                  scale: 1,
+                  position: {
+                    x: 0,
+                    y: 0,
+                  },
+                  rotate: 0,
+                },
+                opacity: 1,
               },
             });
           } else {
@@ -348,6 +396,15 @@ export function useTimelineDragDrop({
                 startTime: currentTime,
                 trimStart: 0,
                 trimEnd: 0,
+                transform: {
+                  scale: 1,
+                  position: {
+                    x: 0,
+                    y: 0,
+                  },
+                  rotate: 0,
+                },
+                opacity: 1,
               },
             });
           }
@@ -364,22 +421,24 @@ export function useTimelineDragDrop({
       const currentTarget = dropTarget;
       setIsDragOver(false);
       setDropTarget(null);
-      setDragElementType(null);
+      setElementType(null);
 
       if (!currentTarget) return;
 
-      const hasAsset = hasAssetDragData({ dataTransfer: e.dataTransfer });
+      const hasAsset = hasDragData({ dataTransfer: e.dataTransfer });
       const hasFiles = e.dataTransfer.files?.length > 0;
 
       if (!hasAsset && !hasFiles) return;
 
       try {
         if (hasAsset) {
-          const dragData = getAssetDragData({ dataTransfer: e.dataTransfer });
+          const dragData = getDragData({ dataTransfer: e.dataTransfer });
           if (!dragData) return;
 
           if (dragData.type === "text") {
             executeTextDrop({ target: currentTarget, dragData });
+          } else if (dragData.type === "sticker") {
+            executeStickerDrop({ target: currentTarget, dragData });
           } else {
             executeMediaDrop({ target: currentTarget, dragData });
           }
@@ -391,7 +450,13 @@ export function useTimelineDragDrop({
         toast.error("Failed to process drop");
       }
     },
-    [dropTarget, executeTextDrop, executeMediaDrop, executeFileDrop],
+    [
+      dropTarget,
+      executeTextDrop,
+      executeStickerDrop,
+      executeMediaDrop,
+      executeFileDrop,
+    ],
   );
 
   return {

@@ -8,7 +8,6 @@ import {
   Trash,
   Loader2,
 } from "lucide-react";
-import { EditorCore } from "@/core";
 import { KeyboardShortcutsHelp } from "../keyboard-shortcuts-help";
 import { useState } from "react";
 import {
@@ -28,6 +27,7 @@ import { ExportButton } from "./export-button";
 import { ThemeToggle } from "../theme-toggle";
 import { SOCIAL_LINKS } from "@/constants/site-constants";
 import { toast } from "sonner";
+import { useEditor } from "@/hooks/use-editor";
 
 export function EditorHeader() {
   return (
@@ -50,8 +50,8 @@ function ProjectDropdown() {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const router = useRouter();
-  const editor = EditorCore.getInstance();
-  const activeProject = editor.project.getActive();
+  const editor = useEditor();
+  const activeProject = editor.project.getActiveOrNull();
 
   const handleExit = async () => {
     if (isExiting) return;
@@ -69,10 +69,14 @@ function ProjectDropdown() {
   };
 
   const handleSaveProjectName = async (newName: string) => {
-    if (activeProject && newName.trim() && newName !== activeProject.name) {
+    if (
+      activeProject &&
+      newName.trim() &&
+      newName !== activeProject.metadata.name
+    ) {
       try {
         await editor.project.renameProject({
-          id: activeProject.id,
+          id: activeProject.metadata.id,
           name: newName.trim(),
         });
       } catch (error) {
@@ -89,7 +93,7 @@ function ProjectDropdown() {
   const handleDeleteProject = async () => {
     if (activeProject) {
       try {
-        await editor.project.deleteProject({ id: activeProject.id });
+        await editor.project.deleteProject({ id: activeProject.metadata.id });
         router.push("/projects");
       } catch (error) {
         toast.error("Failed to delete project", {
@@ -111,7 +115,9 @@ function ProjectDropdown() {
             className="flex h-auto items-center justify-center px-2.5 py-1.5"
           >
             <ChevronDown className="text-muted-foreground" />
-            <span className="mr-2 text-[0.85rem]">{activeProject?.name}</span>
+            <span className="mr-2 text-[0.85rem]">
+              {activeProject?.metadata.name}
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="z-100 w-40">
@@ -160,13 +166,13 @@ function ProjectDropdown() {
         isOpen={isRenameDialogOpen}
         onOpenChange={setIsRenameDialogOpen}
         onConfirm={(newName) => handleSaveProjectName(newName)}
-        projectName={activeProject?.name || ""}
+        projectName={activeProject?.metadata.name || ""}
       />
       <DeleteProjectDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDeleteProject}
-        projectName={activeProject?.name || ""}
+        projectName={activeProject?.metadata.name || ""}
       />
     </>
   );

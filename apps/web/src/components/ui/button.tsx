@@ -11,6 +11,8 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-foreground text-background shadow-sm hover:bg-foreground/90",
+        foreground:
+          "bg-background text-foreground shadow-sm hover:bg-background/80",
         primary:
           "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
         "primary-gradient":
@@ -35,7 +37,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
@@ -54,7 +56,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

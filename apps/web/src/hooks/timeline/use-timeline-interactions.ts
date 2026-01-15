@@ -1,12 +1,11 @@
 import { useCallback, useRef } from "react";
-import { useProjectStore } from "@/stores/project-store";
 import type { RefObject } from "react";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { snapTimeToFrame } from "@/lib/time-utils";
+import { useEditor } from "../use-editor";
 
 interface UseTimelineInteractionsProps {
   playheadRef: RefObject<HTMLDivElement>;
-  tracksContainerRef: RefObject<HTMLDivElement>;
   rulerScrollRef: RefObject<HTMLDivElement>;
   tracksScrollRef: RefObject<HTMLDivElement>;
   zoomLevel: number;
@@ -19,7 +18,6 @@ interface UseTimelineInteractionsProps {
 
 export function useTimelineInteractions({
   playheadRef,
-  tracksContainerRef,
   rulerScrollRef,
   tracksScrollRef,
   zoomLevel,
@@ -29,7 +27,9 @@ export function useTimelineInteractions({
   clearSelectedElements,
   seek,
 }: UseTimelineInteractionsProps) {
-  const { activeProject } = useProjectStore();
+  const editor = useEditor();
+  const activeProject = editor.project.getActive();
+
   const mouseTrackingRef = useRef({
     isMouseDown: false,
     downX: 0,
@@ -111,7 +111,7 @@ export function useTimelineInteractions({
         ),
       );
 
-      const projectFps = activeProject?.fps || 30;
+      const projectFps = activeProject?.settings.fps || 30;
       const time = snapTimeToFrame({ time: rawTime, fps: projectFps });
       seek(time);
     },
@@ -121,7 +121,7 @@ export function useTimelineInteractions({
       seek,
       rulerScrollRef,
       tracksScrollRef,
-      activeProject?.fps,
+      activeProject?.settings.fps,
     ],
   );
 

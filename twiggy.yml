@@ -1,0 +1,52 @@
+# Twiggy Configuration
+#
+# Twiggy generates real-time directory structure and codebase index for Cursor AI
+# Your AI always knows your codebase's structure and API surface automatically
+# https://github.com/twiggy-tools/Twiggy
+#
+# This file controls what folders and files Twiggy monitors and indexes
+# Note: Generated .cursor/rules/ files are not tracked in git by design
+
+# Sync with .gitignore - automatically exclude anything in your .gitignore
+syncWithGitignore: true
+
+# File Structure Configuration
+structure:
+  # Output format: 'xml' (better for LLMs) or 'tree' (visual with ├── └──)
+  format: tree
+
+  # Custom folders/files to exclude from structure generation
+  # Examples: 'temp', 'src/old-stuff', 'docs/legacy/backup'
+  exclude:
+    - "python"
+    - "legacy"
+    - "apps/tools"
+    - ".vscode"
+    - ".turbo"
+    - "apps/web/migrations"
+    - "apps/web/src/components/ui"
+
+# Codebase Indexing Configuration
+# Extracts function signatures, types, interfaces, classes, and exports
+# This helps AI understand what utilities and types exist in your codebase
+indexing:
+  # Enable/disable codebase indexing
+  enabled: true
+
+  # Include patterns (empty = index everything)
+  # Examples: ["src/**/*.ts", "lib/**/*.ts"]
+  include: ["apps/web/**/*.ts", "apps/web/**/*.tsx", "packages/**/*.ts", "packages/**/*.tsx"]
+
+  # Exclude patterns (in addition to defaults)
+  # By default: test files, config files, build outputs, and node_modules are excluded
+  # Add your own patterns here:
+  exclude:
+    - "python/**"
+    - "legacy/**"
+    - "apps/tools/**"
+    - ".vscode/**"
+    - ".turbo/**"
+    - "apps/web/src/app/**"
+    - "apps/web/src/components/**"
+    - "apps/web/stores/**"
+    - "apps/web/hooks/**"

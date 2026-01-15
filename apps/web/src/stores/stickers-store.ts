@@ -3,27 +3,22 @@ import {
   getCollections,
   getCollection,
   searchIcons,
-  downloadSvgAsText,
-  svgToFile,
   type IconSet,
   type CollectionInfo,
   type IconSearchResult,
 } from "@/lib/iconify-api";
-import { useProjectStore } from "@/stores/project-store";
-import { useMediaStore } from "@/stores/media-store";
-import { useTimelineStore } from "@/stores/timeline-store";
-import { usePlaybackStore } from "@/stores/playback-store";
-import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import type { MediaFile } from "@/types/assets";
+import { EditorCore } from "@/core";
+import { buildStickerElement } from "@/lib/timeline/element-utils";
+import { STICKER_CATEGORY_CONFIG } from "@/constants/stickers-constants";
+import type { StickerCategory } from "@/types/stickers";
 
-export type StickerCategory = "all" | "general" | "brands" | "emoji";
+type ViewMode = "search" | "browse" | "collection";
 
 interface StickersStore {
   searchQuery: string;
   selectedCategory: StickerCategory;
   selectedCollection: string | null;
-  viewMode: "search" | "browse" | "collection";
-
+  viewMode: ViewMode;
   collections: Record<string, IconSet>;
   currentCollection: CollectionInfo | null;
   searchResults: IconSearchResult | null;
@@ -31,21 +26,21 @@ interface StickersStore {
   isLoadingCollections: boolean;
   isLoadingCollection: boolean;
   isSearching: boolean;
-  isDownloading: boolean;
   addingSticker: string | null;
 
-  setSearchQuery: (query: string) => void;
-  setSelectedCategory: (category: StickerCategory) => void;
-  setSelectedCollection: (collection: string | null) => void;
-  setViewMode: (mode: "search" | "browse" | "collection") => void;
-
+  setSearchQuery: ({ query }: { query: string }) => void;
+  setSelectedCategory: ({ category }: { category: StickerCategory }) => void;
+  setSelectedCollection: ({
+    collection,
+  }: {
+    collection: string | null;
+  }) => void;
+  setViewMode: ({ mode }: { mode: ViewMode }) => void;
   loadCollections: () => Promise<void>;
-  loadCollection: (prefix: string) => Promise<void>;
-  searchStickers: (query: string) => Promise<void>;
-  downloadSticker: (iconName: string) => Promise<File | null>;
-  addStickerToTimeline: (iconName: string) => Promise<void>;
-
-  addToRecentStickers: (iconName: string) => void;
+  loadCollection: ({ prefix }: { prefix: string }) => Promise<void>;
+  searchStickers: ({ query }: { query: string }) => Promise<void>;
+  addStickerToTimeline: ({ iconName }: { iconName: string }) => void;
+  addToRecentStickers: ({ iconName }: { iconName: string }) => void;
   clearRecentStickers: () => void;
 }
 
@@ -65,12 +60,11 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
   isLoadingCollections: false,
   isLoadingCollection: false,
   isSearching: false,
-  isDownloading: false,
   addingSticker: null,
 
-  setSearchQuery: (query) => set({ searchQuery: query }),
+  setSearchQuery: ({ query }) => set({ searchQuery: query }),
 
-  setSelectedCategory: (category) =>
+  setSelectedCategory: ({ category }) =>
     set({
       selectedCategory: category,
       viewMode: "browse",
@@ -78,7 +72,7 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
       currentCollection: null,
     }),
 
-  setSelectedCollection: (collection) => {
+  setSelectedCollection: ({ collection }) => {
     set({
       selectedCollection: collection,
       viewMode: collection ? "collection" : "browse",
@@ -86,11 +80,11 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
     });
 
     if (collection) {
-      get().loadCollection(collection);
+      get().loadCollection({ prefix: collection });
     }
   },
 
-  setViewMode: (mode) => set({ viewMode: mode }),
+  setViewMode: ({ mode }) => set({ viewMode: mode }),
 
   loadCollections: async () => {
     set({ isLoadingCollections: true });
@@ -104,7 +98,7 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
     }
   },
 
-  loadCollection: async (prefix: string) => {
+  loadCollection: async ({ prefix }: { prefix: string }) => {
     set({ isLoadingCollection: true });
     try {
       const collection = await getCollection(prefix);
@@ -117,7 +111,7 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
     }
   },
 
-  searchStickers: async (query: string) => {
+  searchStickers: async ({ query }: { query: string }) => {
     if (!query.trim()) {
       set({ searchResults: null, viewMode: "browse" });
       return;
@@ -127,18 +121,7 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
 
     set({ isSearching: true, viewMode: "search" });
     try {
-      let category: string | undefined;
-
-      if (selectedCategory !== "all") {
-        if (selectedCategory === "general") {
-          category = "General";
-        } else if (selectedCategory === "brands") {
-          category = "Brands / Social";
-        } else if (selectedCategory === "emoji") {
-          category = "Emoji";
-        }
-      }
-
+      const category = STICKER_CATEGORY_CONFIG[selectedCategory];
       const results = await searchIcons(query, 100, undefined, category);
       set({ searchResults: results });
     } catch (error) {
@@ -149,73 +132,32 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
     }
   },
 
-  downloadSticker: async (iconName: string) => {
-    set({ isDownloading: true });
-    try {
-      const svgText = await downloadSvgAsText(iconName, {
-        width: 200,
-        height: 200,
-      });
-
-      const fileName = `${iconName.replace(":", "-")}.svg`;
-      const file = svgToFile(svgText, fileName);
-
-      get().addToRecentStickers(iconName);
-
-      return file;
-    } catch (error) {
-      console.error(`Failed to download sticker ${iconName}:`, error);
-      return null;
-    } finally {
-      set({ isDownloading: false });
-    }
-  },
-
-  addStickerToTimeline: async (iconName: string) => {
+  addStickerToTimeline: ({ iconName }: { iconName: string }) => {
     set({ addingSticker: iconName });
     try {
-      const { activeProject } = useProjectStore.getState();
-      if (!activeProject) {
-        throw new Error("No active project");
+      const editor = EditorCore.getInstance();
+      const currentTime = editor.playback.getCurrentTime();
+      const tracks = editor.timeline.getTracks();
+
+      let stickerTrack = tracks.find((t) => t.type === "sticker");
+      let trackId: string;
+
+      if (stickerTrack) {
+        trackId = stickerTrack.id;
+      } else {
+        trackId = editor.timeline.addTrack({ type: "sticker" });
       }
 
-      const file = await get().downloadSticker(iconName);
-      if (!file) {
-        throw new Error("Failed to download sticker");
-      }
+      const element = buildStickerElement({ iconName, startTime: currentTime });
+      editor.timeline.addElementToTrack({ trackId, element });
 
-      const mediaItem: Omit<MediaFile, "id"> = {
-        name: iconName.replace(":", "-"),
-        type: "image",
-        file,
-        url: URL.createObjectURL(file),
-        width: 200,
-        height: 200,
-        duration: TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION,
-        ephemeral: false,
-      };
-
-      const { addMediaFile } = useMediaStore.getState();
-      await addMediaFile(activeProject.id, mediaItem);
-
-      const added = useMediaStore
-        .getState()
-        .mediaFiles.find(
-          (m) => m.url === mediaItem.url && m.name === mediaItem.name,
-        );
-      if (!added) {
-        throw new Error("Sticker not in media store");
-      }
-
-      const { currentTime } = usePlaybackStore.getState();
-      const { addElementAtTime } = useTimelineStore.getState();
-      addElementAtTime(added, currentTime);
+      get().addToRecentStickers({ iconName });
     } finally {
       set({ addingSticker: null });
     }
   },
 
-  addToRecentStickers: (iconName: string) => {
+  addToRecentStickers: ({ iconName }: { iconName: string }) => {
     set((state) => {
       const recent = [
         iconName,

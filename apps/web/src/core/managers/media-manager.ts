@@ -1,83 +1,81 @@
 import type { EditorCore } from "@/core";
-import type { MediaFile } from "@/types/assets";
+import type { MediaAsset } from "@/types/assets";
 import { storageService } from "@/lib/storage/storage-service";
 import { generateUUID } from "@/lib/utils";
 import { videoCache } from "@/lib/video-cache";
+import { hasMediaId } from "@/lib/timeline/element-utils";
 
 export class MediaManager {
-  public mediaFiles: MediaFile[] = [];
-  public isLoading = false;
+  private assets: MediaAsset[] = [];
+  private isLoading = false;
   private listeners = new Set<() => void>();
 
   constructor(private editor: EditorCore) {}
 
-  async addMediaFile({
+  async addMediaAsset({
     projectId,
-    file,
+    asset,
   }: {
     projectId: string;
-    file: Omit<MediaFile, "id">;
+    asset: Omit<MediaAsset, "id">;
   }): Promise<void> {
-    const newItem: MediaFile = {
-      ...file,
+    const newAsset: MediaAsset = {
+      ...asset,
       id: generateUUID(),
     };
 
-    this.mediaFiles = [...this.mediaFiles, newItem];
+    this.assets = [...this.assets, newAsset];
     this.notify();
 
     try {
-      await storageService.saveMediaFile({ projectId, mediaItem: newItem });
+      await storageService.saveMediaAsset({ projectId, mediaAsset: newAsset });
     } catch (error) {
-      console.error("Failed to save media item:", error);
-      this.mediaFiles = this.mediaFiles.filter(
-        (media) => media.id !== newItem.id,
-      );
+      console.error("Failed to save media asset:", error);
+      this.assets = this.assets.filter((asset) => asset.id !== newAsset.id);
       this.notify();
     }
   }
 
-  async removeMediaFile({
+  async removeMediaAsset({
     projectId,
     id,
   }: {
     projectId: string;
     id: string;
   }): Promise<void> {
-    const item = this.mediaFiles.find((media) => media.id === id);
+    const asset = this.assets.find((asset) => asset.id === id);
 
     videoCache.clearVideo(id);
 
-    if (item?.url) {
-      URL.revokeObjectURL(item.url);
-      if (item.thumbnailUrl) {
-        URL.revokeObjectURL(item.thumbnailUrl);
+    if (asset?.url) {
+      URL.revokeObjectURL(asset.url);
+      if (asset.thumbnailUrl) {
+        URL.revokeObjectURL(asset.thumbnailUrl);
       }
     }
 
-    this.mediaFiles = this.mediaFiles.filter((media) => media.id !== id);
+    this.assets = this.assets.filter((asset) => asset.id !== id);
     this.notify();
 
     const tracks = this.editor.timeline.getTracks();
     const elementsToRemove: Array<{ trackId: string; elementId: string }> = [];
 
     for (const track of tracks) {
-      for (const el of track.elements) {
-        if (el.type === "media" && el.mediaId === id) {
-          elementsToRemove.push({ trackId: track.id, elementId: el.id });
+      for (const element of track.elements) {
+        if (hasMediaId(element) && element.mediaId === id) {
+          elementsToRemove.push({ trackId: track.id, elementId: element.id });
         }
       }
     }
 
     if (elementsToRemove.length > 0) {
-      this.editor.timeline.setSelectedElements({ elements: elementsToRemove });
-      this.editor.timeline.deleteSelected({});
+      this.editor.timeline.deleteElements({ elements: elementsToRemove });
     }
 
     try {
-      await storageService.deleteMediaFile({ projectId, id });
+      await storageService.deleteMediaAsset({ projectId, id });
     } catch (error) {
-      console.error("Failed to delete media item:", error);
+      console.error("Failed to delete media asset:", error);
     }
   }
 
@@ -86,11 +84,13 @@ export class MediaManager {
     this.notify();
 
     try {
-      const mediaItems = await storageService.loadAllMediaFiles({ projectId });
-      this.mediaFiles = mediaItems;
+      const mediaAssets = await storageService.loadAllMediaAssets({
+        projectId,
+      });
+      this.assets = mediaAssets;
       this.notify();
     } catch (error) {
-      console.error("Failed to load media items:", error);
+      console.error("Failed to load media assets:", error);
     } finally {
       this.isLoading = false;
       this.notify();
@@ -98,46 +98,53 @@ export class MediaManager {
   }
 
   async clearProjectMedia({ projectId }: { projectId: string }): Promise<void> {
-    this.mediaFiles.forEach((item) => {
-      if (item.url) {
-        URL.revokeObjectURL(item.url);
+    this.assets.forEach((asset) => {
+      if (asset.url) {
+        URL.revokeObjectURL(asset.url);
       }
-      if (item.thumbnailUrl) {
-        URL.revokeObjectURL(item.thumbnailUrl);
+      if (asset.thumbnailUrl) {
+        URL.revokeObjectURL(asset.thumbnailUrl);
       }
     });
 
-    const mediaIds = this.mediaFiles.map((item) => item.id);
-    this.mediaFiles = [];
+    const mediaIds = this.assets.map((asset) => asset.id);
+    this.assets = [];
     this.notify();
 
     try {
       await Promise.all(
-        mediaIds.map((id) => storageService.deleteMediaFile({ projectId, id })),
+        mediaIds.map((id) =>
+          storageService.deleteMediaAsset({ projectId, id }),
+        ),
       );
     } catch (error) {
-      console.error("Failed to clear media items from storage:", error);
+      console.error("Failed to clear media assets from storage:", error);
     }
   }
 
-  clearAllMedia(): void {
+  clearAllAssets(): void {
     videoCache.clearAll();
 
-    this.mediaFiles.forEach((item) => {
-      if (item.url) {
-        URL.revokeObjectURL(item.url);
+    this.assets.forEach((asset) => {
+      if (asset.url) {
+        URL.revokeObjectURL(asset.url);
       }
-      if (item.thumbnailUrl) {
-        URL.revokeObjectURL(item.thumbnailUrl);
+      if (asset.thumbnailUrl) {
+        URL.revokeObjectURL(asset.thumbnailUrl);
       }
     });
 
-    this.mediaFiles = [];
+    this.assets = [];
     this.notify();
   }
 
-  getMediaFiles(): MediaFile[] {
-    return this.mediaFiles;
+  getAssets(): MediaAsset[] {
+    return this.assets;
+  }
+
+  setAssets({ assets }: { assets: MediaAsset[] }): void {
+    this.assets = assets;
+    this.notify();
   }
 
   isLoadingMedia(): boolean {

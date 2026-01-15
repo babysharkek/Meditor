@@ -54,7 +54,7 @@ export class VideoNode extends BaseNode<VideoNodeParams> {
     const videoTime = this.getVideoTime(time);
     return (
       videoTime >= this.params.trimStart - VIDEO_EPSILON &&
-      videoTime < this.params.duration - this.params.trimEnd
+      videoTime < this.params.trimStart + this.params.duration
     );
   }
 

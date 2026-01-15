@@ -1,7 +1,7 @@
 "use client";
 
+import { useEditor } from "@/hooks/use-editor";
 import { useRef, useEffect } from "react";
-import { usePlaybackStore } from "@/stores/playback-store";
 
 interface AudioPlayerProps {
   src: string;
@@ -23,7 +23,12 @@ export function AudioPlayer({
   trackMuted = false,
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { isPlaying, currentTime, volume, speed, muted } = usePlaybackStore();
+  const editor = useEditor();
+  const currentTime = editor.playback.getCurrentTime();
+  const isPlaying = editor.playback.getIsPlaying();
+  const volume = editor.playback.getVolume();
+  const muted = editor.playback.isMuted();
+  const speed = editor.playback.getSpeed();
 
   // Calculate if we're within this clip's timeline range
   const clipEndTime = clipStartTime + (clipDuration - trimStart - trimEnd);
@@ -42,8 +47,8 @@ export function AudioPlayer({
         trimStart,
         Math.min(
           clipDuration - trimEnd,
-          timelineTime - clipStartTime + trimStart
-        )
+          timelineTime - clipStartTime + trimStart,
+        ),
       );
       audio.currentTime = audioTime;
     };
@@ -55,8 +60,8 @@ export function AudioPlayer({
         trimStart,
         Math.min(
           clipDuration - trimEnd,
-          timelineTime - clipStartTime + trimStart
-        )
+          timelineTime - clipStartTime + trimStart,
+        ),
       );
 
       if (Math.abs(audio.currentTime - targetTime) > 0.5) {
@@ -71,22 +76,22 @@ export function AudioPlayer({
     window.addEventListener("playback-seek", handleSeekEvent as EventListener);
     window.addEventListener(
       "playback-update",
-      handleUpdateEvent as EventListener
+      handleUpdateEvent as EventListener,
     );
     window.addEventListener("playback-speed", handleSpeed as EventListener);
 
     return () => {
       window.removeEventListener(
         "playback-seek",
-        handleSeekEvent as EventListener
+        handleSeekEvent as EventListener,
       );
       window.removeEventListener(
         "playback-update",
-        handleUpdateEvent as EventListener
+        handleUpdateEvent as EventListener,
       );
       window.removeEventListener(
         "playback-speed",
-        handleSpeed as EventListener
+        handleSpeed as EventListener,
       );
     };
   }, [clipStartTime, trimStart, trimEnd, clipDuration, isInClipRange]);

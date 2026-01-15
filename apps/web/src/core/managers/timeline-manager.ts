@@ -5,9 +5,9 @@ import type {
   TimelineTrack,
   TextElement,
   TimelineElement,
+  ClipboardItem,
 } from "@/types/timeline";
 import { calculateTotalDuration } from "@/lib/timeline";
-import { storageService } from "@/lib/storage/storage-service";
 import {
   AddTrackCommand,
   RemoveTrackCommand,
@@ -17,7 +17,7 @@ import {
   UpdateElementDurationCommand,
   DeleteElementsCommand,
   DuplicateElementsCommand,
-  ToggleElementsHiddenCommand,
+  ToggleElementsVisibilityCommand,
   ToggleElementsMutedCommand,
   UpdateTextElementCommand,
   SplitElementsCommand,
@@ -27,16 +27,9 @@ import {
 } from "@/lib/commands/timeline";
 
 export class TimelineManager {
-  public sortedTracks: TimelineTrack[] = [];
   private listeners = new Set<() => void>();
 
-  constructor(private editor: EditorCore) {
-    this.initializeTracks();
-  }
-
-  private initializeTracks(): void {
-    this.sortedTracks = [];
-  }
+  constructor(private editor: EditorCore) {}
 
   addTrack({ type, index }: { type: TrackType; index?: number }): string {
     const command = new AddTrackCommand(type, index);
@@ -153,92 +146,50 @@ export class TimelineManager {
     elements: { trackId: string; elementId: string }[];
     splitTime: number;
     retainSide?: "both" | "left" | "right";
-  }): void {
+  }): string[] {
     const command = new SplitElementsCommand(elements, splitTime, retainSide);
     this.editor.command.execute({ command });
+    return command.splitElementIds;
   }
 
   getTotalDuration(): number {
-    return calculateTotalDuration({ tracks: this.sortedTracks });
+    return calculateTotalDuration({ tracks: this.getTracks() });
   }
 
   getTrackById({ trackId }: { trackId: string }): TimelineTrack | null {
-    return this.sortedTracks.find((track) => track.id === trackId) ?? null;
+    return this.getTracks().find((track) => track.id === trackId) ?? null;
   }
 
   getElementsWithTracks({
     elements,
   }: {
-    elements:
-      | { trackId: string; elementId: string }[]
-      | { trackId: string; elementId: string };
-  }):
-    | Array<{ track: TimelineTrack; element: TimelineElement }>
-    | { track: TimelineTrack; element: TimelineElement }
-    | null {
-    const normalized = Array.isArray(elements) ? elements : [elements];
+    elements: { trackId: string; elementId: string }[];
+  }): Array<{ track: TimelineTrack; element: TimelineElement }> {
     const result: Array<{ track: TimelineTrack; element: TimelineElement }> =
       [];
 
-    for (const { trackId, elementId } of normalized) {
+    for (const { trackId, elementId } of elements) {
       const track = this.getTrackById({ trackId });
-      const element = track?.elements.find((el) => el.id === elementId);
+      const element = track?.elements.find(
+        (trackElement) => trackElement.id === elementId,
+      );
 
       if (track && element) {
         result.push({ track, element });
       }
     }
 
-    return Array.isArray(elements) ? result : (result[0] ?? null);
+    return result;
   }
 
-  async loadProjectTimeline({
-    projectId,
-    sceneId,
+  pasteAtTime({
+    time,
+    clipboardItems,
   }: {
-    projectId: string;
-    sceneId?: string;
-  }): Promise<void> {
-    try {
-      const tracks = await storageService.loadTimeline({
-        projectId,
-        sceneId,
-      });
-
-      if (tracks) {
-        this.updateTracks(tracks);
-      }
-    } catch (error) {
-      console.error("Failed to load timeline:", error);
-      throw error;
-    }
-  }
-
-  async saveProjectTimeline({
-    projectId,
-    sceneId,
-  }: {
-    projectId: string;
-    sceneId?: string;
-  }): Promise<void> {
-    try {
-      await storageService.saveTimeline({
-        projectId,
-        tracks: this.sortedTracks,
-        sceneId,
-      });
-    } catch (error) {
-      console.error("Failed to save timeline:", error);
-      throw error;
-    }
-  }
-
-  clearTimeline(): void {
-    this.updateTracks([]);
-  }
-
-  pasteAtTime({ time }: { time: number }): void {
-    const command = new PasteCommand(time);
+    time: number;
+    clipboardItems: ClipboardItem[];
+  }): void {
+    const command = new PasteCommand(time, clipboardItems);
     this.editor.command.execute({ command });
   }
 
@@ -270,6 +221,8 @@ export class TimelineManager {
         | "fontWeight"
         | "fontStyle"
         | "textDecoration"
+        | "transform"
+        | "opacity"
       >
     >;
   }): void {
@@ -286,12 +239,12 @@ export class TimelineManager {
     this.editor.command.execute({ command });
   }
 
-  toggleElementsHidden({
+  toggleElementsVisibility({
     elements,
   }: {
     elements: { trackId: string; elementId: string }[];
   }): void {
-    const command = new ToggleElementsHiddenCommand(elements);
+    const command = new ToggleElementsVisibilityCommand(elements);
     this.editor.command.execute({ command });
   }
 
@@ -319,7 +272,7 @@ export class TimelineManager {
   }
 
   getTracks(): TimelineTrack[] {
-    return this.sortedTracks;
+    return this.editor.scenes.getActiveScene()?.tracks ?? [];
   }
 
   subscribe(listener: () => void): () => void {
@@ -332,7 +285,7 @@ export class TimelineManager {
   }
 
   updateTracks(newTracks: TimelineTrack[]): void {
-    this.sortedTracks = newTracks;
+    this.editor.scenes.updateSceneTracks({ tracks: newTracks });
     this.notify();
   }
 }

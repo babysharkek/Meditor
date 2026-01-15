@@ -2,15 +2,19 @@ import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import {
   CreateTimelineElement,
+  CreateStickerElement,
+  CreateUploadAudioElement,
+  CreateLibraryAudioElement,
   TextElement,
   TimelineElement,
   AudioElement,
   VideoElement,
   ImageElement,
+  StickerElement,
+  UploadAudioElement,
 } from "@/types/timeline";
-import type { AssetDragData } from "@/types/assets";
 
-export function isMutableElement(
+export function canHaveAudio(
   element: TimelineElement,
 ): element is AudioElement | VideoElement {
   return element.type === "audio" || element.type === "video";
@@ -18,8 +22,26 @@ export function isMutableElement(
 
 export function canBeHidden(
   element: TimelineElement,
-): element is VideoElement | ImageElement | TextElement {
+): element is VideoElement | ImageElement | TextElement | StickerElement {
   return element.type !== "audio";
+}
+
+export function hasMediaId(
+  element: TimelineElement,
+): element is UploadAudioElement | VideoElement | ImageElement {
+  return "mediaId" in element;
+}
+
+export function requiresMediaId({
+  element,
+}: {
+  element: CreateTimelineElement;
+}): boolean {
+  return (
+    element.type === "video" ||
+    element.type === "image" ||
+    (element.type === "audio" && element.sourceType === "upload")
+  );
 }
 
 export function checkElementOverlaps({
@@ -35,9 +57,7 @@ export function checkElementOverlaps({
     const current = sortedElements[i];
     const next = sortedElements[i + 1];
 
-    const currentEnd =
-      current.startTime +
-      (current.duration - current.trimStart - current.trimEnd);
+    const currentEnd = current.startTime + current.duration;
 
     if (currentEnd > next.startTime) return true;
   }
@@ -60,9 +80,7 @@ export function resolveElementOverlaps({
 
     if (resolvedElements.length > 0) {
       const previous = resolvedElements[resolvedElements.length - 1];
-      const previousEnd =
-        previous.startTime +
-        (previous.duration - previous.trimStart - previous.trimEnd);
+      const previousEnd = previous.startTime + previous.duration;
 
       if (current.startTime < previousEnd) {
         current.startTime = previousEnd;
@@ -88,7 +106,7 @@ export function wouldElementOverlap({
 }): boolean {
   return elements.some((el) => {
     if (excludeElementId && el.id === excludeElementId) return false;
-    const elEnd = el.startTime + el.duration - el.trimStart - el.trimEnd;
+    const elEnd = el.startTime + el.duration;
     return startTime < elEnd && endTime > el.startTime;
   });
 }
@@ -97,7 +115,7 @@ export function buildTextElement({
   raw,
   startTime,
 }: {
-  raw: TextElement | AssetDragData;
+  raw: Partial<Omit<TextElement, "type" | "id">>;
   startTime: number;
 }): CreateTimelineElement {
   const t = raw as Partial<TextElement>;
@@ -121,5 +139,83 @@ export function buildTextElement({
     fontWeight: t.fontWeight ?? DEFAULT_TEXT_ELEMENT.fontWeight,
     fontStyle: t.fontStyle ?? DEFAULT_TEXT_ELEMENT.fontStyle,
     textDecoration: t.textDecoration ?? DEFAULT_TEXT_ELEMENT.textDecoration,
+    transform: t.transform ?? DEFAULT_TEXT_ELEMENT.transform,
+    opacity: t.opacity ?? DEFAULT_TEXT_ELEMENT.opacity,
+  };
+}
+
+export function buildStickerElement({
+  iconName,
+  startTime,
+}: {
+  iconName: string;
+  startTime: number;
+}): CreateStickerElement {
+  return {
+    type: "sticker",
+    name: iconName.split(":")[1] || iconName,
+    iconName,
+    duration: TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION,
+    startTime,
+    trimStart: 0,
+    trimEnd: 0,
+    transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
+    opacity: 1,
+  };
+}
+
+export function buildUploadAudioElement({
+  mediaId,
+  name,
+  duration,
+  startTime,
+  buffer,
+}: {
+  mediaId: string;
+  name: string;
+  duration: number;
+  startTime: number;
+  buffer: AudioBuffer;
+}): CreateUploadAudioElement {
+  return {
+    type: "audio",
+    sourceType: "upload",
+    mediaId,
+    name,
+    duration,
+    startTime,
+    trimStart: 0,
+    trimEnd: 0,
+    volume: 1,
+    muted: false,
+    buffer,
+  };
+}
+
+export function buildLibraryAudioElement({
+  sourceUrl,
+  name,
+  duration,
+  startTime,
+  buffer,
+}: {
+  sourceUrl: string;
+  name: string;
+  duration: number;
+  startTime: number;
+  buffer: AudioBuffer;
+}): CreateLibraryAudioElement {
+  return {
+    type: "audio",
+    sourceType: "library",
+    sourceUrl,
+    name,
+    duration,
+    startTime,
+    trimStart: 0,
+    trimEnd: 0,
+    volume: 1,
+    muted: false,
+    buffer,
   };
 }

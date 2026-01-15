@@ -6,7 +6,7 @@ export interface ExportOptions {
   quality: ExportQuality;
   fps?: number;
   includeAudio?: boolean;
-  onProgress?: (progress: number) => void;
+  onProgress?: ({ progress }: { progress: number }) => void;
   onCancel?: () => boolean;
 }
 

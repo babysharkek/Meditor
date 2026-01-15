@@ -1,4 +1,3 @@
-import { DEFAULT_FPS } from "@/constants/editor-constants";
 import { roundToFrame } from "@/lib/time-utils";
 
 export function findBookmarkIndex({
@@ -53,10 +52,10 @@ export function removeBookmarkFromArray({
 
 export function getFrameTime({
   time,
-  fps = DEFAULT_FPS,
+  fps,
 }: {
   time: number;
-  fps?: number;
+  fps: number;
 }): number {
   return roundToFrame({ time, fps });
 }

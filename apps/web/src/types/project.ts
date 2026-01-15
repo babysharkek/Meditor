@@ -1,32 +1,38 @@
-import { TCanvasSize } from "./editor";
+import { TScene } from "./timeline";
 
-export type TBackgroundType = "color" | "blur";
+export type TBackground =
+  | {
+      type: "color";
+      color: string;
+    }
+  | {
+      type: "blur";
+      blurIntensity: number;
+    };
 
-export interface TTimeline {
-  bookmarks?: number[];
+export interface TCanvasSize {
+  width: number;
+  height: number;
 }
 
-export interface TScene {
-  id: string;
-  name: string;
-  isMain: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  timeline?: TTimeline;
-}
-
-export interface TProject {
+export interface TProjectMetadata {
   id: string;
   name: string;
   thumbnail?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface TProjectSettings {
+  fps: number;
+  canvasSize: TCanvasSize;
+  background: TBackground;
+}
+
+export interface TProject {
+  metadata: TProjectMetadata;
   scenes: TScene[];
   currentSceneId: string;
-  mediaItems?: string[];
-  backgroundColor?: string;
-  backgroundType?: TBackgroundType;
-  blurIntensity?: number;
-  fps?: number;
-  canvasSize: TCanvasSize;
+  settings: TProjectSettings;
+  version: number;
 }

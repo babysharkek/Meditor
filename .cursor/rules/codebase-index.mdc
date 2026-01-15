@@ -1,0 +1,2039 @@
+---
+alwaysApply: true
+---
+
+# video-editor-oss Codebase Index
+
+**This file provides an index of exported functions, types, interfaces, classes, and constants in your codebase.**
+
+Updated in real-time by Twiggy. Use this to discover existing utilities and avoid duplicating code.
+
+## How to Use
+
+When implementing new features:
+1. Check if similar functionality already exists
+2. Reuse existing types and utilities
+3. Understand the API surface of your codebase
+
+```typescript
+## apps/web/src
+
+middleware.ts
+  export function middleware()
+  export const config
+
+## apps/web/src/constants
+
+captions-constants.ts
+  export const LANGUAGES: Language[]
+
+editor-constants.ts
+  export const PLATFORM_LAYOUTS: Record<TPlatformLayout, string>
+
+export-constants.ts
+  export const DEFAULT_EXPORT_OPTIONS: ExportOptions
+
+font-constants.ts
+  export interface FontOption {
+    value: string
+    label: string
+    category: "system" | "google" | "custom"
+    weights?: number[]
+    hasClassName?: boolean
+  }
+  export const FONT_OPTIONS: FontOption[]
+  export const DEFAULT_FONT
+  export type FontFamily = (typeof FONT_OPTIONS)[number]["value"]
+  export const getFontByValue = (value: string): FontOption | undefined => ...
+  export const getGoogleFonts = (): FontOption[] => ...
+  export const getSystemFonts = (): FontOption[] => ...
+
+project-constants.ts
+  export const DEFAULT_CANVAS_PRESETS: TCanvasSize[]
+  export const FPS_PRESETS
+  export const BLUR_INTENSITY_PRESETS: { label: string; value: number }[]
+  export const DEFAULT_CANVAS_SIZE: TCanvasSize
+  export const DEFAULT_FPS
+  export const DEFAULT_BLUR_INTENSITY
+  export const DEFAULT_COLOR
+
+site-constants.ts
+  export const SITE_URL
+  export const SITE_INFO
+  export type ExternalTool = {
+    name: string;
+    description: string;
+    url: string;
+    icon: React.ElementType;
+  }
+  export const EXTERNAL_TOOLS: ExternalTool[]
+  export const DEFAULT_LOGO_URL
+  export const SOCIAL_LINKS
+  export type Sponsor = {
+    name: string;
+    url: string;
+    logo: string;
+    description: string;
+  }
+  export const SPONSORS: Sponsor[]
+
+stickers-constants.ts
+  export const STICKER_CATEGORIES
+  export const STICKER_CATEGORY_CONFIG: Record<
+    (typeof STICKER_CATEGORIES)[number],
+    string | undefined
+  >
+
+text-constants.ts
+  export const DEFAULT_TEXT_ELEMENT: Omit<TextElement, "id">
+
+timeline-constants.tsx
+  export const TRACK_COLORS: Record<
+    TrackType,
+    { solid: string; background: string; border: string }
+  >
+  export const TRACK_HEIGHTS: Record<TrackType, number>
+  export const TRACK_GAP
+  export const TIMELINE_CONSTANTS
+  export const TRACK_ICONS: Record<TrackType, React.ReactNode>
+
+## apps/web/src/core
+
+index.ts
+  export class EditorCore {
+    instance: EditorCore | null
+    command: CommandManager
+    playback: PlaybackManager
+    timeline: TimelineManager
+    scenes: ScenesManager
+    project: ProjectManager
+    media: MediaManager
+    renderer: RendererManager
+    static getInstance(): EditorCore
+    static reset(): void
+    // ... and 1 more
+  }
+
+## apps/web/src/core/managers
+
+commands.ts
+  export class CommandManager {
+    history: Command[]
+    redoStack: Command[]
+    execute({ command }: { command: Command }): Command
+    undo(): void
+    redo(): void
+    canUndo(): boolean
+    canRedo(): boolean
+    clear(): void
+  }
+
+media-manager.ts
+  export class MediaManager {
+    assets: MediaAsset[]
+    isLoading
+    listeners
+    constructor(private editor: EditorCore)
+    async addMediaAsset({
+      projectId,
+      asset,
+    }: {
+      projectId: string;
+      asset: Omit<MediaAsset, "id">;
+    }): Promise<void>
+    async removeMediaAsset({
+      projectId,
+      id,
+    }: {
+      projectId: string;
+      id: string;
+    }): Promise<void>
+    async loadProjectMedia({ projectId }: { projectId: string }): Promise<void>
+    async clearProjectMedia({ projectId }: { projectId: string }): Promise<void>
+    clearAllAssets(): void
+    getAssets(): MediaAsset[]
+    // ... and 3 more
+  }
+
+playback-manager.ts
+  export class PlaybackManager {
+    isPlaying
+    currentTime
+    volume
+    muted
+    previousVolume
+    speed
+    listeners
+    playbackTimer: number | null
+    lastUpdate
+    constructor(private editor: EditorCore)
+    // ... and 16 more
+  }
+
+project-manager.ts
+  export interface MigrationState {
+    isMigrating: boolean
+    fromVersion: number | null
+    toVersion: number | null
+    projectName: string | null
+  }
+  export class ProjectManager {
+    active: TProject | null
+    savedProjects: TProjectMetadata[]
+    isLoading
+    isInitialized
+    invalidProjectIds
+    listeners
+    migrationState: MigrationState
+    constructor(private editor: EditorCore)
+    async createNewProject({ name }: { name: string }): Promise<string>
+    async loadProject({ id }: { id: string }): Promise<void>
+    // ... and 21 more
+  }
+
+renderer-manager.ts
+  export class RendererManager {
+    renderTree: RootNode | null
+    listeners
+    constructor(private editor: EditorCore)
+    setRenderTree({ renderTree }: { renderTree: RootNode | null }): void
+    getRenderTree(): RootNode | null
+    async exportProject({
+      options,
+    }: {
+      options: ExportOptions;
+    }): Promise<ExportResult>
+    subscribe(listener: () => void): () => void
+  }
+
+scenes-manager.ts
+  export class ScenesManager {
+    active: TScene | null
+    list: TScene[]
+    listeners
+    constructor(private editor: EditorCore)
+    async createScene({
+      name,
+      isMain = false,
+    }: {
+      name: string;
+      isMain: boolean;
+    }): Promise<string>
+    async deleteScene({ sceneId }: { sceneId: string }): Promise<void>
+    async renameScene({
+      sceneId,
+      name,
+    }: {
+      sceneId: string;
+      name: string;
+    }): Promise<void>
+    async switchToScene({ sceneId }: { sceneId: string }): Promise<void>
+    async toggleBookmark({ time }: { time: number }): Promise<void>
+    isBookmarked({ time }: { time: number }): boolean
+    // ... and 9 more
+  }
+
+timeline-manager.ts
+  export class TimelineManager {
+    listeners
+    constructor(private editor: EditorCore)
+    addTrack({ type, index }: { type: TrackType; index?: number }): string
+    removeTrack({ trackId }: { trackId: string }): void
+    addElementToTrack({
+      trackId,
+      element,
+    }: {
+      trackId: string;
+      element: CreateTimelineElement;
+    }): void
+    updateElementTrim({
+      trackId,
+      elementId,
+      trimStart,
+      trimEnd,
+      pushHistory = true,
+    }: {
+      trackId: string;
+      elementId: string;
+      trimStart: number;
+      trimEnd: number;
+      pushHistory?: boolean;
+    }): void
+    updateElementDuration({
+      trackId,
+      elementId,
+      duration,
+      pushHistory = true,
+    }: {
+      trackId: string;
+      elementId: string;
+      duration: number;
+      pushHistory?: boolean;
+    }): void
+    updateElementStartTime({
+      elements,
+      startTime,
+    }: {
+      elements: { trackId: string; elementId: string }[];
+      startTime: number;
+    }): void
+    moveElement({
+      sourceTrackId,
+      targetTrackId,
+      elementId,
+      newStartTime,
+    }: {
+      sourceTrackId: string;
+      targetTrackId: string;
+      elementId: string;
+      newStartTime: number;
+    }): void
+    toggleTrackMute({ trackId }: { trackId: string }): void
+    // ... and 14 more
+  }
+
+## apps/web/src/data/colors
+
+pattern-craft.ts
+  export const patternCraftGradients
+
+solid.ts
+  export const colors
+
+syntax-ui.tsx
+  export const syntaxUIGradients
+
+## apps/web/src/hooks
+
+use-action-handler.ts
+  export function useActionHandler(
+    action: A,
+    handler: TActionFunc<A>,
+    isActive: TActionHandlerOptions,
+  )
+
+use-edge-auto-scroll.ts
+  export function useEdgeAutoScroll({
+    isActive,
+    getMouseClientX,
+    rulerScrollRef,
+    tracksScrollRef,
+    contentWidth,
+    edgeThreshold = 100,
+    maxScrollSpeed = 15,
+  }: UseEdgeAutoScrollParams): void
+
+use-editor-actions.ts
+  export function useEditorActions()
+
+use-editor.ts
+  export function useEditor(): EditorCore
+
+use-element-selection.ts
+  export function useElementSelection()
+
+use-file-paste.ts
+  export function useFilePaste({ onFilesPaste }: UseFilePasteOptions)
+
+use-file-upload.ts
+  export function useFileUpload({
+    accept,
+    multiple,
+    onFilesSelected,
+  }: UseFileUploadOptions = {})
+
+use-infinite-scroll.ts
+  export function useInfiniteScroll({
+    onLoadMore,
+    hasMore,
+    isLoading,
+    threshold = 200,
+    enabled = true,
+  }: UseInfiniteScrollOptions)
+
+use-keybindings.ts
+  export function useKeybindingsListener()
+  export function useKeybindingDisabler()
+  export const bindings
+
+use-keyboard-shortcuts-help.ts
+  export interface KeyboardShortcut {
+    id: string
+    keys: string[]
+    description: string
+    category: string
+    action: TAction
+    icon?: React.ReactNode
+  }
+  export const useKeyboardShortcutsHelp = () => ...
+
+use-mobile.tsx
+  export function useIsMobile()
+
+use-prevent-scroll.ts
+  export function usePreventScroll({ enabled = true, element }: UsePreventScrollOptions = {})
+
+use-project-initialize.ts
+  export function useProjectInitialize({ projectId }: { projectId: string })
+
+use-raf-loop.ts
+  export function useRafLoop(callback: ({ time }: { time: number }) => void)
+
+use-reveal-item.ts
+  export function useRevealItem(
+    highlightId: string | null,
+    onClearHighlight: () => void,
+    highlightDuration = 1000,
+  )
+
+use-scroll-sync.ts
+  export function useScrollSync({
+    rulerScrollRef,
+    tracksScrollRef,
+    trackLabelsScrollRef,
+  }: UseScrollSyncProps)
+
+use-selection-box.ts
+  export function useSelectionBox({
+    containerRef,
+    playheadRef,
+    onSelectionComplete,
+    isEnabled = true,
+  }: UseSelectionBoxProps)
+
+use-sound-search.ts
+  export function useSoundSearch({
+    query,
+    commercialOnly,
+  }: {
+    query: string;
+    commercialOnly: boolean;
+  })
+
+use-toast.ts
+  export const reducer = (state: State, action: Action): State => ...
+
+## apps/web/src/hooks/timeline
+
+use-element-interaction.ts
+  export function useElementInteraction({
+    zoomLevel,
+    timelineRef,
+    tracksContainerRef,
+    onSnapPointChange,
+  }: UseElementInteractionProps)
+
+use-element-resize.ts
+  export interface ResizeState {
+    elementId: string
+    side: "left" | "right"
+    startX: number
+    initialTrimStart: number
+    initialTrimEnd: number
+    initialStartTime: number
+    initialDuration: number
+  }
+  export function useTimelineElementResize({
+    element,
+    track,
+    zoomLevel,
+  }: UseTimelineElementResizeProps)
+
+use-snap-indicator-position.ts
+  export function useSnapIndicatorPosition({
+    snapPoint,
+    zoomLevel,
+    tracks,
+    timelineRef,
+    trackLabelsRef,
+    tracksScrollRef,
+  }: UseSnapIndicatorPositionParams): SnapIndicatorPosition
+
+use-timeline-drag-drop.ts
+  export function useTimelineDragDrop({
+    containerRef,
+    zoomLevel,
+    isSnappingEnabled = true,
+  }: UseTimelineDragDropProps)
+
+use-timeline-interactions.ts
+  export function useTimelineInteractions({
+    playheadRef,
+    rulerScrollRef,
+    tracksScrollRef,
+    zoomLevel,
+    duration,
+    isSelecting,
+    justFinishedSelecting,
+    clearSelectedElements,
+    seek,
+  }: UseTimelineInteractionsProps)
+
+use-timeline-playhead.ts
+  export function useTimelinePlayhead({
+    zoomLevel,
+    rulerRef,
+    rulerScrollRef,
+    tracksScrollRef,
+    playheadRef,
+  }: UseTimelinePlayheadProps)
+
+use-timeline-snapping.ts
+  export interface SnapPoint {
+    time: number
+    type: "element-start" | "element-end" | "playhead"
+    elementId?: string
+    trackId?: string
+  }
+  export interface SnapResult {
+    snappedTime: number
+    snapPoint: SnapPoint | null
+    snapDistance: number
+  }
+  export interface UseTimelineSnappingOptions {
+    snapThreshold?: number
+    enableElementSnapping?: boolean
+    enablePlayheadSnapping?: boolean
+  }
+  export function useTimelineSnapping({
+    snapThreshold = 10,
+    enableElementSnapping = true,
+    enablePlayheadSnapping = true,
+  }: UseTimelineSnappingOptions = {})
+
+use-timeline-zoom.ts
+  export function useTimelineZoom({
+    containerRef,
+    isInTimeline = false,
+  }: UseTimelineZoomProps): UseTimelineZoomReturn
+
+## apps/web/src/lib
+
+blog-query.ts
+  export function getPosts()
+  export function getTags()
+  export function getSinglePost({ slug }: { slug: string })
+  export function getCategories()
+  export function getAuthors()
+  export function processHtmlContent({ html }: { html: string }): Promise<string>
+
+drag-data.ts
+  export function setDragData({
+    dataTransfer,
+    dragData,
+  }: {
+    dataTransfer: DataTransfer;
+    dragData: TimelineDragData;
+  }): void
+  export function getDragData({
+    dataTransfer,
+  }: {
+    dataTransfer: DataTransfer;
+  }): TimelineDragData | null
+  export function hasDragData({
+    dataTransfer,
+  }: {
+    dataTransfer: DataTransfer;
+  }): boolean
+
+editor-utils.ts
+  export function dimensionToAspectRatio({
+    width,
+    height,
+  }: {
+    width: number;
+    height: number;
+  }): string
+
+export-utils.ts
+  export function exportProject({
+    format,
+    quality,
+    fps,
+    includeAudio,
+    onProgress,
+    onCancel,
+  }: ExportOptions): Promise<ExportResult>
+  export function getExportMimeType({
+    format,
+  }: {
+    format: "mp4" | "webm";
+  }): string
+  export function getExportFileExtension({
+    format,
+  }: {
+    format: "mp4" | "webm";
+  }): string
+
+iconify-api.ts
+  export const ICONIFY_HOSTS
+  export interface IconSet {
+    prefix: string
+    name: string
+    total: number
+    author?: {
+      name: string;
+      url?: string;
+    }
+    license?: {
+      title: string;
+      spdx?: string;
+      url?: string;
+    }
+    samples?: string[]
+    category?: string
+    palette?: boolean
+  }
+  export interface IconSearchResult {
+    icons: string[]
+    total: number
+    limit: number
+    start: number
+    collections: Record<string, IconSet>
+  }
+  export interface CollectionInfo {
+    prefix: string
+    total: number
+    title?: string
+    uncategorized?: string[]
+    categories?: Record<string, string[]>
+    hidden?: string[]
+    aliases?: Record<string, string>
+  }
+  export function getCollections(
+    category?: string
+  ): Promise<Record<string, IconSet>>
+  export function getCollection(
+    prefix: string
+  ): Promise<CollectionInfo | null>
+  export function searchIcons(
+    query: string,
+    limit: number = 64,
+    prefixes?: string[],
+    category?: string
+  ): Promise<IconSearchResult>
+  export function buildIconSvgUrl(
+    host: string,
+    iconName: string,
+    params?: {
+      color?: string;
+      width?: number;
+      height?: number;
+      flip?: "horizontal" | "vertical" | "horizontal,vertical";
+      rotate?: number | string;
+    }
+  ): string
+  export function getIconSvgUrl(
+    iconName: string,
+    params?: Parameters<typeof buildIconSvgUrl>[2]
+  ): string
+  export function downloadSvgAsText(
+    iconName: string,
+    params?: Parameters<typeof getIconSvgUrl>[1]
+  ): Promise<string>
+  export function svgToFile(svgText: string, fileName: string): File
+  export const POPULAR_COLLECTIONS
+  export function getCategoriesFromCollections(
+    collections: Record<string, IconSet>
+  ): string[]
+
+keyboard-utils.ts
+  export function getPlatformSpecialKey(): string
+  export function getPlatformAlternateKey(): string
+
+media-processing-utils.ts
+  export interface ProcessedMediaAsset extends Omit<MediaAsset, "id">
+  export function generateThumbnail({
+    videoFile,
+    timeInSeconds,
+  }: {
+    videoFile: File;
+    timeInSeconds: number;
+  }): Promise<string>
+  export function processMediaAssets({
+    files,
+    onProgress,
+  }: {
+    files: FileList | File[];
+    onProgress?: ({ progress }: { progress: number }) => void;
+  }): Promise<ProcessedMediaAsset[]>
+
+media-utils.ts
+  export const SUPPORTS_AUDIO: readonly MediaType[]
+  export function mediaSupportsAudio({
+    media,
+  }: {
+    media: MediaAsset | null | undefined;
+  }): boolean
+  export const getMediaTypeFromFile = ({ file }: { file: File }): MediaType | null => ...
+
+mediabunny-utils.ts
+  export const initFFmpeg = (): Promise<FFmpeg> => ...
+  export function getVideoInfo({
+    videoFile,
+  }: {
+    videoFile: File;
+  }): Promise<{
+    duration: number;
+    width: number;
+    height: number;
+    fps: number;
+  }>
+  export const extractTimelineAudio = (
+    onProgress?: (progress: number) => void,
+  ): Promise<Blob> => ...
+
+rate-limit.ts
+  export const baseRateLimit
+  export function checkRateLimit({ request }: { request: Request })
+
+scene-utils.ts
+  export function getMainScene({ scenes }: { scenes: TScene[] }): TScene | null
+  export function ensureMainScene({ scenes }: { scenes: TScene[] }): TScene[]
+  export function buildDefaultScene({
+    name,
+    isMain,
+  }: {
+    name: string;
+    isMain: boolean;
+  }): TScene
+  export function canDeleteScene({ scene }: { scene: TScene }): {
+    canDelete: boolean;
+    reason?: string;
+  }
+  export function getFallbackSceneAfterDelete({
+    scenes,
+    deletedSceneId,
+    currentSceneId,
+  }: {
+    scenes: TScene[];
+    deletedSceneId: string;
+    currentSceneId: string | null;
+  }): TScene | null
+  export function findCurrentScene({
+    scenes,
+    currentSceneId,
+  }: {
+    scenes: TScene[];
+    currentSceneId: string;
+  }): TScene | null
+  export function updateSceneInArray({
+    scenes,
+    sceneId,
+    updates,
+  }: {
+    scenes: TScene[];
+    sceneId: string;
+    updates: Partial<TScene>;
+  }): TScene[]
+
+time-utils.ts
+  export function roundToFrame({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
+  }): number
+  export function formatTimeCode({
+    timeInSeconds,
+    format = "HH:MM:SS:CS",
+    fps,
+  }: {
+    timeInSeconds: number;
+    format?: TTimeCode;
+    fps?: number;
+  }): string
+  export function parseTimeCode({
+    timeCode,
+    format = "HH:MM:SS:CS",
+    fps,
+  }: {
+    timeCode: string;
+    format?: TTimeCode;
+    fps: number;
+  }): number | null
+  export function guessTimeCodeFormat({
+    timeCode,
+  }: {
+    timeCode: string;
+  }): TTimeCode | null
+  export function timeToFrame({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
+  }): number
+  export function frameToTime({
+    frame,
+    fps,
+  }: {
+    frame: number;
+    fps: number;
+  }): number
+  export function snapTimeToFrame({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
+  }): number
+
+transcription-utils.ts
+  export function isTranscriptionConfigured()
+
+utils.ts
+  export function cn(...inputs: ClassValue[]): string
+  export function capitalizeFirstLetter({ string }: { string: string })
+  export function generateUUID(): string
+  export function isTypableDOMElement({ element }: { element: HTMLElement }): boolean
+  export function isAppleDevice(): boolean
+  export function clamp({
+    value,
+    min,
+    max,
+  }: {
+    value: number;
+    min: number;
+    max: number;
+  }): number
+
+video-cache.ts
+  export class VideoCache {
+    sinks
+    initPromises
+    async getFrameAt(
+      mediaId: string,
+      file: File,
+      time: number
+    ): Promise<WrappedCanvas | null>
+    clearVideo(mediaId: string): void
+    clearAll(): void
+    getStats()
+  }
+  export const videoCache
+
+zk-encryption.ts
+  export interface ZeroKnowledgeEncryptionResult {
+    encryptedData: ArrayBuffer
+    key: ArrayBuffer
+    iv: ArrayBuffer
+  }
+  export function encryptWithRandomKey(
+    data: ArrayBuffer
+  ): Promise<ZeroKnowledgeEncryptionResult>
+  export function arrayBufferToBase64(buffer: ArrayBuffer): string
+  export function base64ToArrayBuffer(base64: string): ArrayBuffer
+
+## apps/web/src/lib/actions
+
+definitions.ts
+  export type TActionCategory = | "playback"
+    | "navigation"
+    | "editing"
+    | "selection"
+    | "history"
+    | "timeline"
+    ...
+  export interface TActionDefinition {
+    description: string
+    category: TActionCategory
+    defaultShortcuts?: ShortcutKey[]
+    args?: Record<string, unknown>
+  }
+  export const ACTIONS
+  export type TAction = keyof typeof ACTIONS
+  export function getActionDefinition(action: TAction): TActionDefinition
+  export function getDefaultShortcuts(): Record<ShortcutKey, TAction>
+
+registry.ts
+  export function bindAction(
+    action: A,
+    handler: TActionFunc<A>,
+  )
+  export function unbindAction(
+    action: A,
+    handler: TActionFunc<A>,
+  )
+  export const invokeAction = (
+    action: A,
+    args?: TArgOfAction<A>,
+    trigger?: TInvocationTrigger,
+  ) => ...
+
+types.ts
+  export type TActionArgsMap = {
+    "seek-forward": { seconds: number } | undefined;
+    "seek-backward": { seconds: number } | u...
+  export type TActionWithArgs = keyof TActionArgsMap
+  export type TActionWithOptionalArgs = | TActionWithNoArgs
+    | TKeysWithValueUndefined<TActionArgsMap>
+  export type TActionWithNoArgs = Exclude<TAction, TActionWithArgs>
+  export type TArgOfAction<A extends TAction> = A extends TActionWithArgs
+    ? TActionArgsMap[A]
+    : undefined
+  export type TActionFunc<A extends TAction> = A extends TActionWithArgs
+    ? (arg: TArgOfAction<A>, trigger?: TInvocationTrigger) => void
+    : ...
+  export type TInvocationTrigger = "keypress" | "mouseclick"
+  export type TBoundActionList = {
+    [A in TAction]?: Array<TActionFunc<A>>;
+  }
+  export type TActionHandlerOptions = | MutableRefObject<boolean>
+    | boolean
+    | undefined
+
+## apps/web/src/lib/auth
+
+server.ts
+  export const auth
+  export type Auth = typeof auth
+
+## apps/web/src/lib/canvas
+
+gradients.ts
+  export function drawCssBackground({
+    ctx,
+    width,
+    height,
+    css,
+  }: {
+    ctx: CanvasRenderingContext2D;
+    width: number;
+    height: number;
+    css: string;
+  }): void
+
+## apps/web/src/lib/commands/media
+
+add-media-asset.ts
+  export class AddMediaAssetCommand extends Command {
+    assetId: string
+    savedAssets: MediaAsset[] | null
+    createdAsset: MediaAsset | null
+    constructor(
+      private projectId: string,
+      private asset: Omit<MediaAsset, "id">,
+    )
+    execute(): void
+    undo(): void
+    getAssetId(): string
+  }
+
+remove-media-asset.ts
+  export class RemoveMediaAssetCommand extends Command {
+    savedAssets: MediaAsset[] | null
+    savedTracks: TimelineTrack[] | null
+    removedAsset: MediaAsset | null
+    constructor(
+      private projectId: string,
+      private assetId: string,
+    )
+    execute(): void
+    undo(): void
+  }
+
+## apps/web/src/lib/commands/scene
+
+create-scene.ts
+  export class CreateSceneCommand extends Command {
+    savedScenes: TScene[] | null
+    createdScene: TScene | null
+    constructor(
+      private name: string,
+      private isMain: boolean = false,
+    )
+    execute(): void
+    undo(): void
+    getSceneId(): string
+  }
+
+delete-scene.ts
+  export class DeleteSceneCommand extends Command {
+    savedScenes: TScene[] | null
+    savedActiveSceneId: string | null
+    deletedScene: TScene | null
+    constructor(private sceneId: string)
+    execute(): void
+    undo(): void
+  }
+
+remove-bookmark.ts
+  export class RemoveBookmarkCommand extends Command {
+    savedScenes: TScene[] | null
+    frameTime: number
+    constructor(private time: number)
+    execute(): void
+    undo(): void
+  }
+
+rename-scene.ts
+  export class RenameSceneCommand extends Command {
+    savedScenes: TScene[] | null
+    previousName: string | null
+    constructor(
+      private sceneId: string,
+      private newName: string,
+    )
+    execute(): void
+    undo(): void
+  }
+
+toggle-bookmark.ts
+  export class ToggleBookmarkCommand extends Command {
+    savedScenes: TScene[] | null
+    frameTime: number
+    constructor(private time: number)
+    execute(): void
+    undo(): void
+  }
+
+## apps/web/src/lib/commands/timeline/clipboard
+
+paste.ts
+  export class PasteCommand extends Command {
+    savedState: TimelineTrack[] | null
+    pastedElementIds: string[]
+    constructor(
+      private time: number,
+      private clipboardItems: ClipboardItem[],
+    )
+    execute(): void
+    undo(): void
+  }
+
+## apps/web/src/lib/commands/timeline/element
+
+add-element.ts
+  export class AddElementToTrackCommand extends Command {
+    elementId: string
+    savedState: TimelineTrack[] | null
+    constructor(
+      private trackId: string,
+      private element: CreateTimelineElement,
+    )
+    execute(): void
+    undo(): void
+    getElementId(): string
+  }
+
+delete-elements.ts
+  export class DeleteElementsCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(private elements: { trackId: string; elementId: string }[])
+    execute(): void
+    undo(): void
+  }
+
+duplicate-elements.ts
+  export class DuplicateElementsCommand extends Command {
+    duplicatedIds: string[]
+    savedState: TimelineTrack[] | null
+    elements: DuplicateElementsParams["elements"]
+    constructor({ elements }: DuplicateElementsParams)
+    execute(): void
+    undo(): void
+  }
+
+move-element.ts
+  export class MoveElementCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(
+      private sourceTrackId: string,
+      private targetTrackId: string,
+      private elementId: string,
+      private newStartTime: number,
+    )
+    execute(): void
+    undo(): void
+  }
+
+split-elements.ts
+  export class SplitElementsCommand extends Command {
+    savedState: TimelineTrack[] | null
+    newElementIds: string[]
+    affectedElementIds: Set<string>
+    constructor(
+      private elements: { trackId: string; elementId: string }[],
+      private splitTime: number,
+      private retainSide: "both" | "left" | "right" = "both",
+    )
+    splitElementIds(): string[]
+    execute(): void
+    undo(): void
+  }
+
+toggle-elements-muted.ts
+  export class ToggleElementsMutedCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(private elements: { trackId: string; elementId: string }[])
+    execute(): void
+    undo(): void
+  }
+
+toggle-elements-visibility.ts
+  export class ToggleElementsVisibilityCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(private elements: { trackId: string; elementId: string }[])
+    execute(): void
+    undo(): void
+  }
+
+update-element-duration.ts
+  export class UpdateElementDurationCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(
+      private trackId: string,
+      private elementId: string,
+      private duration: number,
+    )
+    execute(): void
+    undo(): void
+  }
+
+update-element-start-time.ts
+  export class UpdateElementStartTimeCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(
+      private elements: { trackId: string; elementId: string }[],
+      private startTime: number,
+    )
+    execute(): void
+    undo(): void
+  }
+
+update-element-trim.ts
+  export class UpdateElementTrimCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(
+      private trackId: string,
+      private elementId: string,
+      private trimStart: number,
+      private trimEnd: number,
+    )
+    execute(): void
+    undo(): void
+  }
+
+update-text-element.ts
+  export class UpdateTextElementCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(
+      private trackId: string,
+      private elementId: string,
+      private updates: Partial<
+        Pick<
+          TextElement,
+          | "content"
+          | "fontSize"
+          | "fontFamily"
+          | "color"
+          | "backgroundColor"
+          | "textAlign"
+          | "fontWeight"
+          | "fontStyle"
+          | "textDecoration"
+        >
+      >,
+    )
+    execute(): void
+    undo(): void
+  }
+
+## apps/web/src/lib/commands/timeline/track
+
+add-track.ts
+  export class AddTrackCommand extends Command {
+    trackId: string
+    savedState: TimelineTrack[] | null
+    constructor(
+      private type: TrackType,
+      private index?: number,
+    )
+    execute(): void
+    undo(): void
+    getTrackId(): string
+  }
+
+remove-track.ts
+  export class RemoveTrackCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(private trackId: string)
+    execute(): void
+    undo(): void
+  }
+
+toggle-track-mute.ts
+  export class ToggleTrackMuteCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(private trackId: string)
+    execute(): void
+    undo(): void
+  }
+
+## apps/web/src/lib/db
+
+index.ts
+  export const db
+
+schema.ts
+  export const users
+  export const sessions
+  export const accounts
+  export const verifications
+  export const exportWaitlist
+
+## apps/web/src/lib/schemas
+
+waitlist.ts
+  export const exportWaitlistSchema
+  export const exportWaitlistResponseSchema
+  export type ExportWaitlistInput = z.infer<typeof exportWaitlistSchema>
+  export type ExportWaitlistResponse = z.infer<
+    typeof exportWaitlistResponseSchema
+  >
+
+## apps/web/src/lib/storage
+
+indexeddb-adapter.ts
+  export class IndexedDBAdapter implements StorageAdapter<T> {
+    dbName: string
+    storeName: string
+    version: number
+    constructor(dbName: string, storeName: string, version = 1)
+    async get(key: string): Promise<T | null>
+    async set(key: string, value: T): Promise<void>
+    async remove(key: string): Promise<void>
+    async list(): Promise<string[]>
+    async getAll(): Promise<T[]>
+    async clear(): Promise<void>
+  }
+
+opfs-adapter.ts
+  export class OPFSAdapter implements StorageAdapter<File> {
+    directoryName: string
+    constructor(directoryName = "media")
+    async get(key: string): Promise<File | null>
+    async set(key: string, file: File): Promise<void>
+    async remove(key: string): Promise<void>
+    async list(): Promise<string[]>
+    async clear(): Promise<void>
+    static isSupported(): boolean
+  }
+
+storage-service.ts
+  export const storageService
+
+types.ts
+  export interface StorageAdapter<T> {
+    get(key: string): Promise<T | null>
+    set(key: string, value: T): Promise<void>
+    remove(key: string): Promise<void>
+    list(): Promise<string[]>
+    clear(): Promise<void>
+  }
+  export interface MediaAssetData {
+    id: string
+    name: string
+    type: MediaType
+    size: number
+    lastModified: number
+    width?: number
+    height?: number
+    duration?: number
+    fps?: number
+    ephemeral?: boolean
+    // ... and 2 more
+  }
+  export type SerializedScene = Omit<TScene, "createdAt" | "updatedAt"> & {
+    createdAt: string;
+    updatedAt: string;
+  }
+  export type SerializedProjectMetadata = Omit<
+    TProjectMetadata,
+    "createdAt" | "updatedAt"
+  > & {
+    createdAt: string;
+    updatedAt...
+  export type SerializedProject = Omit<TProject, "metadata" | "scenes"> & {
+    metadata: SerializedProjectMetadata;
+    scenes: Seri...
+  export interface StorageConfig {
+    projectsDb: string
+    mediaDb: string
+    savedSoundsDb: string
+    version: number
+  }
+
+## apps/web/src/lib/timeline
+
+bookmark-utils.ts
+  export function findBookmarkIndex({
+    bookmarks,
+    frameTime,
+  }: {
+    bookmarks: number[];
+    frameTime: number;
+  }): number
+  export function isBookmarkAtTime({
+    bookmarks,
+    frameTime,
+  }: {
+    bookmarks: number[];
+    frameTime: number;
+  }): boolean
+  export function toggleBookmarkInArray({
+    bookmarks,
+    frameTime,
+  }: {
+    bookmarks: number[];
+    frameTime: number;
+  }): number[]
+  export function removeBookmarkFromArray({
+    bookmarks,
+    frameTime,
+  }: {
+    bookmarks: number[];
+    frameTime: number;
+  }): number[]
+  export function getFrameTime({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
+  }): number
+
+drop-utils.ts
+  export function computeDropTarget({
+    elementType,
+    mouseX,
+    mouseY,
+    tracks,
+    playheadTime,
+    isExternalDrop,
+    elementDuration,
+    pixelsPerSecond,
+    zoomLevel,
+  }: ComputeDropTargetParams): DropTarget
+  export function getDropLineY({
+    dropTarget,
+    tracks,
+  }: {
+    dropTarget: DropTarget;
+    tracks: TimelineTrack[];
+  }): number
+
+element-utils.ts
+  export function canHaveAudio(
+    element: TimelineElement,
+  )
+  export function canBeHidden(
+    element: TimelineElement,
+  )
+  export function hasMediaId(
+    element: TimelineElement,
+  )
+  export function requiresMediaId({
+    element,
+  }: {
+    element: CreateTimelineElement;
+  }): boolean
+  export function checkElementOverlaps({
+    elements,
+  }: {
+    elements: TimelineElement[];
+  }): boolean
+  export function resolveElementOverlaps({
+    elements,
+  }: {
+    elements: TimelineElement[];
+  }): TimelineElement[]
+  export function wouldElementOverlap({
+    elements,
+    startTime,
+    endTime,
+    excludeElementId,
+  }: {
+    elements: TimelineElement[];
+    startTime: number;
+    endTime: number;
+    excludeElementId?: string;
+  }): boolean
+  export function buildTextElement({
+    raw,
+    startTime,
+  }: {
+    raw: Partial<Omit<TextElement, "type" | "id">>;
+    startTime: number;
+  }): CreateTimelineElement
+  export function buildStickerElement({
+    iconName,
+    startTime,
+  }: {
+    iconName: string;
+    startTime: number;
+  }): CreateStickerElement
+  export function buildUploadAudioElement({
+    mediaId,
+    name,
+    duration,
+    startTime,
+    buffer,
+  }: {
+    mediaId: string;
+    name: string;
+    duration: number;
+    startTime: number;
+    buffer: AudioBuffer;
+  }): CreateUploadAudioElement
+  export function buildLibraryAudioElement({
+    sourceUrl,
+    name,
+    duration,
+    startTime,
+    buffer,
+  }: {
+    sourceUrl: string;
+    name: string;
+    duration: number;
+    startTime: number;
+    buffer: AudioBuffer;
+  }): CreateLibraryAudioElement
+
+index.ts
+  export function calculateTotalDuration({
+    tracks,
+  }: {
+    tracks: TimelineTrack[];
+  }): number
+
+track-utils.ts
+  export function getTrackColor({ type }: { type: TrackType })
+  export function getTrackClasses({ type }: { type: TrackType })
+  export function getTrackHeight({ type }: { type: TrackType }): number
+  export function getCumulativeHeightBefore({
+    tracks,
+    trackIndex,
+  }: {
+    tracks: Array<{ type: TrackType }>;
+    trackIndex: number;
+  }): number
+  export function getTotalTracksHeight({
+    tracks,
+  }: {
+    tracks: Array<{ type: TrackType }>;
+  }): number
+  export function getMainTrack({
+    tracks,
+  }: {
+    tracks: TimelineTrack[];
+  }): TimelineTrack | null
+  export function ensureMainTrack({
+    tracks,
+  }: {
+    tracks: TimelineTrack[];
+  }): TimelineTrack[]
+  export function canElementGoOnTrack({
+    elementType,
+    trackType,
+  }: {
+    elementType: ElementType;
+    trackType: TrackType;
+  }): boolean
+  export function validateElementTrackCompatibility({
+    element,
+    track,
+  }: {
+    element: { type: ElementType };
+    track: { type: TrackType };
+  }): { isValid: boolean; errorMessage?: string }
+
+## apps/web/src/services/renderer
+
+canvas-renderer.ts
+  export type CanvasRendererParams = {
+    width: number;
+    height: number;
+    fps: number;
+  }
+  export class CanvasRenderer {
+    canvas: OffscreenCanvas | HTMLCanvasElement
+    context: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D
+    width: number
+    height: number
+    fps: number
+    constructor({ width, height, fps }: CanvasRendererParams)
+    setSize({ width, height }: { width: number; height: number })
+    async render({ node, time }: { node: BaseNode; time: number })
+    async renderToCanvas({
+      node,
+      time,
+      targetCanvas,
+    }: {
+      node: BaseNode;
+      time: number;
+      targetCanvas: HTMLCanvasElement;
+    })
+  }
+
+scene-builder.ts
+  export type BuildSceneParams = {
+    canvasSize: TCanvasSize;
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+    duration: ...
+  export function buildScene(params: BuildSceneParams)
+
+scene-exporter.ts
+  export type ExportFormat = "mp4" | "webm"
+  export type ExportQuality = "low" | "medium" | "high" | "very_high"
+  export type SceneExporterEvents = {
+    progress: [progress: number];
+    complete: [buffer: ArrayBuffer];
+    error: [error: Error];...
+  export class SceneExporter extends EventEmitter<SceneExporterEvents> {
+    renderer: CanvasRenderer
+    format: ExportFormat
+    quality: ExportQuality
+    includeAudio: boolean
+    audioBuffer: AudioBuffer
+    cancelled
+    constructor(params: ExportParams)
+    cancel()
+    async export(rootNode: RootNode)
+  }
+
+## apps/web/src/services/renderer/nodes
+
+base-node.ts
+  export type BaseNodeParams = object | undefined
+  export class BaseNode {
+    params: Params
+    constructor(params?: Params)
+    children: BaseNode[]
+    add(child: BaseNode)
+    remove(child: BaseNode)
+    async render({ renderer, time }: { renderer: CanvasRenderer; time: number }): Promise<void>
+  }
+
+blur-background-node.ts
+  export type BlurBackgroundNodeParams = {
+    blurIntensity: number;
+    contentNodes: BaseNode[];
+  }
+  export class BlurBackgroundNode extends BaseNode<BlurBackgroundNodeParams> {
+    blurIntensity: number
+    contentNodes: BaseNode[]
+    constructor(params: BlurBackgroundNodeParams)
+    async render({
+      renderer,
+      time,
+    }: {
+      renderer: CanvasRenderer;
+      time: number;
+    }): Promise<void>
+  }
+
+color-node.ts
+  export type ColorNodeParams = {
+    color: string;
+  }
+  export class ColorNode extends BaseNode<ColorNodeParams> {
+    color: string
+    constructor(params: ColorNodeParams)
+    async render({ renderer }: { renderer: CanvasRenderer })
+  }
+
+image-node.ts
+  export type ImageNodeParams = ;
+  export class ImageNode extends BaseNode<ImageNodeParams> {
+    image: HTMLImageElement
+    readyPromise: Promise<void>
+    constructor(params: ImageNodeParams)
+    async render({ renderer, time }: { renderer: CanvasRenderer; time: number })
+  }
+
+root-node.ts
+  export type RootNodeParams = {
+    duration: number;
+  }
+  export class RootNode extends BaseNode<RootNodeParams> {
+    duration()
+  }
+
+sticker-node.ts
+  export type StickerNodeParams = BaseNodeParams & {
+    iconName: string;
+    duration: number;
+    timeOffset: number;
+    trimStart:...
+  export class StickerNode extends BaseNode<StickerNodeParams> {
+    image: HTMLImageElement
+    readyPromise: Promise<void>
+    constructor(params: StickerNodeParams)
+    async render({ renderer, time }: { renderer: CanvasRenderer; time: number })
+  }
+
+text-node.ts
+  export type TextNodeParams = TextElement & {
+    canvasCenter: { x: number; y: number };
+    textBaseline?: CanvasTextBaseline;
+  }
+  export class TextNode extends BaseNode<TextNodeParams> {
+    isInRange({ time }: { time: number })
+    async render({ renderer, time }: { renderer: CanvasRenderer; time: number })
+  }
+
+video-node.ts
+  export interface BaseMediaNodeParams {
+    file: File
+    duration: number
+    timeOffset: number
+    trimStart: number
+    trimEnd: number
+    x?: number
+    y?: number
+    width?: number
+    height?: number
+    opacity?: number
+  }
+  export type VideoNodeParams = ;
+  export class VideoNode extends BaseNode<VideoNodeParams> {
+    sink: VideoSampleSink
+    readyPromise: Promise<void>
+    constructor(params: VideoNodeParams)
+    async render({ renderer, time }: { renderer: CanvasRenderer; time: number })
+  }
+
+## apps/web/src/stores
+
+assets-panel-store.ts
+  export type Tab = | "media"
+    | "sounds"
+    | "text"
+    | "stickers"
+    | "effects"
+    | "transitions"
+    | "capti...
+  export const tabs: { [key in Tab]: { icon: LucideIcon; label: string } }
+  export const useAssetsPanelStore
+
+editor-store.ts
+  export const useEditorStore
+
+keybindings-store.ts
+  export const defaultKeybindings: KeybindingConfig
+  export interface KeybindingConflict {
+    key: ShortcutKey
+    existingAction: TActionWithOptionalArgs
+    newAction: TActionWithOptionalArgs
+  }
+  export const useKeybindingsStore
+
+panel-store.ts
+  export type PanelPreset = | "default"
+    | "media"
+    | "inspector"
+    | "vertical-preview"
+  export const PRESET_CONFIGS: Record<PanelPreset, PanelSizes>
+  export const usePanelStore
+
+sounds-store.ts
+  export const useSoundsStore
+
+stickers-store.ts
+  export const useStickersStore
+
+text-properties-store.ts
+  export type TextPropertiesTab = "transform" | "style"
+  export interface TextPropertiesTabMeta {
+    value: TextPropertiesTab
+    label: string
+  }
+  export const TEXT_PROPERTIES_TABS: ReadonlyArray<TextPropertiesTabMeta>
+  export function isTextPropertiesTab(value: string)
+  export const useTextPropertiesStore
+
+timeline-store.ts
+  export const useTimelineStore
+
+## apps/web/src/types
+
+assets.ts
+  export type MediaType = "image" | "video" | "audio"
+  export interface MediaAsset extends Omit<MediaAssetData, "size" | "lastModified"> {
+    file: File
+    url?: string
+  }
+
+blog.ts
+  export type Post = {
+    id: string;
+    slug: string;
+    title: string;
+    content: string;
+    description: string;
+  ...
+  export type Pagination = {
+    limit: number;
+    currpage: number;
+    nextPage: number | null;
+    prevPage: number | null;...
+  export type MarblePostList = {
+    posts: Post[];
+    pagination: Pagination;
+  }
+  export type MarblePost = {
+    post: Post;
+  }
+  export type Tag = {
+    id: string;
+    name: string;
+    slug: string;
+  }
+  export type MarbleTag = {
+    tag: Tag;
+  }
+  export type MarbleTagList = {
+    tags: Tag[];
+    pagination: Pagination;
+  }
+  export type Category = {
+    id: string;
+    name: string;
+    slug: string;
+  }
+  export type MarbleCategory = {
+    category: Category;
+  }
+  export type MarbleCategoryList = {
+    categories: Category[];
+    pagination: Pagination;
+  }
+  export type Author = {
+    id: string;
+    name: string;
+    image: string;
+  }
+  export type MarbleAuthor = {
+    author: Author;
+  }
+  export type MarbleAuthorList = {
+    authors: Author[];
+    pagination: Pagination;
+  }
+
+drag.ts
+  export interface MediaDragData extends BaseDragData {
+    type: "media"
+    mediaType: "image" | "video" | "audio"
+  }
+  export interface TextDragData extends BaseDragData {
+    type: "text"
+    content: string
+  }
+  export interface StickerDragData extends BaseDragData {
+    type: "sticker"
+    iconName: string
+  }
+  export type TimelineDragData = MediaDragData | TextDragData | StickerDragData
+
+editor.ts
+  export type TPlatformLayout = "tiktok"
+
+export.ts
+  export type ExportFormat = "mp4" | "webm"
+  export type ExportQuality = "low" | "medium" | "high" | "very_high"
+  export interface ExportOptions {
+    format: ExportFormat
+    quality: ExportQuality
+    fps?: number
+    includeAudio?: boolean
+    onProgress?: ({ progress }: { progress: number }) => void
+    onCancel?: () => boolean
+  }
+  export interface ExportResult {
+    success: boolean
+    buffer?: ArrayBuffer
+    error?: string
+    cancelled?: boolean
+  }
+
+keybinding.ts
+  export type ModifierKeys = | "ctrl"
+    | "alt"
+    | "shift"
+    | "ctrl+shift"
+    | "alt+shift"
+    | "ctrl+alt"
+    | "ctrl+alt+shift"
+  export type Key = | "a"
+    | "b"
+    | "c"
+    | "d"
+    | "e"
+    | "f"
+    | "g"
+    | "h"
+    | "i"
+    | "j"
+    | "k"
+    | "l"
+    |...
+  export type ModifierBasedShortcutKey = `${ModifierKeys}+${Key}`
+  export type SingleCharacterShortcutKey = `${Key}`
+  export type ShortcutKey = ModifierBasedShortcutKey | SingleCharacterShortcutKey
+  export type KeybindingConfig = {
+    [key in ShortcutKey]?: TActionWithOptionalArgs;
+  }
+
+project.ts
+  export type TBackground = | {
+        type: "color";
+        color: string;
+      }
+    | {
+        type: "blur";
+        blurIntensity...
+  export interface TCanvasSize {
+    width: number
+    height: number
+  }
+  export interface TProjectMetadata {
+    id: string
+    name: string
+    thumbnail?: string
+    createdAt: Date
+    updatedAt: Date
+  }
+  export interface TProjectSettings {
+    fps: number
+    canvasSize: TCanvasSize
+    background: TBackground
+  }
+  export interface TProject {
+    metadata: TProjectMetadata
+    scenes: TScene[]
+    currentSceneId: string
+    settings: TProjectSettings
+    version: number
+  }
+
+sounds.ts
+  export interface SoundEffect {
+    id: number
+    name: string
+    description: string
+    url: string
+    previewUrl?: string
+    downloadUrl?: string
+    duration: number
+    filesize: number
+    type: string
+    channels: number
+    // ... and 10 more
+  }
+  export interface SavedSound {
+    id: number
+    name: string
+    username: string
+    previewUrl?: string
+    downloadUrl?: string
+    duration: number
+    tags: string[]
+    license: string
+    savedAt: string
+  }
+  export interface SavedSoundsData {
+    sounds: SavedSound[]
+    lastModified: string
+  }
+
+stickers.ts
+  export type StickerCategory = (typeof STICKER_CATEGORIES)[number]
+
+time.ts
+  export type TTimeCode = "MM:SS" | "HH:MM:SS" | "HH:MM:SS:CS" | "HH:MM:SS:FF"
+
+timeline.ts
+  export interface TScene {
+    id: string
+    name: string
+    isMain: boolean
+    tracks: TimelineTrack[]
+    bookmarks: number[]
+    createdAt: Date
+    updatedAt: Date
+  }
+  export type TrackType = "video" | "text" | "audio" | "sticker"
+  export interface VideoTrack extends BaseTrack {
+    type: "video"
+    elements: (VideoElement | ImageElement)[]
+    isMain: boolean
+  }
+  export interface TextTrack extends BaseTrack {
+    type: "text"
+    elements: TextElement[]
+  }
+  export interface AudioTrack extends BaseTrack {
+    type: "audio"
+    elements: AudioElement[]
+  }
+  export interface StickerTrack extends BaseTrack {
+    type: "sticker"
+    elements: StickerElement[]
+  }
+  export type TimelineTrack = VideoTrack | TextTrack | AudioTrack | StickerTrack
+  export interface Transform {
+    scale: number
+    position: {
+      x: number;
+      y: number;
+    }
+    rotate: number
+  }
+  export interface UploadAudioElement extends BaseAudioElement {
+    sourceType: "upload"
+    mediaId: string
+  }
+  export interface LibraryAudioElement extends BaseAudioElement {
+    sourceType: "library"
+    sourceUrl: string
+  }
+  export type AudioElement = UploadAudioElement | LibraryAudioElement
+  export interface VideoElement extends BaseTimelineElement {
+    type: "video"
+    mediaId: string
+    muted?: boolean
+    hidden?: boolean
+    transform: Transform
+    opacity: number
+  }
+  export interface ImageElement extends BaseTimelineElement {
+    type: "image"
+    mediaId: string
+    hidden?: boolean
+    transform: Transform
+    opacity: number
+  }
+  export interface TextElement extends BaseTimelineElement {
+    type: "text"
+    content: string
+    fontSize: number
+    fontFamily: string
+    color: string
+    backgroundColor: string
+    textAlign: "left" | "center" | "right"
+    fontWeight: "normal" | "bold"
+    fontStyle: "normal" | "italic"
+    textDecoration: "none" | "underline" | "line-through"
+    // ... and 3 more
+  }
+  export interface StickerElement extends BaseTimelineElement {
+    type: "sticker"
+    iconName: string
+    hidden?: boolean
+    transform: Transform
+    opacity: number
+    color?: string
+  }
+  export type TimelineElement = | AudioElement
+    | VideoElement
+    | ImageElement
+    | TextElement
+    | StickerElement
+  export type ElementType = TimelineElement["type"]
+  export type CreateUploadAudioElement = Omit<UploadAudioElement, "id">
+  export type CreateLibraryAudioElement = Omit<LibraryAudioElement, "id">
+  export type CreateAudioElement = | CreateUploadAudioElement
+    | CreateLibraryAudioElement
+  export type CreateVideoElement = Omit<VideoElement, "id">
+  export type CreateImageElement = Omit<ImageElement, "id">
+  export type CreateTextElement = Omit<TextElement, "id">
+  export type CreateStickerElement = Omit<StickerElement, "id">
+  export type CreateTimelineElement = | CreateAudioElement
+    | CreateVideoElement
+    | CreateImageElement
+    | CreateTextElement
+    | ...
+  export interface ElementDragState {
+    isDragging: boolean
+    elementId: string | null
+    trackId: string | null
+    startMouseX: number
+    startElementTime: number
+    clickOffsetTime: number
+    currentTime: number
+  }
+  export interface DropTarget {
+    trackIndex: number
+    isNewTrack: boolean
+    insertPosition: "above" | "below" | null
+    xPosition: number
+  }
+  export interface ComputeDropTargetParams {
+    elementType: ElementType
+    mouseX: number
+    mouseY: number
+    tracks: TimelineTrack[]
+    playheadTime: number
+    isExternalDrop: boolean
+    elementDuration: number
+    pixelsPerSecond: number
+    zoomLevel: number
+  }
+  export interface ClipboardItem {
+    trackType: TrackType
+    element: CreateTimelineElement
+  }
+
+## packages/ui/src/icons
+
+index.tsx
+  export function GoogleIcon({ className }: { className?: string })
+  export function GithubIcon({ className }: { className?: string })
+  export function VercelIcon({ className }: { className?: string })
+  export function BackgroundIcon({ className }: { className?: string })
+  export function MarbleIcon({
+    className = "",
+    size = 32,
+  }: {
+    className?: string;
+    size?: number;
+  })
+  export function DataBuddyIcon({
+    className = "",
+    size = 32,
+  }: {
+    className?: string;
+    size?: number;
+  })
+  export function SocialsIcon({
+    className = "",
+    size = 32,
+  }: {
+    className?: string;
+    size?: number;
+  })
+  export function TransitionUpIcon({
+    className = "",
+    size = 16,
+  }: {
+    className?: string;
+    size?: number;
+  })
+  export function MenuIcon({
+    className = "",
+    size = 16,
+  }: {
+    className?: string;
+    size?: number;
+  })
+
+```
+
+---
+
+*Generated and maintained by [Twiggy](https://github.com/twiggy-tools/Twiggy)*

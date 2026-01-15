@@ -1,1 +1,7 @@
-{}
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/sounds/search/route": "app/api/sounds/search/route.js",
+  "/editor/[project_id]/page": "app/editor/[project_id]/page.js",
+  "/page": "app/page.js",
+  "/projects/page": "app/projects/page.js"
+}

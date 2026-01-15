@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { invokeAction } from "../constants/actions-constants";
+import { invokeAction } from "@/lib/actions";
 import { useKeybindingsStore } from "@/stores/keybindings-store";
 
 /**

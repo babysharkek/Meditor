@@ -5,60 +5,41 @@ import { useCallback, useMemo, useRef } from "react";
 import { useRafLoop } from "@/hooks/use-raf-loop";
 import { RootNode } from "@/services/renderer/nodes/root-node";
 import { CanvasRenderer } from "@/services/renderer/canvas-renderer";
-import { useMediaStore } from "@/stores/media-store";
-import { usePlaybackStore } from "@/stores/playback-store";
-import { useRendererStore } from "@/stores/renderer-store";
-import { useTimelineStore } from "@/stores/timeline-store";
-import { useProjectStore } from "@/stores/project-store";
-import { DEFAULT_FPS } from "@/constants/editor-constants";
 import { buildScene } from "@/services/renderer/scene-builder";
+import { useEditor } from "@/hooks/use-editor";
 
 function usePreviewSize() {
-  const { activeProject } = useProjectStore();
+  const editor = useEditor();
+  const activeProject = editor.project.getActive();
+
   return {
-    width: activeProject?.canvasSize?.width || 600,
-    height: activeProject?.canvasSize?.height || 320,
+    width: activeProject?.settings.canvasSize.width,
+    height: activeProject?.settings.canvasSize.height,
   };
 }
 
 function RenderTreeController() {
-  const setRenderTree = useRendererStore((s) => s.setRenderTree);
-  const tracks = useTimelineStore((s) => s.tracks);
-  const mediaFiles = useMediaStore((s) => s.mediaFiles);
-  const getTotalDuration = useTimelineStore((s) => s.getTotalDuration);
-  const { activeProject } = useProjectStore();
+  const editor = useEditor();
+  const tracks = editor.timeline.getTracks();
+  const mediaAssets = editor.media.getAssets();
+  const activeProject = editor.project.getActive();
+
   const { width, height } = usePreviewSize();
 
   useDeepCompareEffect(() => {
     if (!activeProject) return;
 
+    const duration = editor.timeline.getTotalDuration();
     const renderTree = buildScene({
       tracks,
-      mediaFiles,
-      duration: getTotalDuration(),
-      canvasSize: {
-        width,
-        height,
-      },
-      backgroundColor:
-        activeProject.backgroundType === "blur"
-          ? "transparent"
-          : activeProject.backgroundColor || "#000000",
-      backgroundType: activeProject.backgroundType,
-      blurIntensity: activeProject.blurIntensity,
+      mediaAssets,
+      duration,
+      canvasSize: { width, height },
+      background: activeProject.settings.background,
     });
 
-    setRenderTree(renderTree);
-  }, [
-    tracks,
-    mediaFiles,
-    getTotalDuration,
-    activeProject?.backgroundColor,
-    activeProject?.backgroundType,
-    activeProject?.blurIntensity,
-    width,
-    height,
-  ]);
+    editor.renderer.setRenderTree({ renderTree });
+  }, [tracks, mediaAssets, activeProject?.settings.background, width, height]);
 
   return null;
 }
@@ -80,21 +61,22 @@ function PreviewCanvas() {
   const lastSceneRef = useRef<RootNode | null>(null);
   const renderingRef = useRef(false);
   const { width, height } = usePreviewSize();
-  const { activeProject } = useProjectStore();
+  const editor = useEditor();
+  const activeProject = editor.project.getActive();
 
   const renderer = useMemo(() => {
     return new CanvasRenderer({
       width,
       height,
-      fps: activeProject?.fps || DEFAULT_FPS,
+      fps: activeProject.settings.fps,
     });
-  }, [width, height, activeProject?.fps]);
+  }, [width, height, activeProject.settings.fps]);
 
-  const renderTree = useRendererStore((s) => s.renderTree);
+  const renderTree = editor.renderer.getRenderTree();
 
   const render = useCallback(() => {
     if (ref.current && renderTree && !renderingRef.current) {
-      const time = usePlaybackStore.getState().currentTime;
+      const time = editor.playback.getCurrentTime();
       const frame = Math.floor(time * renderer.fps);
 
       if (
@@ -111,7 +93,7 @@ function PreviewCanvas() {
           });
       }
     }
-  }, [renderer, renderTree]);
+  }, [renderer, renderTree, editor.playback]);
 
   useRafLoop(render);
 
@@ -123,9 +105,9 @@ function PreviewCanvas() {
       className="block max-h-full max-w-full border"
       style={{
         background:
-          activeProject?.backgroundType === "blur"
+          activeProject.settings.background.type === "blur"
             ? "transparent"
-            : activeProject?.backgroundColor || "#000000",
+            : activeProject?.settings.background.color,
       }}
     />
   );

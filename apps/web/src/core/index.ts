@@ -1,6 +1,6 @@
 import { PlaybackManager } from "./managers/playback-manager";
 import { TimelineManager } from "./managers/timeline-manager";
-import { SceneManager } from "./managers/scene-manager";
+import { ScenesManager } from "./managers/scenes-manager";
 import { ProjectManager } from "./managers/project-manager";
 import { MediaManager } from "./managers/media-manager";
 import { RendererManager } from "./managers/renderer-manager";
@@ -8,7 +8,6 @@ import { CommandManager } from "./managers/commands";
 import { buildScene } from "@/services/renderer/scene-builder";
 import { SceneExporter } from "@/services/renderer/scene-exporter";
 import type { ExportOptions } from "@/types/export";
-import { DEFAULT_FPS } from "@/constants/editor-constants";
 
 export class EditorCore {
   private static instance: EditorCore | null = null;
@@ -16,7 +15,7 @@ export class EditorCore {
   public readonly command: CommandManager;
   public readonly playback: PlaybackManager;
   public readonly timeline: TimelineManager;
-  public readonly scene: SceneManager;
+  public readonly scenes: ScenesManager;
   public readonly project: ProjectManager;
   public readonly media: MediaManager;
   public readonly renderer: RendererManager;
@@ -25,7 +24,7 @@ export class EditorCore {
     this.command = new CommandManager();
     this.playback = new PlaybackManager(this);
     this.timeline = new TimelineManager(this);
-    this.scene = new SceneManager(this);
+    this.scenes = new ScenesManager(this);
     this.project = new ProjectManager(this);
     this.media = new MediaManager(this);
     this.renderer = new RendererManager(this);
@@ -65,29 +64,31 @@ export class EditorCore {
     try {
       const sceneGraph = buildScene({
         tracks: this.timeline.getTracks(),
-        mediaFiles: this.media.getMediaFiles(),
+        mediaAssets: this.media.getAssets(),
         duration,
-        canvasSize: project.canvasSize,
-        backgroundColor: project.backgroundColor,
+        canvasSize: project.settings.canvasSize,
+        background: project.settings.background,
       });
 
       const exporter = new SceneExporter({
-        width: project.canvasSize.width,
-        height: project.canvasSize.height,
-        fps: project.fps ?? DEFAULT_FPS,
+        width: project.settings.canvasSize.width,
+        height: project.settings.canvasSize.height,
+        fps: project.settings.fps,
         format,
         quality,
         includeAudio,
       });
 
+      let progressHandler: ((progress: number) => void) | undefined;
       if (onProgress) {
-        exporter.on("progress", onProgress);
+        progressHandler = (progress: number) => onProgress({ progress });
+        exporter.on("progress", progressHandler);
       }
 
       const buffer = await exporter.export(sceneGraph);
 
-      if (onProgress) {
-        exporter.off("progress", onProgress);
+      if (progressHandler) {
+        exporter.off("progress", progressHandler);
       }
 
       if (!buffer) {

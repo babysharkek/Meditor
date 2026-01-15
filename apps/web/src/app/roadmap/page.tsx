@@ -1,13 +1,8 @@
 import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
-import { GithubIcon } from "@/components/icons";
-import Link from "next/link";
 import { ReactMarkdownWrapper } from "@/components/ui/react-markdown-wrapper";
 import { cn } from "@/lib/utils";
-import { SOCIAL_LINKS } from "@/constants/site-constants";
 import { BasePage } from "@/app/base-page";
-import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
 import { GitHubContributeSection } from "@/components/gitHub-contribute-section";
 
 type StatusType = "complete" | "pending" | "default" | "info";

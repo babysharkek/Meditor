@@ -2,14 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { formatTimeCode, parseTimeCode, TimeCode } from "@/lib/time-utils";
-import { DEFAULT_FPS } from "@/stores/project-store";
+import { TTimeCode } from "@/types/time";
+import { formatTimeCode, parseTimeCode } from "@/lib/time-utils";
 
 interface EditableTimecodeProps {
   time: number;
-  duration?: number;
-  format?: TimeCode;
-  fps?: number;
+  duration: number;
+  format?: TTimeCode;
+  fps: number;
   onTimeChange?: (time: number) => void;
   className?: string;
   disabled?: boolean;
@@ -19,7 +19,7 @@ export function EditableTimecode({
   time,
   duration,
   format = "HH:MM:SS:FF",
-  fps = DEFAULT_FPS,
+  fps,
   onTimeChange,
   className,
   disabled = false,
@@ -29,8 +29,7 @@ export function EditableTimecode({
   const [hasError, setHasError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const enterPressedRef = useRef(false);
-
-  const formattedTime = formatTimeCode(time, format, fps);
+  const formattedTime = formatTimeCode({ timeInSeconds: time, format, fps });
 
   const startEditing = () => {
     if (disabled) return;
@@ -48,7 +47,7 @@ export function EditableTimecode({
   };
 
   const applyEdit = () => {
-    const parsedTime = parseTimeCode(inputValue, format, fps);
+    const parsedTime = parseTimeCode({ timeCode: inputValue, format, fps });
 
     if (parsedTime === null) {
       setHasError(true);

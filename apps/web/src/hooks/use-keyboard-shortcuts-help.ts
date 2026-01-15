@@ -2,76 +2,20 @@
 
 import { useMemo } from "react";
 import { useKeybindingsStore } from "@/stores/keybindings-store";
-import { Action } from "@/constants/action-constants";
-import { getPlatformAlternateKey, getPlatformSpecialKey } from "@/lib/keyboard-utils";
+import { ACTIONS, type TAction } from "@/lib/actions";
+import {
+  getPlatformAlternateKey,
+  getPlatformSpecialKey,
+} from "@/lib/keyboard-utils";
 
 export interface KeyboardShortcut {
   id: string;
   keys: string[];
   description: string;
   category: string;
-  action: Action;
+  action: TAction;
   icon?: React.ReactNode;
 }
-
-// Map actions to their descriptions and categories
-const actionDescriptions: Record<
-  Action,
-  { description: string; category: string }
-> = {
-  "toggle-play": { description: "Play/Pause", category: "Playback" },
-  "stop-playback": { description: "Stop playback", category: "Playback" },
-  "seek-forward": {
-    description: "Seek forward 1 second",
-    category: "Playback",
-  },
-  "seek-backward": {
-    description: "Seek backward 1 second",
-    category: "Playback",
-  },
-  "frame-step-forward": {
-    description: "Frame step forward",
-    category: "Navigation",
-  },
-  "frame-step-backward": {
-    description: "Frame step backward",
-    category: "Navigation",
-  },
-  "jump-forward": {
-    description: "Jump forward 5 seconds",
-    category: "Navigation",
-  },
-  "jump-backward": {
-    description: "Jump backward 5 seconds",
-    category: "Navigation",
-  },
-  "goto-start": { description: "Go to timeline start", category: "Navigation" },
-  "goto-end": { description: "Go to timeline end", category: "Navigation" },
-  "split-element": {
-    description: "Split element at playhead",
-    category: "Editing",
-  },
-  "delete-selected": {
-    description: "Delete selected elements",
-    category: "Editing",
-  },
-  "select-all": { description: "Select all elements", category: "Selection" },
-  "duplicate-selected": {
-    description: "Duplicate selected element",
-    category: "Selection",
-  },
-  "toggle-snapping": { description: "Toggle snapping", category: "Editing" },
-  undo: { description: "Undo", category: "History" },
-  redo: { description: "Redo", category: "History" },
-  "copy-selected": {
-    description: "Copy selected elements",
-    category: "Editing",
-  },
-  "paste-selected": {
-    description: "Paste elements at playhead",
-    category: "Editing",
-  },
-};
 
 // Convert key binding format to display format
 const formatKey = (key: string): string => {
@@ -99,30 +43,33 @@ export const useKeyboardShortcutsHelp = () => {
     const result: KeyboardShortcut[] = [];
 
     // Group keybindings by action
-    const actionToKeys: Record<Action, string[]> = {} as any;
+    const actionToKeys: Record<string, Array<string>> = {};
 
-    Object.entries(keybindings).forEach(([key, action]) => {
+    for (const [key, action] of Object.entries(keybindings)) {
       if (action) {
         if (!actionToKeys[action]) {
           actionToKeys[action] = [];
         }
         actionToKeys[action].push(formatKey(key));
       }
-    });
+    }
 
     // Convert to shortcuts format
-    Object.entries(actionToKeys).forEach(([action, keys]) => {
-      const actionInfo = actionDescriptions[action as Action];
-      if (actionInfo) {
-        result.push({
-          id: action,
-          keys,
-          description: actionInfo.description,
-          category: actionInfo.category,
-          action: action as Action,
-        });
+    for (const [actionId, keys] of Object.entries(actionToKeys)) {
+      if (!Object.prototype.hasOwnProperty.call(ACTIONS, actionId)) {
+        continue;
       }
-    });
+
+      const action = actionId as TAction;
+      const actionDef = ACTIONS[action];
+      result.push({
+        id: actionId,
+        keys,
+        description: actionDef.description,
+        category: actionDef.category,
+        action,
+      });
+    }
 
     // Sort shortcuts by category first, then by description to ensure consistent ordering
     return result.sort((a, b) => {

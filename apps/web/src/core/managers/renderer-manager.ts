@@ -2,16 +2,9 @@ import type { EditorCore } from "@/core";
 import type { RootNode } from "@/services/renderer/nodes/root-node";
 import type { ExportOptions, ExportResult } from "@/types/export";
 import type { TimelineTrack } from "@/types/timeline";
-import type { MediaFile } from "@/types/assets";
+import type { MediaAsset } from "@/types/assets";
 import { SceneExporter } from "@/services/renderer/scene-exporter";
 import { buildScene } from "@/services/renderer/scene-builder";
-import { DEFAULT_FPS, DEFAULT_CANVAS_SIZE } from "@/constants/editor-constants";
-
-export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
-  format: "mp4",
-  quality: "high",
-  includeAudio: true,
-};
 
 interface AudioElement {
   buffer: AudioBuffer;
@@ -23,7 +16,7 @@ interface AudioElement {
 }
 
 export class RendererManager {
-  public renderTree: RootNode | null = null;
+  private renderTree: RootNode | null = null;
   private listeners = new Set<() => void>();
 
   constructor(private editor: EditorCore) {}
@@ -47,7 +40,7 @@ export class RendererManager {
 
     try {
       const tracks = this.editor.timeline.getTracks();
-      const mediaFiles = this.editor.media.getMediaFiles();
+      const mediaAssets = this.editor.media.getAssets();
       const activeProject = this.editor.project.getActive();
 
       if (!activeProject) {
@@ -59,30 +52,25 @@ export class RendererManager {
         return { success: false, error: "Project is empty" };
       }
 
-      const exportFps = fps || activeProject.fps || DEFAULT_FPS;
-      const canvasSize = activeProject.canvasSize || DEFAULT_CANVAS_SIZE;
+      const exportFps = fps || activeProject.settings.fps;
+      const canvasSize = activeProject.settings.canvasSize;
 
       let audioBuffer: AudioBuffer | null = null;
       if (includeAudio) {
-        onProgress?.(0.05);
+        onProgress?.({ progress: 0.05 });
         audioBuffer = await this.createTimelineAudioBuffer({
           tracks,
-          mediaFiles,
+          mediaAssets,
           duration,
         });
       }
 
       const scene = buildScene({
         tracks,
-        mediaFiles,
+        mediaAssets,
         duration,
         canvasSize,
-        backgroundColor:
-          activeProject.backgroundType === "blur"
-            ? "transparent"
-            : activeProject.backgroundColor || "#000000",
-        backgroundType: activeProject.backgroundType,
-        blurIntensity: activeProject.blurIntensity,
+        background: activeProject.settings.background,
       });
 
       const exporter = new SceneExporter({
@@ -99,7 +87,7 @@ export class RendererManager {
         const adjustedProgress = includeAudio
           ? 0.05 + progress * 0.95
           : progress;
-        onProgress?.(adjustedProgress);
+        onProgress?.({ progress: adjustedProgress });
       });
 
       let cancelled = false;
@@ -142,12 +130,12 @@ export class RendererManager {
 
   private async createTimelineAudioBuffer({
     tracks,
-    mediaFiles,
+    mediaAssets,
     duration,
     sampleRate = 44100,
   }: {
     tracks: TimelineTrack[];
-    mediaFiles: MediaFile[];
+    mediaAssets: MediaAsset[];
     duration: number;
     sampleRate?: number;
   }): Promise<AudioBuffer | null> {
@@ -158,8 +146,8 @@ export class RendererManager {
     const audioContext = new AudioContextClass();
 
     const audioElements: AudioElement[] = [];
-    const mediaMap = new Map<string, MediaFile>(
-      mediaFiles.map((m) => [m.id, m]),
+    const mediaMap = new Map<string, MediaAsset>(
+      mediaAssets.map((m) => [m.id, m]),
     );
 
     for (const track of tracks) {
@@ -170,20 +158,25 @@ export class RendererManager {
           continue;
         }
 
-        const mediaItem = mediaMap.get(element.mediaId);
-        if (!mediaItem || mediaItem.type !== "audio") {
-          continue;
-        }
-
-        const visibleDuration =
-          element.duration - element.trimStart - element.trimEnd;
-        if (visibleDuration <= 0) continue;
+        if (element.duration <= 0) continue;
 
         try {
-          const arrayBuffer = await mediaItem.file.arrayBuffer();
-          const audioBuffer = await audioContext.decodeAudioData(
-            arrayBuffer.slice(0),
-          );
+          let audioBuffer: AudioBuffer;
+
+          if (element.sourceType === "upload") {
+            const mediaAsset = mediaMap.get(element.mediaId);
+            if (!mediaAsset || mediaAsset.type !== "audio") {
+              continue;
+            }
+
+            const arrayBuffer = await mediaAsset.file.arrayBuffer();
+            audioBuffer = await audioContext.decodeAudioData(
+              arrayBuffer.slice(0),
+            );
+          } else {
+            // library audio - already has decoded buffer
+            audioBuffer = element.buffer;
+          }
 
           audioElements.push({
             buffer: audioBuffer,
@@ -194,7 +187,7 @@ export class RendererManager {
             muted: element.muted || track.muted || false,
           });
         } catch (error) {
-          console.warn(`Failed to decode audio file ${mediaItem.name}:`, error);
+          console.warn("Failed to decode audio:", error);
         }
       }
     }
@@ -218,14 +211,12 @@ export class RendererManager {
         buffer,
         startTime,
         trimStart,
-        trimEnd,
         duration: elementDuration,
       } = element;
 
       const sourceStartSample = Math.floor(trimStart * buffer.sampleRate);
-      const sourceDuration = elementDuration - trimStart - trimEnd;
       const sourceLengthSamples = Math.floor(
-        sourceDuration * buffer.sampleRate,
+        elementDuration * buffer.sampleRate,
       );
       const outputStartSample = Math.floor(startTime * sampleRate);
 

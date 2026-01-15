@@ -1,44 +1,41 @@
 "use client";
 
-import { useMediaStore } from "@/stores/media-store";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { ScrollArea } from "../../ui/scroll-area";
 import { AudioProperties } from "./audio-properties";
-import { MediaProperties } from "./media-properties";
+import { VideoProperties } from "./video-properties";
 import { TextProperties } from "./text-properties";
 import { SquareSlashIcon } from "lucide-react";
+import { useEditor } from "@/hooks/use-editor";
 
 export function PropertiesPanel() {
-  const { selectedElements, tracks } = useTimelineStore();
-  const { mediaFiles } = useMediaStore();
+  const { selectedElements } = useTimelineStore();
+
+  const editor = useEditor();
+
+  const elementsWithTracks = editor.timeline.getElementsWithTracks({
+    elements: selectedElements,
+  });
 
   return (
     <>
       {selectedElements.length > 0 ? (
-        <ScrollArea className="h-full bg-panel rounded-sm">
-          {selectedElements.map(({ trackId, elementId }) => {
-            const track = tracks.find((t) => t.id === trackId);
-            const element = track?.elements.find((e) => e.id === elementId);
-
-            if (element?.type === "text") {
+        <ScrollArea className="bg-panel h-full rounded-sm">
+          {elementsWithTracks.map(({ track, element }) => {
+            if (element.type === "text") {
               return (
-                <div key={elementId}>
-                  <TextProperties element={element} trackId={trackId} />
+                <div key={element.id}>
+                  <TextProperties element={element} trackId={track.id} />
                 </div>
               );
             }
-            if (element?.type === "media") {
-              const mediaFile = mediaFiles.find(
-                (file) => file.id === element.mediaId
-              );
-
-              if (mediaFile?.type === "audio") {
-                return <AudioProperties key={elementId} element={element} />;
-              }
-
+            if (element.type === "audio") {
+              return <AudioProperties key={element.id} element={element} />;
+            }
+            if (element.type === "video" || element.type === "image") {
               return (
-                <div key={elementId}>
-                  <MediaProperties element={element} />
+                <div key={element.id}>
+                  <VideoProperties element={element} />
                 </div>
               );
             }
@@ -54,14 +51,14 @@ export function PropertiesPanel() {
 
 function EmptyView() {
   return (
-    <div className="bg-panel h-full p-4 flex flex-col items-center justify-center gap-3">
+    <div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
       <SquareSlashIcon
-        className="w-10 h-10 text-muted-foreground"
+        className="text-muted-foreground h-10 w-10"
         strokeWidth={1.5}
       />
       <div className="flex flex-col gap-2 text-center">
         <p className="text-lg font-medium">It’s empty here</p>
-        <p className="text-sm text-muted-foreground text-balance">
+        <p className="text-muted-foreground text-balance text-sm">
           Click an element on the timeline to edit its properties
         </p>
       </div>

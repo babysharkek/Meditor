@@ -1,9 +1,8 @@
 "use client";
 
 import { SnapPoint } from "@/hooks/timeline/use-timeline-snapping";
-import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
+import { useSnapIndicatorPosition } from "@/hooks/timeline/use-snap-indicator-position";
 import type { TimelineTrack } from "@/types/timeline";
-import { useState, useEffect } from "react";
 
 interface SnapIndicatorProps {
   snapPoint: SnapPoint | null;
@@ -24,50 +23,26 @@ export function SnapIndicator({
   trackLabelsRef,
   tracksScrollRef,
 }: SnapIndicatorProps) {
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  // Track scroll position to lock snap indicator to frame
-  useEffect(() => {
-    const tracksViewport = tracksScrollRef.current;
-
-    if (!tracksViewport) return;
-
-    const handleScroll = () => {
-      setScrollLeft(tracksViewport.scrollLeft);
-    };
-
-    // Set initial scroll position
-    setScrollLeft(tracksViewport.scrollLeft);
-
-    tracksViewport.addEventListener("scroll", handleScroll);
-    return () => tracksViewport.removeEventListener("scroll", handleScroll);
-  }, [tracksScrollRef]);
+  const { leftPosition, topPosition, height } = useSnapIndicatorPosition({
+    snapPoint,
+    zoomLevel,
+    tracks,
+    timelineRef,
+    trackLabelsRef,
+    tracksScrollRef,
+  });
 
   if (!isVisible || !snapPoint) {
     return null;
   }
-
-  const timelineContainerHeight = timelineRef.current?.offsetHeight || 400;
-  const totalHeight = timelineContainerHeight - 8; // 8px padding from edges
-
-  // Get dynamic track labels width, fallback to 0 if no tracks or no ref
-  const trackLabelsWidth =
-    tracks.length > 0 && trackLabelsRef?.current
-      ? trackLabelsRef.current.offsetWidth
-      : 0;
-
-  // Calculate position locked to timeline content (accounting for scroll)
-  const timelinePosition =
-    snapPoint.time * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
-  const leftPosition = trackLabelsWidth + timelinePosition - scrollLeft;
 
   return (
     <div
       className="z-90 pointer-events-none absolute"
       style={{
         left: `${leftPosition}px`,
-        top: 0,
-        height: `${totalHeight}px`,
+        top: topPosition,
+        height: `${height}px`,
         width: "2px",
       }}
     >

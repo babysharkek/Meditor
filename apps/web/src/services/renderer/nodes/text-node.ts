@@ -3,16 +3,15 @@ import { BaseNode } from "./base-node";
 import { TextElement } from "@/types/timeline";
 
 export type TextNodeParams = TextElement & {
+  canvasCenter: { x: number; y: number };
   textBaseline?: CanvasTextBaseline;
 };
 
 export class TextNode extends BaseNode<TextNodeParams> {
   isInRange({ time }: { time: number }) {
-    const visibleDuration =
-      this.params.duration - this.params.trimStart - this.params.trimEnd;
     return (
       time >= this.params.startTime &&
-      time < this.params.startTime + visibleDuration
+      time < this.params.startTime + this.params.duration
     );
   }
 
@@ -23,9 +22,12 @@ export class TextNode extends BaseNode<TextNodeParams> {
 
     renderer.context.save();
 
-    renderer.context.translate(this.params.x, this.params.y);
-    if (this.params.rotation) {
-      renderer.context.rotate((this.params.rotation * Math.PI) / 180);
+    const x = this.params.transform.position.x + this.params.canvasCenter.x;
+    const y = this.params.transform.position.y + this.params.canvasCenter.y;
+
+    renderer.context.translate(x, y);
+    if (this.params.transform.rotate) {
+      renderer.context.rotate((this.params.transform.rotate * Math.PI) / 180);
     }
 
     const fontWeight = this.params.fontWeight === "bold" ? "bold" : "normal";

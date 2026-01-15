@@ -9,7 +9,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useSceneStore } from "@/stores/scene-store";
 import { Check, ListCheck, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -22,26 +21,31 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { canDeleteScene } from "@/lib/scene-utils";
+import { toast } from "sonner";
+import { useEditor } from "@/hooks/use-editor";
 
 export function ScenesView({ children }: { children: React.ReactNode }) {
-  const { scenes, currentScene, switchToScene, deleteScene } = useSceneStore();
+  const editor = useEditor();
+  const scenes = editor.scenes.getScenes();
+  const currentScene = editor.scenes.getActiveScene();
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedScenes, setSelectedScenes] = useState<Set<string>>(new Set());
 
   const handleSceneSwitch = async (sceneId: string) => {
     if (isSelectMode) {
-      toggleSceneSelection(sceneId);
+      toggleSceneSelection({ sceneId });
       return;
     }
 
     try {
-      await switchToScene({ sceneId });
+      await editor.scenes.switchToScene({ sceneId });
     } catch (error) {
       console.error("Failed to switch scene:", error);
     }
   };
 
-  const toggleSceneSelection = (sceneId: string) => {
+  const toggleSceneSelection = ({ sceneId }: { sceneId: string }) => {
     setSelectedScenes((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(sceneId)) {
@@ -60,13 +64,21 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
 
   const handleDeleteSelected = async () => {
     for (const sceneId of selectedScenes) {
-      const scene = scenes.find((s) => s.id === sceneId);
-      if (scene && !scene.isMain) {
-        try {
-          await deleteScene({ sceneId });
-        } catch (error) {
-          console.error("Failed to delete scene:", error);
-        }
+      const scene = scenes.find((scene) => scene.id === sceneId);
+      if (!scene) {
+        continue;
+      }
+
+      const { canDelete, reason } = canDeleteScene({ scene });
+      if (!canDelete) {
+        toast.error(reason || "Failed to delete scene");
+        continue;
+      }
+
+      try {
+        await editor.scenes.deleteScene({ sceneId });
+      } catch (error) {
+        console.error("Failed to delete scene:", error);
       }
     }
     setSelectedScenes(new Set());
@@ -87,7 +99,7 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
               : "Switch between scenes in your project"}
           </SheetDescription>
         </SheetHeader>
-        <div className="py-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-4 py-4">
           <div className="flex items-center gap-2">
             <Button
               className="rounded-md"
@@ -103,7 +115,7 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
                 count={selectedScenes.size}
                 onDelete={handleDeleteSelected}
                 disabled={Array.from(selectedScenes).some(
-                  (id) => scenes.find((s) => s.id === id)?.isMain
+                  (id) => scenes.find((s) => s.id === id)?.isMain,
                 )}
               >
                 <Button className="rounded-md" variant="destructive" size="sm">
@@ -114,7 +126,7 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
             )}
           </div>
           {scenes.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-muted-foreground text-sm">
               No scenes available
             </div>
           ) : (
@@ -130,7 +142,7 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
                       "border-primary !text-primary",
                     isSelectMode &&
                       selectedScenes.has(scene.id) &&
-                      "bg-accent border-foreground/30"
+                      "bg-accent border-foreground/30",
                   )}
                   onClick={() => handleSceneSwitch(scene.id)}
                 >

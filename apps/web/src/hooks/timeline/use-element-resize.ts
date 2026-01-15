@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { TimelineElement, TimelineTrack } from "@/types/timeline";
-import { DEFAULT_FPS } from "@/constants/editor-constants";
 import { snapTimeToFrame } from "@/lib/time-utils";
 import { EditorCore } from "@/core";
 import { UpdateElementTrimCommand } from "@/lib/commands/timeline/element/update-element-trim";
 import { UpdateElementStartTimeCommand } from "@/lib/commands/timeline/element/update-element-start-time";
 import { UpdateElementDurationCommand } from "@/lib/commands/timeline/element/update-element-duration";
-import type { MediaFile } from "@/types/assets";
 
 export interface ResizeState {
   elementId: string;
@@ -29,21 +27,20 @@ export function useTimelineElementResize({
   track,
   zoomLevel,
 }: UseTimelineElementResizeProps) {
+  const editor = EditorCore.getInstance();
+  const activeProject = editor.project.getActive();
+
   const [resizing, setResizing] = useState<ResizeState | null>(null);
   const [currentTrimStart, setCurrentTrimStart] = useState(element.trimStart);
   const [currentTrimEnd, setCurrentTrimEnd] = useState(element.trimEnd);
   const [currentStartTime, setCurrentStartTime] = useState(element.startTime);
   const [currentDuration, setCurrentDuration] = useState(element.duration);
 
-  const editor = EditorCore.getInstance();
-  const mediaFiles = editor.media.getMediaFiles();
-  const activeProject = editor.project.getActive();
-
   useEffect(() => {
     if (!resizing) return;
 
-    const handleDocumentMouseMove = (e: MouseEvent) => {
-      updateTrimFromMouseMove({ clientX: e.clientX });
+    const handleDocumentMouseMove = ({ clientX }: MouseEvent) => {
+      updateTrimFromMouseMove({ clientX });
     };
 
     const handleDocumentMouseUp = () => {
@@ -88,21 +85,8 @@ export function useTimelineElementResize({
   };
 
   const canExtendElementDuration = () => {
-    if (element.type === "text") {
+    if (element.type === "text" || element.type === "image") {
       return true;
-    }
-
-    if (element.type === "media") {
-      const mediaFile = mediaFiles.find(
-        (file: MediaFile) => file.id === element.mediaId,
-      );
-      if (!mediaFile) return false;
-
-      if (mediaFile.type === "image") {
-        return true;
-      }
-
-      return false;
     }
 
     return false;
@@ -114,14 +98,17 @@ export function useTimelineElementResize({
     const deltaX = clientX - resizing.startX;
     const deltaTime = deltaX / (50 * zoomLevel);
 
-    const projectFps = activeProject?.fps || DEFAULT_FPS;
+    const projectFps = activeProject.settings.fps;
 
     if (resizing.side === "left") {
-      const maxAllowed =
-        resizing.initialDuration - resizing.initialTrimEnd - 0.1;
+      const sourceDuration =
+        resizing.initialTrimStart +
+        resizing.initialDuration +
+        resizing.initialTrimEnd;
+      const maxAllowed = sourceDuration - resizing.initialTrimEnd - 0.1;
       const calculated = resizing.initialTrimStart + deltaTime;
 
-      if (calculated >= 0) {
+      if (calculated >= 0 && calculated <= maxAllowed) {
         const newTrimStart = snapTimeToFrame({
           time: Math.min(maxAllowed, calculated),
           fps: projectFps,
@@ -131,10 +118,15 @@ export function useTimelineElementResize({
           time: resizing.initialStartTime + trimDelta,
           fps: projectFps,
         });
+        const newDuration = snapTimeToFrame({
+          time: resizing.initialDuration - trimDelta,
+          fps: projectFps,
+        });
 
         setCurrentTrimStart(newTrimStart);
         setCurrentStartTime(newStartTime);
-      } else {
+        setCurrentDuration(newDuration);
+      } else if (calculated < 0) {
         if (canExtendElementDuration()) {
           const extensionAmount = Math.abs(calculated);
           const maxExtension = resizing.initialStartTime;
@@ -152,67 +144,69 @@ export function useTimelineElementResize({
           setCurrentStartTime(newStartTime);
           setCurrentDuration(newDuration);
         } else {
-          const newTrimStart = 0;
-          const trimDelta = newTrimStart - resizing.initialTrimStart;
+          const trimDelta = 0 - resizing.initialTrimStart;
           const newStartTime = snapTimeToFrame({
             time: resizing.initialStartTime + trimDelta,
             fps: projectFps,
           });
+          const newDuration = snapTimeToFrame({
+            time: resizing.initialDuration - trimDelta,
+            fps: projectFps,
+          });
 
-          setCurrentTrimStart(newTrimStart);
+          setCurrentTrimStart(0);
           setCurrentStartTime(newStartTime);
+          setCurrentDuration(newDuration);
         }
       }
     } else {
-      const calculated = resizing.initialTrimEnd - deltaTime;
+      const sourceDuration =
+        resizing.initialTrimStart +
+        resizing.initialDuration +
+        resizing.initialTrimEnd;
+      const newTrimEnd = resizing.initialTrimEnd - deltaTime;
 
-      if (calculated < 0) {
+      if (newTrimEnd < 0) {
         if (canExtendElementDuration()) {
-          const extensionNeeded = Math.abs(calculated);
+          const extensionNeeded = Math.abs(newTrimEnd);
           const newDuration = snapTimeToFrame({
             time: resizing.initialDuration + extensionNeeded,
             fps: projectFps,
           });
-          const newTrimEnd = 0;
 
           setCurrentDuration(newDuration);
-          setCurrentTrimEnd(newTrimEnd);
+          setCurrentTrimEnd(0);
         } else {
+          const extensionToLimit = resizing.initialTrimEnd;
+          const newDuration = snapTimeToFrame({
+            time: resizing.initialDuration + extensionToLimit,
+            fps: projectFps,
+          });
+
+          setCurrentDuration(newDuration);
           setCurrentTrimEnd(0);
         }
       } else {
-        const currentEndTime =
-          resizing.initialStartTime +
-          resizing.initialDuration -
-          resizing.initialTrimStart -
-          resizing.initialTrimEnd;
-        const desiredEndTime = currentEndTime + deltaTime;
-
-        const snappedEndTime = snapTimeToFrame({
-          time: desiredEndTime,
+        const maxTrimEnd = sourceDuration - resizing.initialTrimStart - 0.1;
+        const clampedTrimEnd = Math.min(maxTrimEnd, Math.max(0, newTrimEnd));
+        const finalTrimEnd = snapTimeToFrame({
+          time: clampedTrimEnd,
+          fps: projectFps,
+        });
+        const trimDelta = finalTrimEnd - resizing.initialTrimEnd;
+        const newDuration = snapTimeToFrame({
+          time: resizing.initialDuration - trimDelta,
           fps: projectFps,
         });
 
-        const newTrimEnd = Math.max(
-          0,
-          resizing.initialDuration -
-            resizing.initialTrimStart -
-            (snappedEndTime - resizing.initialStartTime),
-        );
-
-        const maxTrimEnd =
-          resizing.initialDuration - resizing.initialTrimStart - 0.1;
-        const finalTrimEnd = Math.min(maxTrimEnd, newTrimEnd);
-
         setCurrentTrimEnd(finalTrimEnd);
+        setCurrentDuration(newDuration);
       }
     }
   };
 
   const handleResizeEnd = () => {
     if (!resizing) return;
-
-    const editor = EditorCore.getInstance();
 
     const trimStartChanged = currentTrimStart !== resizing.initialTrimStart;
     const trimEndChanged = currentTrimEnd !== resizing.initialTrimEnd;

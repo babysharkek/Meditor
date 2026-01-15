@@ -1,14 +1,10 @@
 import { toast } from "sonner";
-import {
-  getFileType,
-  getMediaDuration,
-  getImageDimensions,
-} from "@/stores/media-store";
-import { MediaFile } from "@/types/assets";
+import { MediaAsset } from "@/types/assets";
+import { getMediaTypeFromFile } from "@/lib/media-utils";
 import { getVideoInfo } from "./mediabunny-utils";
 import { Input, ALL_FORMATS, BlobSource, VideoSampleSink } from "mediabunny";
 
-export interface ProcessedMediaItem extends Omit<MediaFile, "id"> {}
+export interface ProcessedMediaAsset extends Omit<MediaAsset, "id"> {}
 
 export async function generateThumbnail({
   videoFile,
@@ -73,21 +69,21 @@ export async function generateThumbnail({
   return dataUrl;
 }
 
-export async function processMediaFiles({
+export async function processMediaAssets({
   files,
   onProgress,
 }: {
   files: FileList | File[];
   onProgress?: ({ progress }: { progress: number }) => void;
-}): Promise<ProcessedMediaItem[]> {
+}): Promise<ProcessedMediaAsset[]> {
   const fileArray = Array.from(files);
-  const processedItems: ProcessedMediaItem[] = [];
+  const processedAssets: ProcessedMediaAsset[] = [];
 
   const total = fileArray.length;
   let completed = 0;
 
   for (const file of fileArray) {
-    const fileType = getFileType(file);
+    const fileType = getMediaTypeFromFile({ file });
 
     if (!fileType) {
       toast.error(`Unsupported file type: ${file.name}`);
@@ -103,7 +99,7 @@ export async function processMediaFiles({
 
     try {
       if (fileType === "image") {
-        const dimensions = await getImageDimensions(file);
+        const dimensions = await getImageDimensions({ file });
         width = dimensions.width;
         height = dimensions.height;
       } else if (fileType === "video") {
@@ -123,10 +119,10 @@ export async function processMediaFiles({
         }
       } else if (fileType === "audio") {
         // For audio, we don't set width/height/fps (they'll be undefined)
-        duration = await getMediaDuration(file);
+        duration = await getMediaDuration({ file });
       }
 
-      processedItems.push({
+      processedAssets.push({
         name: file.name,
         type: fileType,
         file,
@@ -152,5 +148,56 @@ export async function processMediaFiles({
     }
   }
 
-  return processedItems;
+  return processedAssets;
 }
+
+const getImageDimensions = ({
+  file,
+}: {
+  file: File;
+}): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.addEventListener("load", () => {
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+      resolve({ width, height });
+      URL.revokeObjectURL(objectUrl);
+      img.remove();
+    });
+
+    img.addEventListener("error", () => {
+      reject(new Error("Could not load image"));
+      URL.revokeObjectURL(objectUrl);
+      img.remove();
+    });
+
+    img.src = objectUrl;
+  });
+};
+
+const getMediaDuration = ({ file }: { file: File }): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    const element = document.createElement(
+      file.type.startsWith("video/") ? "video" : "audio",
+    ) as HTMLVideoElement;
+    const objectUrl = URL.createObjectURL(file);
+
+    element.addEventListener("loadedmetadata", () => {
+      resolve(element.duration);
+      URL.revokeObjectURL(objectUrl);
+      element.remove();
+    });
+
+    element.addEventListener("error", () => {
+      reject(new Error("Could not load media"));
+      URL.revokeObjectURL(objectUrl);
+      element.remove();
+    });
+
+    element.src = objectUrl;
+    element.load();
+  });
+};

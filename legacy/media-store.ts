@@ -2,17 +2,17 @@ import { create } from "zustand";
 import { storageService } from "@/lib/storage/storage-service";
 import { useTimelineStore } from "../apps/web/src/stores/timeline-store";
 import { generateUUID } from "@/lib/utils";
-import { MediaType, MediaFile } from "@/types/media";
+import { MediaType, MediaAsset } from "@/types/assets";
 import { videoCache } from "@/lib/video-cache";
 
 interface MediaStore {
-  mediaFiles: MediaFile[];
+  mediaFiles: MediaAsset[];
   isLoading: boolean;
 
   // Actions
   addMediaFile: (
     projectId: string,
-    file: Omit<MediaFile, "id">,
+    file: Omit<MediaAsset, "id">,
   ) => Promise<void>;
   removeMediaFile: (projectId: string, id: string) => Promise<void>;
   loadProjectMedia: (projectId: string) => Promise<void>;
@@ -82,7 +82,7 @@ export const getMediaDuration = (file: File): Promise<number> => {
   });
 };
 
-export const getMediaAspectRatio = (item: MediaFile): number => {
+export const getMediaAspectRatio = (item: MediaAsset): number => {
   if (item.width && item.height) {
     return item.width / item.height;
   }
@@ -94,7 +94,7 @@ export const useMediaStore = create<MediaStore>((set, get) => ({
   isLoading: false,
 
   addMediaFile: async (projectId, file) => {
-    const newItem: MediaFile = {
+    const newItem: MediaAsset = {
       ...file,
       id: generateUUID(),
     };

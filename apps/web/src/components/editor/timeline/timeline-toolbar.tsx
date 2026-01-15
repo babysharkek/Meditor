@@ -1,6 +1,5 @@
 import { useEditor } from "@/hooks/use-editor";
 import { useElementSelection } from "@/hooks/use-element-selection";
-import { toast } from "sonner";
 import {
   TooltipProvider,
   Tooltip,
@@ -33,11 +32,11 @@ import {
   SplitButtonSeparator,
 } from "@/components/ui/split-button";
 import { Slider } from "@/components/ui/slider";
-import { DEFAULT_FPS } from "@/constants/editor-constants";
 import { formatTimeCode } from "@/lib/time-utils";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { EditableTimecode } from "@/components/ui/editable-timecode";
 import { ScenesView } from "../scenes-view";
+import { type TAction, invokeAction } from "@/lib/actions";
 
 export function TimelineToolbar({
   zoomLevel,
@@ -46,41 +45,6 @@ export function TimelineToolbar({
   zoomLevel: number;
   setZoomLevel: ({ zoom }: { zoom: number }) => void;
 }) {
-  const editor = useEditor();
-  const { selectedElements, clearSelection } = useElementSelection();
-
-  const handleSplitSelected = () => {
-    editor.timeline.splitElements({
-      elements: selectedElements,
-      splitTime: editor.playback.currentTime,
-    });
-  };
-
-  const handleDuplicateSelected = () => {
-    if (selectedElements.length !== 1) {
-      toast.error("Select exactly one element");
-      return;
-    }
-    editor.timeline.duplicateElements({ elements: selectedElements });
-    clearSelection();
-  };
-
-  const handleSplitAndKeepLeft = () => {
-    editor.timeline.splitElements({
-      elements: selectedElements,
-      splitTime: editor.playback.currentTime,
-      retainSide: "left",
-    });
-  };
-
-  const handleSplitAndKeepRight = () => {
-    editor.timeline.splitElements({
-      elements: selectedElements,
-      splitTime: editor.playback.currentTime,
-      retainSide: "right",
-    });
-  };
-
   const handleZoom = ({ direction }: { direction: "in" | "out" }) => {
     const newZoomLevel =
       direction === "in"
@@ -95,17 +59,9 @@ export function TimelineToolbar({
     setZoomLevel({ zoom: newZoomLevel });
   };
 
-  const hasNoTracks = editor.timeline.getTracks().length === 0;
-
   return (
     <div className="flex h-10 items-center justify-between border-b px-2 py-1">
-      <ToolbarLeftSection
-        hasNoTracks={hasNoTracks}
-        onSplit={handleSplitSelected}
-        onSplitLeft={handleSplitAndKeepLeft}
-        onSplitRight={handleSplitAndKeepRight}
-        onDuplicate={handleDuplicateSelected}
-      />
+      <ToolbarLeftSection />
 
       <SceneSelector />
 
@@ -118,28 +74,26 @@ export function TimelineToolbar({
   );
 }
 
-function ToolbarLeftSection({
-  hasNoTracks,
-  onSplit,
-  onSplitLeft,
-  onSplitRight,
-  onDuplicate,
-}: {
-  hasNoTracks: boolean;
-  onSplit: () => void;
-  onSplitLeft: () => void;
-  onSplitRight: () => void;
-  onDuplicate: () => void;
-}) {
-  const editor = useEditor();
+function ToolbarLeftSection() {
   const { selectedElements } = useElementSelection();
 
-  const currentTime = editor.playback.currentTime;
+  const editor = useEditor();
+  const currentTime = editor.playback.getCurrentTime();
   const duration = editor.timeline.getTotalDuration();
-  const isPlaying = editor.playback.isPlaying;
+  const isPlaying = editor.playback.getIsPlaying();
   const activeProject = editor.project.getActive();
-  const fps = activeProject?.fps ?? DEFAULT_FPS;
-  const currentBookmarked = editor.scene.isBookmarked({ time: currentTime });
+  const currentBookmarked = editor.scenes.isBookmarked({ time: currentTime });
+
+  const handleAction = ({
+    action,
+    event,
+  }: {
+    action: TAction;
+    event: React.MouseEvent;
+  }) => {
+    event.stopPropagation();
+    invokeAction(action);
+  };
 
   return (
     <div className="flex items-center gap-1">
@@ -150,7 +104,9 @@ function ToolbarLeftSection({
               variant="text"
               size="icon"
               type="button"
-              onClick={() => editor.playback.toggle()}
+              onClick={(event) =>
+                handleAction({ action: "toggle-play", event })
+              }
             >
               {isPlaying ? (
                 <Pause className="size-4" />
@@ -170,7 +126,7 @@ function ToolbarLeftSection({
               variant="text"
               size="icon"
               type="button"
-              onClick={() => editor.playback.seek({ time: 0 })}
+              onClick={(event) => handleAction({ action: "goto-start", event })}
             >
               <SkipBack className="size-4" />
             </Button>
@@ -180,13 +136,27 @@ function ToolbarLeftSection({
 
         <div className="bg-border mx-1 h-6 w-px" />
 
-        <TimeDisplay currentTime={currentTime} duration={duration} fps={fps} />
+        <TimeDisplay
+          currentTime={currentTime}
+          duration={duration}
+          fps={activeProject.settings.fps}
+        />
 
         <div className="bg-border mx-1 h-6 w-px" />
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="text" size="icon" type="button" onClick={onSplit}>
+            <Button
+              variant="text"
+              size="icon"
+              type="button"
+              onClick={() => {
+                editor.timeline.splitElements({
+                  elements: selectedElements,
+                  splitTime: editor.playback.getCurrentTime(),
+                });
+              }}
+            >
               <Scissors className="size-4" />
             </Button>
           </TooltipTrigger>
@@ -199,7 +169,13 @@ function ToolbarLeftSection({
               variant="text"
               size="icon"
               type="button"
-              onClick={onSplitLeft}
+              onClick={() => {
+                editor.timeline.splitElements({
+                  elements: selectedElements,
+                  splitTime: editor.playback.getCurrentTime(),
+                  retainSide: "left",
+                });
+              }}
             >
               <ArrowLeftToLine className="size-4" />
             </Button>
@@ -213,7 +189,13 @@ function ToolbarLeftSection({
               variant="text"
               size="icon"
               type="button"
-              onClick={onSplitRight}
+              onClick={() => {
+                editor.timeline.splitElements({
+                  elements: selectedElements,
+                  splitTime: editor.playback.getCurrentTime(),
+                  retainSide: "right",
+                });
+              }}
             >
               <ArrowRightToLine className="size-4" />
             </Button>
@@ -236,7 +218,9 @@ function ToolbarLeftSection({
               variant="text"
               size="icon"
               type="button"
-              onClick={onDuplicate}
+              onClick={(event) =>
+                handleAction({ action: "duplicate-selected", event })
+              }
             >
               <Copy className="size-4" />
             </Button>
@@ -246,18 +230,11 @@ function ToolbarLeftSection({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              type="button"
-              onClick={() =>
-                toast.info("Freeze frame functionality coming soon!")
-              }
-            >
+            <Button variant="text" size="icon" type="button" disabled>
               <Snowflake className="size-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Freeze frame (F)</TooltipContent>
+          <TooltipContent>Freeze frame (F) (Coming soon)</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -266,8 +243,8 @@ function ToolbarLeftSection({
               variant="text"
               size="icon"
               type="button"
-              onClick={() =>
-                editor.timeline.deleteElements({ elements: selectedElements })
+              onClick={(event) =>
+                handleAction({ action: "delete-selected", event })
               }
             >
               <Trash2 className="size-4" />
@@ -284,7 +261,9 @@ function ToolbarLeftSection({
               variant="text"
               size="icon"
               type="button"
-              onClick={() => editor.scene.toggleBookmark({ time: currentTime })}
+              onClick={(event) =>
+                handleAction({ action: "toggle-bookmark", event })
+              }
             >
               <Bookmark
                 className={`size-4 ${currentBookmarked ? "fill-primary text-primary" : ""}`}
@@ -323,10 +302,10 @@ function TimeDisplay({
       />
       <div className="text-muted-foreground px-2 font-mono text-xs">/</div>
       <div className="text-muted-foreground text-center font-mono text-xs">
-        {formatTimeCode({ timeInSeconds: duration })}
         {formatTimeCode({
           timeInSeconds: duration,
           format: "HH:MM:SS:FF",
+          fps,
         })}
       </div>
     </div>
@@ -335,8 +314,8 @@ function TimeDisplay({
 
 function SceneSelector() {
   const editor = useEditor();
-  const currentScene = editor.scene.getCurrentScene();
-  const scenesCount = editor.scene.getScenes().length;
+  const currentScene = editor.scenes.getActiveScene();
+  const scenesCount = editor.scenes.getScenes().length;
 
   return (
     <div>

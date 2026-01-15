@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { AwsClient } from "aws4fetch";
 import { nanoid } from "nanoid";
-import { env } from "@/env";
+import { webEnv } from "@opencut/env/web";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { isTranscriptionConfigured } from "@/lib/transcription-utils";
 
@@ -64,15 +64,15 @@ export async function POST(request: NextRequest) {
     const { fileExtension } = validationResult.data;
 
     const client = new AwsClient({
-      accessKeyId: env.R2_ACCESS_KEY_ID,
-      secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+      accessKeyId: webEnv.R2_ACCESS_KEY_ID,
+      secretAccessKey: webEnv.R2_SECRET_ACCESS_KEY,
     });
 
     const timestamp = Date.now();
     const fileName = `audio/${timestamp}-${nanoid()}.${fileExtension}`;
 
     const url = new URL(
-      `https://${env.R2_BUCKET_NAME}.${env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com/${fileName}`
+      `https://${webEnv.R2_BUCKET_NAME}.${webEnv.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com/${fileName}`
     );
 
     url.searchParams.set("X-Amz-Expires", "3600"); // 1 hour expiry

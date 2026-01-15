@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { env } from "@/env";
+import { webEnv } from "@opencut/env/web";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 const searchParamsSchema = z.object({
@@ -200,7 +200,7 @@ export async function GET(request: NextRequest) {
 
     const params = new URLSearchParams({
       query: query || "",
-      token: env.FREESOUND_API_KEY,
+      token: webEnv.FREESOUND_API_KEY,
       page: page.toString(),
       page_size: pageSize.toString(),
       sort: sortParam,

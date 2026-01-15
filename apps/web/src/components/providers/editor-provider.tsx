@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { useEditorStore } from "@/stores/editor-store";
+import { useEditor } from "@/hooks/use-editor";
 import {
   useKeybindingsListener,
   useKeybindingDisabler,
@@ -10,44 +11,113 @@ import {
 import { useEditorActions } from "@/hooks/use-editor-actions";
 
 interface EditorProviderProps {
+  projectId: string;
   children: React.ReactNode;
 }
 
-export function EditorProvider({ children }: EditorProviderProps) {
-  const { isInitializing, isPanelsReady, initializeApp } = useEditorStore();
+export function EditorProvider({ projectId, children }: EditorProviderProps) {
+  const editor = useEditor();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { disableKeybindings, enableKeybindings } = useKeybindingDisabler();
+  const activeProject = editor.project.getActiveOrNull();
 
-  // Set up action handlers
-  useEditorActions();
-
-  // Set up keybinding listener
-  useKeybindingsListener();
-
-  // Disable keybindings when initializing
   useEffect(() => {
-    if (isInitializing || !isPanelsReady) {
+    if (isLoading) {
       disableKeybindings();
     } else {
       enableKeybindings();
     }
-  }, [isInitializing, isPanelsReady, disableKeybindings, enableKeybindings]);
+  }, [isLoading, disableKeybindings, enableKeybindings]);
 
   useEffect(() => {
-    initializeApp();
-  }, [initializeApp]);
+    let cancelled = false;
 
-  // Show loading screen while initializing
-  if (isInitializing || !isPanelsReady) {
+    const loadProject = async () => {
+      try {
+        setIsLoading(true);
+        await editor.project.loadProject({ id: projectId });
+
+        if (cancelled) return;
+
+        setIsLoading(false);
+      } catch (err) {
+        if (cancelled) return;
+
+        const isNotFound =
+          err instanceof Error &&
+          (err.message.includes("not found") ||
+            err.message.includes("does not exist"));
+
+        if (isNotFound) {
+          try {
+            const newProjectId = await editor.project.createNewProject({
+              name: "Untitled Project",
+            });
+            router.replace(`/editor/${newProjectId}`);
+          } catch (createErr) {
+            setError("Failed to create project");
+            setIsLoading(false);
+          }
+        } else {
+          setError(
+            err instanceof Error ? err.message : "Failed to load project",
+          );
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadProject();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, editor, router]);
+
+  if (error) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background">
+      <div className="bg-background flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Loading editor...</p>
+          <p className="text-destructive text-sm">{error}</p>
         </div>
       </div>
     );
   }
 
-  // App is ready, render children
-  return <>{children}</>;
+  if (isLoading) {
+    return (
+      <div className="bg-background flex h-screen w-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground text-sm">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activeProject) {
+    return (
+      <div className="bg-background flex h-screen w-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground text-sm">Exiting project...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <EditorRuntimeBindings />
+      {children}
+    </>
+  );
+}
+
+function EditorRuntimeBindings() {
+  useEditorActions();
+  useKeybindingsListener();
+  return null;
 }

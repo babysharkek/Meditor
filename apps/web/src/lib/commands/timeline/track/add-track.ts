@@ -20,21 +20,33 @@ export class AddTrackCommand extends Command {
     this.savedState = editor.timeline.getTracks();
 
     const trackName =
-      this.type === "media"
-        ? "Media Track"
+      this.type === "video"
+        ? "Video track"
         : this.type === "text"
-          ? "Text Track"
+          ? "Text track"
           : this.type === "audio"
-            ? "Audio Track"
-            : "Track";
+            ? "Audio track"
+            : this.type === "sticker"
+              ? "Sticker track"
+              : "Track";
 
-    const newTrack: TimelineTrack = {
-      id: this.trackId,
-      name: trackName,
-      type: this.type,
-      elements: [],
-      muted: false,
-    };
+    const newTrack: TimelineTrack =
+      this.type === "video"
+        ? {
+            id: this.trackId,
+            name: trackName,
+            type: "video",
+            elements: [],
+            muted: false,
+            isMain: false,
+          }
+        : {
+            id: this.trackId,
+            name: trackName,
+            type: this.type,
+            elements: [],
+            muted: false,
+          };
 
     let updatedTracks: TimelineTrack[];
     if (this.index !== undefined) {

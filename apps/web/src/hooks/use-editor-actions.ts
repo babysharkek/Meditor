@@ -1,33 +1,21 @@
 "use client";
 
 import { useTimelineStore } from "@/stores/timeline-store";
-import { usePlaybackStore } from "@/stores/playback-store";
-import { useProjectStore } from "@/stores/project-store";
-import { DEFAULT_FPS } from "@/constants/editor-constants";
+import { useActionHandler } from "@/hooks/use-action-handler";
+import { useEditor } from "./use-editor";
+import { PasteCommand } from "@/lib/commands/timeline/clipboard/paste";
 import { toast } from "sonner";
-import { useActionHandler } from "@/constants/action-constants";
 
 export function useEditorActions() {
-  const {
-    tracks,
-    selectedElements,
-    setSelectedElements,
-    deleteSelected,
-    splitSelected,
-    addElementToTrack,
-    toggleSnapping,
-    undo,
-    redo,
-  } = useTimelineStore();
+  const editor = useEditor();
+  const activeProject = editor.project.getActive();
+  const timelineStore = useTimelineStore.getState();
+  const selectedElements = timelineStore.selectedElements;
 
-  const { currentTime, duration, isPlaying, toggle, seek } = usePlaybackStore();
-  const { activeProject } = useProjectStore();
-
-  // Playback actions
   useActionHandler(
     "toggle-play",
     () => {
-      toggle();
+      editor.playback.toggle();
     },
     undefined,
   );
@@ -35,10 +23,10 @@ export function useEditorActions() {
   useActionHandler(
     "stop-playback",
     () => {
-      if (isPlaying) {
-        toggle();
+      if (editor.playback.getIsPlaying()) {
+        editor.playback.toggle();
       }
-      seek(0);
+      editor.playback.seek({ time: 0 });
     },
     undefined,
   );
@@ -47,7 +35,12 @@ export function useEditorActions() {
     "seek-forward",
     (args) => {
       const seconds = args?.seconds ?? 1;
-      seek(Math.min(duration, currentTime + seconds));
+      editor.playback.seek({
+        time: Math.min(
+          editor.timeline.getTotalDuration(),
+          editor.playback.getCurrentTime() + seconds,
+        ),
+      });
     },
     undefined,
   );
@@ -56,7 +49,9 @@ export function useEditorActions() {
     "seek-backward",
     (args) => {
       const seconds = args?.seconds ?? 1;
-      seek(Math.max(0, currentTime - seconds));
+      editor.playback.seek({
+        time: Math.max(0, editor.playback.getCurrentTime() - seconds),
+      });
     },
     undefined,
   );
@@ -64,8 +59,13 @@ export function useEditorActions() {
   useActionHandler(
     "frame-step-forward",
     () => {
-      const projectFps = activeProject?.fps || DEFAULT_FPS;
-      seek(Math.min(duration, currentTime + 1 / projectFps));
+      const fps = activeProject.settings.fps;
+      editor.playback.seek({
+        time: Math.min(
+          editor.timeline.getTotalDuration(),
+          editor.playback.getCurrentTime() + 1 / fps,
+        ),
+      });
     },
     undefined,
   );
@@ -73,8 +73,10 @@ export function useEditorActions() {
   useActionHandler(
     "frame-step-backward",
     () => {
-      const projectFps = activeProject?.fps || DEFAULT_FPS;
-      seek(Math.max(0, currentTime - 1 / projectFps));
+      const fps = activeProject.settings.fps;
+      editor.playback.seek({
+        time: Math.max(0, editor.playback.getCurrentTime() - 1 / fps),
+      });
     },
     undefined,
   );
@@ -83,7 +85,12 @@ export function useEditorActions() {
     "jump-forward",
     (args) => {
       const seconds = args?.seconds ?? 5;
-      seek(Math.min(duration, currentTime + seconds));
+      editor.playback.seek({
+        time: Math.min(
+          editor.timeline.getTotalDuration(),
+          editor.playback.getCurrentTime() + seconds,
+        ),
+      });
     },
     undefined,
   );
@@ -92,7 +99,9 @@ export function useEditorActions() {
     "jump-backward",
     (args) => {
       const seconds = args?.seconds ?? 5;
-      seek(Math.max(0, currentTime - seconds));
+      editor.playback.seek({
+        time: Math.max(0, editor.playback.getCurrentTime() - seconds),
+      });
     },
     undefined,
   );
@@ -100,7 +109,7 @@ export function useEditorActions() {
   useActionHandler(
     "goto-start",
     () => {
-      seek(0);
+      editor.playback.seek({ time: 0 });
     },
     undefined,
   );
@@ -108,35 +117,21 @@ export function useEditorActions() {
   useActionHandler(
     "goto-end",
     () => {
-      seek(duration);
+      editor.playback.seek({ time: editor.timeline.getTotalDuration() });
     },
     undefined,
   );
 
-  // Timeline editing actions
   useActionHandler(
-    "split-element",
+    "split-selected",
     () => {
-      if (selectedElements.length !== 1) {
-        toast.error("Select exactly one element to split");
-        return;
-      }
+      const splitElementIds = editor.timeline.splitElements({
+        elements: selectedElements,
+        splitTime: editor.playback.getCurrentTime(),
+      });
 
-      const { trackId, elementId } = selectedElements[0];
-      const track = tracks.find((t: any) => t.id === trackId);
-      const element = track?.elements.find((el: any) => el.id === elementId);
-
-      if (element) {
-        const effectiveStart = element.startTime;
-        const effectiveEnd =
-          element.startTime +
-          (element.duration - element.trimStart - element.trimEnd);
-
-        if (currentTime > effectiveStart && currentTime < effectiveEnd) {
-          splitSelected(currentTime, trackId, elementId);
-        } else {
-          toast.error("Playhead must be within selected element");
-        }
+      if (splitElementIds.length === 0) {
+        toast.error("Playhead must be positioned over the selected element(s)");
       }
     },
     undefined,
@@ -148,7 +143,9 @@ export function useEditorActions() {
       if (selectedElements.length === 0) {
         return;
       }
-      deleteSelected();
+      editor.timeline.deleteElements({
+        elements: selectedElements,
+      });
     },
     undefined,
   );
@@ -156,13 +153,13 @@ export function useEditorActions() {
   useActionHandler(
     "select-all",
     () => {
-      const allElements = tracks.flatMap((track: any) =>
-        track.elements.map((element: any) => ({
+      const allElements = editor.timeline.getTracks().flatMap((track) =>
+        track.elements.map((element) => ({
           trackId: track.id,
           elementId: element.id,
         })),
       );
-      setSelectedElements(allElements);
+      timelineStore.setSelectedElements({ elements: allElements });
     },
     undefined,
   );
@@ -170,27 +167,31 @@ export function useEditorActions() {
   useActionHandler(
     "duplicate-selected",
     () => {
-      if (selectedElements.length !== 1) {
-        toast.error("Select exactly one element to duplicate");
-        return;
-      }
+      editor.timeline.duplicateElements({ elements: selectedElements });
+    },
+    undefined,
+  );
 
-      const { trackId, elementId } = selectedElements[0];
-      const track = tracks.find((t: any) => t.id === trackId);
-      const element = track?.elements.find((el: any) => el.id === elementId);
+  useActionHandler(
+    "toggle-mute-selected",
+    () => {
+      editor.timeline.toggleElementsMuted({ elements: selectedElements });
+    },
+    undefined,
+  );
 
-      if (element) {
-        const newStartTime =
-          element.startTime +
-          (element.duration - element.trimStart - element.trimEnd) +
-          0.1;
-        const { id, ...elementWithoutId } = element;
+  useActionHandler(
+    "toggle-visibility-selected",
+    () => {
+      editor.timeline.toggleElementsVisibility({ elements: selectedElements });
+    },
+    undefined,
+  );
 
-        addElementToTrack(trackId, {
-          ...elementWithoutId,
-          startTime: newStartTime,
-        });
-      }
+  useActionHandler(
+    "toggle-bookmark",
+    () => {
+      editor.scenes.toggleBookmark({ time: editor.playback.getCurrentTime() });
     },
     undefined,
   );
@@ -199,7 +200,19 @@ export function useEditorActions() {
     "copy-selected",
     () => {
       if (selectedElements.length === 0) return;
-      useTimelineStore.getState().copySelected();
+
+      const results = editor.timeline.getElementsWithTracks({
+        elements: selectedElements,
+      });
+      const items = results.map(({ track, element }) => {
+        const { id, ...elementWithoutId } = element;
+        return {
+          trackType: track.type,
+          element: elementWithoutId,
+        };
+      });
+
+      timelineStore.setClipboard({ items });
     },
     undefined,
   );
@@ -207,7 +220,13 @@ export function useEditorActions() {
   useActionHandler(
     "paste-selected",
     () => {
-      useTimelineStore.getState().pasteAtTime(currentTime);
+      const clipboard = timelineStore.clipboard;
+      if (!clipboard?.items.length) return;
+
+      const currentTime = editor.playback.getCurrentTime();
+      editor.command.execute({
+        command: new PasteCommand(currentTime, clipboard.items),
+      });
     },
     undefined,
   );
@@ -215,16 +234,15 @@ export function useEditorActions() {
   useActionHandler(
     "toggle-snapping",
     () => {
-      toggleSnapping();
+      timelineStore.toggleSnapping();
     },
     undefined,
   );
 
-  // History actions
   useActionHandler(
     "undo",
     () => {
-      undo();
+      editor.command.undo();
     },
     undefined,
   );
@@ -232,7 +250,7 @@ export function useEditorActions() {
   useActionHandler(
     "redo",
     () => {
-      redo();
+      editor.command.redo();
     },
     undefined,
   );

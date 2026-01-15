@@ -32,9 +32,10 @@ import {
 } from "@/lib/iconify-api";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { DraggableMediaItem } from "@/components/ui/draggable-item";
+import { DraggableItem } from "@/components/ui/draggable-item";
 import { InputWithBack } from "@/components/ui/input-with-back";
-import { StickerCategory } from "@/stores/stickers-store";
+import type { StickerCategory } from "@/types/stickers";
+import { STICKER_CATEGORIES } from "@/constants/stickers-constants";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 export function StickersView() {
@@ -44,8 +45,8 @@ export function StickersView() {
     <BaseView
       value={selectedCategory}
       onValueChange={(v) => {
-        if (["all", "general", "brands", "emoji"].includes(v)) {
-          setSelectedCategory(v as StickerCategory);
+        if (STICKER_CATEGORIES.includes(v as StickerCategory)) {
+          setSelectedCategory({ category: v as StickerCategory });
         }
       }}
       tabs={[
@@ -74,7 +75,7 @@ export function StickersView() {
           content: <StickersContentView category="emoji" />,
         },
       ]}
-      className="flex flex-col h-full p-0 overflow-hidden"
+      className="flex h-full flex-col overflow-hidden p-0"
     />
   );
 }
@@ -124,7 +125,7 @@ function CollectionGrid({
     total: number;
     category?: string;
   }>;
-  onSelectCollection: (prefix: string) => void;
+  onSelectCollection: ({ prefix }: { prefix: string }) => void;
 }) {
   return (
     <div className="grid grid-cols-1 gap-2">
@@ -133,7 +134,7 @@ function CollectionGrid({
           key={collection.prefix}
           title={collection.name}
           subtitle={`${collection.total.toLocaleString()} icons${collection.category ? ` • ${collection.category}` : ""}`}
-          onClick={() => onSelectCollection(collection.prefix)}
+          onClick={() => onSelectCollection({ prefix: collection.prefix })}
         />
       ))}
     </div>
@@ -142,14 +143,14 @@ function CollectionGrid({
 
 function EmptyView({ message }: { message: string }) {
   return (
-    <div className="bg-panel h-full p-4 flex flex-col items-center justify-center gap-3">
+    <div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
       <StickerIcon
-        className="w-10 h-10 text-muted-foreground"
+        className="text-muted-foreground h-10 w-10"
         strokeWidth={1.5}
       />
       <div className="flex flex-col gap-2 text-center">
         <p className="text-lg font-medium">No stickers found</p>
-        <p className="text-sm text-muted-foreground text-balance">{message}</p>
+        <p className="text-muted-foreground text-balance text-sm">{message}</p>
       </div>
     </div>
   );
@@ -229,9 +230,9 @@ function StickersContentView({ category }: { category: StickerCategory }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (localSearchQuery !== searchQuery) {
-        setSearchQuery(localSearchQuery);
+        setSearchQuery({ query: localSearchQuery });
         if (localSearchQuery.trim()) {
-          searchStickers(localSearchQuery);
+          searchStickers({ query: localSearchQuery });
         }
       }
     }, 500);
@@ -241,7 +242,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 
   const handleAddSticker = async (iconName: string) => {
     try {
-      await addStickerToTimeline(iconName);
+      await addStickerToTimeline({ iconName });
     } catch (error) {
       console.error("Failed to add sticker:", error);
       toast.error("Failed to add sticker to timeline");
@@ -259,8 +260,8 @@ function StickersContentView({ category }: { category: StickerCategory }) {
       if (currentCollection.uncategorized) {
         icons.push(
           ...currentCollection.uncategorized.map(
-            (name) => `${currentCollection.prefix}:${name}`
-          )
+            (name) => `${currentCollection.prefix}:${name}`,
+          ),
         );
       }
 
@@ -268,8 +269,8 @@ function StickersContentView({ category }: { category: StickerCategory }) {
         Object.values(currentCollection.categories).forEach((categoryIcons) => {
           icons.push(
             ...categoryIcons.map(
-              (name) => `${currentCollection.prefix}:${name}`
-            )
+              (name) => `${currentCollection.prefix}:${name}`,
+            ),
           );
         });
       }
@@ -293,13 +294,13 @@ function StickersContentView({ category }: { category: StickerCategory }) {
   }, [isInCollection]);
 
   return (
-    <div className="flex flex-col gap-5 mt-1 h-full p-4">
+    <div className="mt-1 flex h-full flex-col gap-5 p-4">
       <div className="space-y-3">
         <InputWithBack
           isExpanded={isInCollection}
           setIsExpanded={(expanded) => {
             if (!expanded && isInCollection) {
-              setSelectedCollection(null);
+              setSelectedCollection({ collection: null });
             }
           }}
           placeholder={
@@ -319,24 +320,24 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 
       <div className="relative h-full overflow-hidden">
         <ScrollArea
-          className="flex-1 h-full"
+          className="h-full flex-1"
           ref={scrollAreaRef}
           onScrollCapture={handleScroll}
         >
-          <div className="flex flex-col gap-4 h-full">
+          <div className="flex h-full flex-col gap-4">
             {recentStickers.length > 0 && viewMode === "browse" && (
               <div className="h-full">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
+                <div className="mb-2 flex items-center gap-2">
+                  <Clock className="text-muted-foreground h-4 w-4" />
                   <span className="text-sm font-medium">Recent</span>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
                           onClick={clearRecentStickers}
-                          className="ml-auto h-5 w-5 p-0 rounded hover:bg-accent flex items-center justify-center"
+                          className="hover:bg-accent ml-auto flex h-5 w-5 items-center justify-center rounded p-0"
                         >
-                          <X className="h-3 w-3 text-muted-foreground" />
+                          <X className="text-muted-foreground h-3 w-3" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -358,7 +359,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
               <div className="h-full">
                 {isLoadingCollection ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
                   </div>
                 ) : showCollectionItems ? (
                   <StickerGrid
@@ -368,7 +369,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
                   />
                 ) : (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
                   </div>
                 )}
               </div>
@@ -378,12 +379,12 @@ function StickersContentView({ category }: { category: StickerCategory }) {
               <div className="h-full">
                 {isSearching ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
                   </div>
                 ) : searchResults?.icons.length ? (
                   <>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm text-muted-foreground">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-muted-foreground text-sm">
                         {searchResults.total} results
                       </span>
                     </div>
@@ -395,7 +396,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
                     />
                   </>
                 ) : searchQuery ? (
-                  <div className="flex flex-col items-center justify-center py-8 gap-3">
+                  <div className="flex flex-col items-center justify-center gap-3 py-8">
                     <EmptyView
                       message={`No stickers found for "${searchQuery}"`}
                     />
@@ -405,11 +406,11 @@ function StickersContentView({ category }: { category: StickerCategory }) {
                         onClick={() => {
                           const q = localSearchQuery || searchQuery;
                           if (q) {
-                            setSearchQuery(q);
+                            setSearchQuery({ query: q });
                           }
-                          setSelectedCategory("all");
+                          setSelectedCategory({ category: "all" });
                           if (q) {
-                            searchStickers(q);
+                            searchStickers({ query: q });
                           }
                         }}
                       >
@@ -422,26 +423,20 @@ function StickersContentView({ category }: { category: StickerCategory }) {
             )}
 
             {viewMode === "browse" && !selectedCollection && (
-              <div className="space-y-4 h-full">
+              <div className="h-full space-y-4">
                 {isLoadingCollections ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
                   </div>
                 ) : (
                   <>
                     {category !== "all" && (
                       <div className="h-full">
-                        <h3 className="text-sm font-medium mb-2">
-                          Popular{" "}
-                          {category === "general"
-                            ? "Icon Sets"
-                            : category === "brands"
-                              ? "Brand Icons"
-                              : "Emoji Sets"}
-                        </h3>
                         <CollectionGrid
                           collections={filteredCollections}
-                          onSelectCollection={setSelectedCollection}
+                          onSelectCollection={({ prefix }) =>
+                            setSelectedCollection({ collection: prefix })
+                          }
                         />
                       </div>
                     )}
@@ -451,9 +446,11 @@ function StickersContentView({ category }: { category: StickerCategory }) {
                         <CollectionGrid
                           collections={filteredCollections.slice(
                             0,
-                            collectionsToShow
+                            collectionsToShow,
                           )}
-                          onSelectCollection={setSelectedCollection}
+                          onSelectCollection={({ prefix }) =>
+                            setSelectedCollection({ collection: prefix })
+                          }
                         />
                       </div>
                     )}
@@ -478,12 +475,12 @@ function CollectionItem({ title, subtitle, onClick }: CollectionItemProps) {
   return (
     <Button
       variant="outline"
-      className="justify-between h-auto py-2 "
+      className="h-auto justify-between py-2 rounded-md"
       onClick={onClick}
     >
       <div className="text-left">
         <p className="font-medium">{title}</p>
-        <p className="text-xs text-muted-foreground">{subtitle}</p>
+        <p className="text-muted-foreground text-xs">{subtitle}</p>
       </div>
       <ArrowRight className="h-4 w-4" />
     </Button>
@@ -515,13 +512,13 @@ function StickerItem({
   const collectionPrefix = iconName.split(":")[0];
 
   const preview = imageError ? (
-    <div className="w-full h-full flex items-center justify-center p-2">
-      <span className="text-xs text-muted-foreground text-center break-all">
+    <div className="flex h-full w-full items-center justify-center p-2">
+      <span className="text-muted-foreground break-all text-center text-xs">
         {displayName}
       </span>
     </div>
   ) : (
-    <div className="w-full h-full p-4 flex items-center justify-center">
+    <div className="flex h-full w-full items-center justify-center p-4">
       <Image
         src={
           hostIndex === 0
@@ -529,13 +526,13 @@ function StickerItem({
             : buildIconSvgUrl(
                 ICONIFY_HOSTS[Math.min(hostIndex, ICONIFY_HOSTS.length - 1)],
                 iconName,
-                { width: 64, height: 64 }
+                { width: 64, height: 64 },
               )
         }
         alt={displayName}
         width={64}
         height={64}
-        className="w-full h-full object-contain"
+        className="h-full w-full object-contain"
         style={
           capSize
             ? {
@@ -564,28 +561,28 @@ function StickerItem({
         <div
           className={cn(
             "relative",
-            isAdding && "opacity-50 pointer-events-none"
+            isAdding && "pointer-events-none opacity-50",
           )}
         >
-          <DraggableMediaItem
+          <DraggableItem
             name={displayName}
             preview={preview}
             dragData={{
-              id: "sticker-placeholder",
-              type: "image",
+              id: iconName,
+              type: "sticker",
               name: displayName,
+              iconName,
             }}
             onAddToTimeline={() => onAdd(iconName)}
             aspectRatio={1}
-            showLabel={false}
-            rounded={true}
+            shouldShowLabel={false}
+            isRounded={true}
             variant="card"
             className=""
             containerClassName="w-full"
-            isDraggable={false}
           />
           {isAdding && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-md z-10">
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-black/60">
               <Loader2 className="h-6 w-6 animate-spin text-white" />
             </div>
           )}
@@ -594,7 +591,7 @@ function StickerItem({
       <TooltipContent>
         <div className="space-y-1">
           <p className="font-medium">{displayName}</p>
-          <p className="text-xs text-muted-foreground">{collectionPrefix}</p>
+          <p className="text-muted-foreground text-xs">{collectionPrefix}</p>
         </div>
       </TooltipContent>
     </Tooltip>

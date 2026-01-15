@@ -57,3 +57,52 @@ import { EditorCore } from '@/core';
 const editor = EditorCore.getInstance();
 await editor.export({ format: 'mp4', quality: 'high' });
 ```
+
+## Actions System
+
+Actions are the trigger layer for user-initiated operations. The single source of truth is `@/lib/actions/definitions.ts`.
+
+**To add a new action:**
+
+1. Add it to `ACTIONS` in `@/lib/actions/definitions.ts`:
+```typescript
+export const ACTIONS = {
+  "my-action": {
+    description: "What the action does",
+    category: "editing",
+    defaultShortcuts: ["ctrl+m"],
+  },
+  // ...
+}
+```
+
+2. Add handler in `@/hooks/use-editor-actions.ts`:
+```typescript
+useActionHandler("my-action", () => {
+  // implementation
+}, undefined);
+```
+
+**In components, use `invokeAction()` for user-triggered operations:**
+
+```typescript
+import { invokeAction } from '@/lib/actions';
+
+// Good - uses action system
+const handleSplit = () => invokeAction("split-selected");
+
+// Avoid - bypasses UX layer (toasts, validation feedback)
+const handleSplit = () => editor.timeline.splitElements({ ... });
+```
+
+Direct `editor.xxx()` calls are for internal use (commands, tests, complex multi-step operations).
+
+## Commands System
+
+Commands handle undo/redo. They live in `@/lib/commands/` organized by domain (timeline, media, scene).
+
+Each command extends `Command` from `@/lib/commands/base-command` and implements:
+- `execute()` - saves current state, then does the mutation
+- `undo()` - restores the saved state
+
+Actions and commands work together: actions are "what triggered this", commands are "how to do it (and undo it)".

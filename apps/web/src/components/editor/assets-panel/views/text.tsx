@@ -1,16 +1,36 @@
-import { DraggableMediaItem } from "@/components/ui/draggable-item";
+import { DraggableItem } from "@/components/ui/draggable-item";
 import { PanelBaseView as BaseView } from "@/components/editor/panel-base-view";
-import { useTimelineStore } from "@/stores/timeline-store";
+import { useEditor } from "@/hooks/use-editor";
 import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
+import { buildTextElement } from "@/lib/timeline/element-utils";
 
 export function TextView() {
+  const editor = useEditor();
+
+  const handleAddToTimeline = ({ currentTime }: { currentTime: number }) => {
+    const activeScene = editor.scenes.getActiveScene();
+    if (!activeScene) return;
+
+    const element = buildTextElement({
+      raw: DEFAULT_TEXT_ELEMENT,
+      startTime: currentTime,
+    });
+    const textTrack = activeScene.tracks.find((t) => t.type === "text");
+    if (textTrack) {
+      editor.timeline.addElementToTrack({
+        trackId: textTrack.id,
+        element,
+      });
+    }
+  };
+
   return (
     <BaseView>
-      <DraggableMediaItem
+      <DraggableItem
         name="Default text"
         preview={
-          <div className="flex items-center justify-center w-full h-full bg-panel-accent rounded">
-            <span className="text-xs select-none">Default text</span>
+          <div className="bg-panel-accent flex size-full items-center justify-center rounded">
+            <span className="select-none text-xs">Default text</span>
           </div>
         }
         dragData={{
@@ -20,16 +40,8 @@ export function TextView() {
           content: DEFAULT_TEXT_ELEMENT.content,
         }}
         aspectRatio={1}
-        onAddToTimeline={(currentTime) =>
-          useTimelineStore.getState().addElementAtTime(
-            {
-              ...DEFAULT_TEXT_ELEMENT,
-              id: "temp-text-id",
-            },
-            currentTime
-          )
-        }
-        showLabel={false}
+        onAddToTimeline={handleAddToTimeline}
+        shouldShowLabel={false}
       />
     </BaseView>
   );

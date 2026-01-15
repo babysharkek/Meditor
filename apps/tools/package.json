@@ -19,7 +19,6 @@
     "@hookform/resolvers": "^3.9.1",
     "@opencut/env": "workspace:*",
     "@opencut/ui": "workspace:*",
-    "@opencut/hooks": "workspace:*",
     "@radix-ui/react-separator": "^1.1.7",
     "@upstash/ratelimit": "^2.0.6",
     "@upstash/redis": "^1.35.4",

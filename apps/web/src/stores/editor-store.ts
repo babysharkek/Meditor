@@ -1,22 +1,23 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { CanvasPreset, PlatformLayout } from "@/types/editor";
-import { DEFAULT_CANVAS_PRESETS } from "@/constants/editor-constants";
+import type { TPlatformLayout } from "@/types/editor";
+import { DEFAULT_CANVAS_PRESETS } from "@/constants/project-constants";
+import { TCanvasSize } from "@/types/project";
 
 interface LayoutGuideSettings {
-  platform: PlatformLayout | null;
+  platform: TPlatformLayout | null;
 }
 
 interface EditorState {
   isInitializing: boolean;
   isPanelsReady: boolean;
-  canvasPresets: CanvasPreset[];
+  canvasPresets: TCanvasSize[];
   layoutGuide: LayoutGuideSettings;
   setInitializing: (loading: boolean) => void;
   setPanelsReady: (ready: boolean) => void;
   initializeApp: () => Promise<void>;
   setLayoutGuide: (settings: Partial<LayoutGuideSettings>) => void;
-  toggleLayoutGuide: (platform: PlatformLayout) => void;
+  toggleLayoutGuide: (platform: TPlatformLayout) => void;
 }
 
 export const useEditorStore = create<EditorState>()(

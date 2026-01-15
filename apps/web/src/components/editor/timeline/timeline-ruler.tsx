@@ -1,14 +1,11 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TimelineMarker } from "./timeline-marker";
-import { useSceneStore } from "@/stores/scene-store";
-import { usePlaybackStore } from "@/stores/playback-store";
-import { Bookmark } from "lucide-react";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { useCallback } from "react";
+import { useEditor } from "@/hooks/use-editor";
+import { Bookmark } from "lucide-react";
+import { TimelineTick } from "./timeline-tick";
 
 interface TimelineRulerProps {
   zoomLevel: number;
-  duration: number;
   dynamicTimelineWidth: number;
   rulerRef: React.RefObject<HTMLDivElement>;
   rulerScrollRef: React.RefObject<HTMLDivElement>;
@@ -20,7 +17,6 @@ interface TimelineRulerProps {
 
 export function TimelineRuler({
   zoomLevel,
-  duration,
   dynamicTimelineWidth,
   rulerRef,
   rulerScrollRef,
@@ -29,18 +25,35 @@ export function TimelineRuler({
   handleTimelineContentClick,
   handleRulerMouseDown,
 }: TimelineRulerProps) {
-  const { activeScene } = useSceneStore();
+  const editor = useEditor();
+  const activeScene = editor.scenes.getActiveScene();
+  const duration = editor.timeline.getTotalDuration();
 
-  const getOptimalTimeInterval = useCallback((zoom: number) => {
-    const pixelsPerSecond = TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoom;
-    if (pixelsPerSecond >= 200) return 0.1;
-    if (pixelsPerSecond >= 100) return 0.5;
-    if (pixelsPerSecond >= 50) return 1;
-    if (pixelsPerSecond >= 25) return 2;
-    if (pixelsPerSecond >= 12) return 5;
-    if (pixelsPerSecond >= 6) return 10;
-    return 30;
-  }, []);
+  const interval = getOptimalTimeInterval({ zoomLevel });
+  const pixelsPerSecond = TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
+  const tickSpacingPixels = interval * pixelsPerSecond;
+  const minLabelSpacingPixels = 120;
+  const labelEvery = Math.max(
+    1,
+    Math.ceil(minLabelSpacingPixels / tickSpacingPixels),
+  );
+  const markerCount = Math.ceil(duration / interval) + 1;
+
+  const timelineTicks: Array<JSX.Element> = [];
+  for (let markerIndex = 0; markerIndex < markerCount; markerIndex += 1) {
+    const time = markerIndex * interval;
+    if (time > duration) break;
+
+    timelineTicks.push(
+      <TimelineTick
+        key={markerIndex}
+        time={time}
+        zoomLevel={zoomLevel}
+        interval={interval}
+        shouldShowLabel={markerIndex % labelEvery === 0}
+      />,
+    );
+  }
 
   return (
     <div
@@ -59,31 +72,11 @@ export function TimelineRuler({
           }}
           onMouseDown={handleRulerMouseDown}
         >
-          {(() => {
-            const interval = getOptimalTimeInterval(zoomLevel);
-            const markerCount = Math.ceil(duration / interval) + 1;
+          {timelineTicks}
 
-            return Array.from({ length: markerCount }, (_, i) => {
-              const time = i * interval;
-              if (time > duration) return null;
-
-              const isMainMarker = time % Math.max(1, interval) === 0;
-
-              return (
-                <TimelineMarker
-                  key={i}
-                  time={time}
-                  zoomLevel={zoomLevel}
-                  interval={interval}
-                  isMainMarker={isMainMarker}
-                />
-              );
-            }).filter(Boolean);
-          })()}
-
-          {activeScene?.timeline?.bookmarks?.map((time, i) => (
+          {activeScene.bookmarks.map((time: number, index: number) => (
             <TimelineBookmark
-              key={`bookmark-${i}`}
+              key={`bookmark-${index}`}
               time={time}
               zoomLevel={zoomLevel}
             />
@@ -101,7 +94,16 @@ function TimelineBookmark({
   time: number;
   zoomLevel: number;
 }) {
-  const seek = usePlaybackStore((state) => state.seek);
+  const editor = useEditor();
+
+  const handleBookmarkClick = ({
+    event,
+  }: {
+    event: React.MouseEvent<HTMLDivElement>;
+  }) => {
+    event.stopPropagation();
+    editor.playback.seek({ time });
+  };
 
   return (
     <div
@@ -109,14 +111,22 @@ function TimelineBookmark({
       style={{
         left: `${time * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel}px`,
       }}
-      onClick={(e) => {
-        e.stopPropagation();
-        seek(time);
-      }}
+      onClick={(event) => handleBookmarkClick({ event })}
     >
       <div className="text-primary absolute left-[-5px] top-[-1px]">
-        <Bookmark className="fill-primary h-3 w-3" />
+        <Bookmark className="fill-primary size-3" />
       </div>
     </div>
   );
+}
+
+function getOptimalTimeInterval({ zoomLevel }: { zoomLevel: number }) {
+  const pixelsPerSecond = TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
+  if (pixelsPerSecond >= 200) return 0.1;
+  if (pixelsPerSecond >= 100) return 0.5;
+  if (pixelsPerSecond >= 50) return 1;
+  if (pixelsPerSecond >= 25) return 2;
+  if (pixelsPerSecond >= 12) return 5;
+  if (pixelsPerSecond >= 6) return 10;
+  return 30;
 }

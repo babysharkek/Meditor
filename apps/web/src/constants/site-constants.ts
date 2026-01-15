@@ -1,4 +1,4 @@
-import { DataBuddyIcon, MarbleIcon, VercelIcon } from "@/components/icons";
+import { DataBuddyIcon, MarbleIcon, VercelIcon } from "@opencut/ui/icons";
 
 export const SITE_URL = "https://opencut.app";
 

@@ -2,72 +2,54 @@ import { create } from "zustand";
 import type { SoundEffect, SavedSound } from "@/types/sounds";
 import { storageService } from "@/lib/storage/storage-service";
 import { toast } from "sonner";
-import { useMediaStore } from "./media-store";
-import { useTimelineStore } from "./timeline-store";
-import { useProjectStore } from "./project-store";
-import { usePlaybackStore } from "./playback-store";
+import { EditorCore } from "@/core";
+import { buildLibraryAudioElement } from "@/lib/timeline/element-utils";
 
 interface SoundsStore {
   topSoundEffects: SoundEffect[];
   isLoading: boolean;
   error: string | null;
   hasLoaded: boolean;
-
-  // Filter state
   showCommercialOnly: boolean;
   toggleCommercialFilter: () => void;
-
-  // Search state
   searchQuery: string;
   searchResults: SoundEffect[];
   isSearching: boolean;
   searchError: string | null;
   lastSearchQuery: string;
   scrollPosition: number;
-
-  // Pagination state
   currentPage: number;
   hasNextPage: boolean;
   totalCount: number;
   isLoadingMore: boolean;
-
-  // Saved sounds state
   savedSounds: SavedSound[];
   isSavedSoundsLoaded: boolean;
   isLoadingSavedSounds: boolean;
   savedSoundsError: string | null;
 
-  // Timeline integration
-  addSoundToTimeline: (sound: SoundEffect) => Promise<boolean>;
-
-  setTopSoundEffects: (sounds: SoundEffect[]) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  setHasLoaded: (loaded: boolean) => void;
-
-  // Search actions
-  setSearchQuery: (query: string) => void;
-  setSearchResults: (results: SoundEffect[]) => void;
-  setSearching: (searching: boolean) => void;
-  setSearchError: (error: string | null) => void;
-  setLastSearchQuery: (query: string) => void;
-  setScrollPosition: (position: number) => void;
-
-  // Pagination actions
-  setCurrentPage: (page: number) => void;
-  setHasNextPage: (hasNext: boolean) => void;
-  setTotalCount: (count: number) => void;
-  setLoadingMore: (loading: boolean) => void;
-  appendSearchResults: (results: SoundEffect[]) => void;
-  appendTopSounds: (results: SoundEffect[]) => void;
+  addSoundToTimeline: ({ sound }: { sound: SoundEffect }) => Promise<boolean>;
+  setTopSoundEffects: ({ sounds }: { sounds: SoundEffect[] }) => void;
+  setLoading: ({ loading }: { loading: boolean }) => void;
+  setError: ({ error }: { error: string | null }) => void;
+  setHasLoaded: ({ loaded }: { loaded: boolean }) => void;
+  setSearchQuery: ({ query }: { query: string }) => void;
+  setSearchResults: ({ results }: { results: SoundEffect[] }) => void;
+  setSearching: ({ searching }: { searching: boolean }) => void;
+  setSearchError: ({ error }: { error: string | null }) => void;
+  setLastSearchQuery: ({ query }: { query: string }) => void;
+  setScrollPosition: ({ position }: { position: number }) => void;
+  setCurrentPage: ({ page }: { page: number }) => void;
+  setHasNextPage: ({ hasNext }: { hasNext: boolean }) => void;
+  setTotalCount: ({ count }: { count: number }) => void;
+  setLoadingMore: ({ loading }: { loading: boolean }) => void;
+  appendSearchResults: ({ results }: { results: SoundEffect[] }) => void;
+  appendTopSounds: ({ results }: { results: SoundEffect[] }) => void;
   resetPagination: () => void;
-
-  // Saved sounds actions
   loadSavedSounds: () => Promise<void>;
-  saveSoundEffect: (soundEffect: SoundEffect) => Promise<void>;
-  removeSavedSound: (soundId: number) => Promise<void>;
-  isSoundSaved: (soundId: number) => boolean;
-  toggleSavedSound: (soundEffect: SoundEffect) => Promise<void>;
+  saveSoundEffect: ({ soundEffect }: { soundEffect: SoundEffect }) => Promise<void>;
+  removeSavedSound: ({ soundId }: { soundId: number }) => Promise<void>;
+  isSoundSaved: ({ soundId }: { soundId: number }) => boolean;
+  toggleSavedSound: ({ soundEffect }: { soundEffect: SoundEffect }) => Promise<void>;
   clearSavedSounds: () => Promise<void>;
 }
 
@@ -82,53 +64,47 @@ export const useSoundsStore = create<SoundsStore>((set, get) => ({
     set((state) => ({ showCommercialOnly: !state.showCommercialOnly }));
   },
 
-  // Search state
   searchQuery: "",
   searchResults: [],
   isSearching: false,
   searchError: null,
   lastSearchQuery: "",
   scrollPosition: 0,
-
-  // Pagination state
   currentPage: 1,
   hasNextPage: false,
   totalCount: 0,
   isLoadingMore: false,
-
-  // Saved sounds state
   savedSounds: [],
   isSavedSoundsLoaded: false,
   isLoadingSavedSounds: false,
   savedSoundsError: null,
 
-  setTopSoundEffects: (sounds) => set({ topSoundEffects: sounds }),
-  setLoading: (loading) => set({ isLoading: loading }),
-  setError: (error) => set({ error }),
-  setHasLoaded: (loaded) => set({ hasLoaded: loaded }),
-
-  // Search actions
-  setSearchQuery: (query) => set({ searchQuery: query }),
-  setSearchResults: (results) =>
+  setTopSoundEffects: ({ sounds }) => set({ topSoundEffects: sounds }),
+  setLoading: ({ loading }) => set({ isLoading: loading }),
+  setError: ({ error }) => set({ error }),
+  setHasLoaded: ({ loaded }) => set({ hasLoaded: loaded }),
+  setSearchQuery: ({ query }) => set({ searchQuery: query }),
+  setSearchResults: ({ results }) =>
     set({ searchResults: results, currentPage: 1 }),
-  setSearching: (searching) => set({ isSearching: searching }),
-  setSearchError: (error) => set({ searchError: error }),
-  setLastSearchQuery: (query) => set({ lastSearchQuery: query }),
-  setScrollPosition: (position) => set({ scrollPosition: position }),
+  setSearching: ({ searching }) => set({ isSearching: searching }),
+  setSearchError: ({ error }) => set({ searchError: error }),
+  setLastSearchQuery: ({ query }) => set({ lastSearchQuery: query }),
+  setScrollPosition: ({ position }) => set({ scrollPosition: position }),
+  setCurrentPage: ({ page }) => set({ currentPage: page }),
+  setHasNextPage: ({ hasNext }) => set({ hasNextPage: hasNext }),
+  setTotalCount: ({ count }) => set({ totalCount: count }),
+  setLoadingMore: ({ loading }) => set({ isLoadingMore: loading }),
 
-  // Pagination actions
-  setCurrentPage: (page) => set({ currentPage: page }),
-  setHasNextPage: (hasNext) => set({ hasNextPage: hasNext }),
-  setTotalCount: (count) => set({ totalCount: count }),
-  setLoadingMore: (loading) => set({ isLoadingMore: loading }),
-  appendSearchResults: (results) =>
+  appendSearchResults: ({ results }) =>
     set((state) => ({
       searchResults: [...state.searchResults, ...results],
     })),
-  appendTopSounds: (results) =>
+
+  appendTopSounds: ({ results }) =>
     set((state) => ({
       topSoundEffects: [...state.topSoundEffects, ...results],
     })),
+
   resetPagination: () =>
     set({
       currentPage: 1,
@@ -137,7 +113,6 @@ export const useSoundsStore = create<SoundsStore>((set, get) => ({
       isLoadingMore: false,
     }),
 
-  // Saved sounds actions
   loadSavedSounds: async () => {
     if (get().isSavedSoundsLoaded) return;
 
@@ -160,11 +135,10 @@ export const useSoundsStore = create<SoundsStore>((set, get) => ({
     }
   },
 
-  saveSoundEffect: async (soundEffect: SoundEffect) => {
+  saveSoundEffect: async ({ soundEffect }) => {
     try {
       await storageService.saveSoundEffect({ soundEffect });
 
-      // Refresh saved sounds
       const savedSoundsData = await storageService.loadSavedSounds();
       set({ savedSounds: savedSoundsData.sounds });
     } catch (error) {
@@ -176,11 +150,10 @@ export const useSoundsStore = create<SoundsStore>((set, get) => ({
     }
   },
 
-  removeSavedSound: async (soundId: number) => {
+  removeSavedSound: async ({ soundId }) => {
     try {
       await storageService.removeSavedSound({ soundId });
 
-      // Update local state immediately
       set((state) => ({
         savedSounds: state.savedSounds.filter((sound) => sound.id !== soundId),
       }));
@@ -193,18 +166,18 @@ export const useSoundsStore = create<SoundsStore>((set, get) => ({
     }
   },
 
-  isSoundSaved: (soundId: number) => {
+  isSoundSaved: ({ soundId }) => {
     const { savedSounds } = get();
     return savedSounds.some((sound) => sound.id === soundId);
   },
 
-  toggleSavedSound: async (soundEffect: SoundEffect) => {
+  toggleSavedSound: async ({ soundEffect }) => {
     const { isSoundSaved, saveSoundEffect, removeSavedSound } = get();
 
-    if (isSoundSaved(soundEffect.id)) {
-      await removeSavedSound(soundEffect.id);
+    if (isSoundSaved({ soundId: soundEffect.id })) {
+      await removeSavedSound({ soundId: soundEffect.id });
     } else {
-      await saveSoundEffect(soundEffect);
+      await saveSoundEffect({ soundEffect });
     }
   },
 
@@ -224,13 +197,7 @@ export const useSoundsStore = create<SoundsStore>((set, get) => ({
     }
   },
 
-  addSoundToTimeline: async (sound) => {
-    const activeProject = useProjectStore.getState().activeProject;
-    if (!activeProject) {
-      toast.error("No active project");
-      return false;
-    }
-
+  addSoundToTimeline: async ({ sound }) => {
     const audioUrl = sound.previewUrl;
     if (!audioUrl) {
       toast.error("Sound file not available");
@@ -238,36 +205,37 @@ export const useSoundsStore = create<SoundsStore>((set, get) => ({
     }
 
     try {
+      const editor = EditorCore.getInstance();
+      const currentTime = editor.playback.getCurrentTime();
+      const tracks = editor.timeline.getTracks();
+
       const response = await fetch(audioUrl);
       if (!response.ok)
         throw new Error(`Failed to download audio: ${response.statusText}`);
 
-      const blob = await response.blob();
-      const file = new File([blob], `${sound.name}.mp3`, {
-        type: "audio/mpeg",
-      });
+      const arrayBuffer = await response.arrayBuffer();
+      const audioContext = new AudioContext();
+      const buffer = await audioContext.decodeAudioData(arrayBuffer);
 
-      await useMediaStore.getState().addMediaFile(activeProject.id, {
-        name: sound.name,
-        type: "audio",
-        file,
-        duration: sound.duration,
-        url: URL.createObjectURL(file),
-      });
+      let audioTrack = tracks.find((t) => t.type === "audio");
+      let trackId: string;
 
-      const mediaItem = useMediaStore
-        .getState()
-        .mediaFiles.find((item) => item.file === file);
-      if (!mediaItem) throw new Error("Failed to create media item");
-
-      const success = useTimelineStore
-        .getState()
-        .addElementAtTime(mediaItem, usePlaybackStore.getState().currentTime);
-
-      if (success) {
-        return true;
+      if (audioTrack) {
+        trackId = audioTrack.id;
+      } else {
+        trackId = editor.timeline.addTrack({ type: "audio" });
       }
-      throw new Error("Failed to add to timeline - check for overlaps");
+
+      const element = buildLibraryAudioElement({
+        sourceUrl: audioUrl,
+        name: sound.name,
+        duration: sound.duration,
+        startTime: currentTime,
+        buffer,
+      });
+
+      editor.timeline.addElementToTrack({ trackId, element });
+      return true;
     } catch (error) {
       console.error("Failed to add sound to timeline:", error);
       toast.error(

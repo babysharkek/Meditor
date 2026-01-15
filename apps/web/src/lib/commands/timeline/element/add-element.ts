@@ -6,8 +6,9 @@ import type {
   TimelineElement,
 } from "@/types/timeline";
 import { generateUUID } from "@/lib/utils";
+import { requiresMediaId } from "@/lib/timeline/element-utils";
 import { validateElementTrackCompatibility } from "@/lib/timeline/track-utils";
-import type { MediaFile } from "@/types/assets";
+import type { MediaAsset } from "@/types/assets";
 
 export class AddElementToTrackCommand extends Command {
   private elementId: string;
@@ -41,8 +42,25 @@ export class AddElementToTrackCommand extends Command {
       return;
     }
 
-    if (this.element.type !== "text" && !this.element.mediaId) {
-      console.error("Media element must have mediaId");
+    if (
+      requiresMediaId({ element: this.element }) &&
+      !("mediaId" in this.element)
+    ) {
+      console.error("Element requires mediaId");
+      return;
+    }
+
+    if (
+      this.element.type === "audio" &&
+      this.element.sourceType === "library" &&
+      !this.element.sourceUrl
+    ) {
+      console.error("Library audio element must have sourceUrl");
+      return;
+    }
+
+    if (this.element.type === "sticker" && !this.element.iconName) {
+      console.error("Sticker element must have iconName");
       return;
     }
 
@@ -69,25 +87,21 @@ export class AddElementToTrackCommand extends Command {
       newElement.type === "video" || newElement.type === "image";
 
     if (isFirstElement && isVisualMedia) {
-      const mediaFiles = editor.media.getMediaFiles();
-      const mediaItem = mediaFiles.find(
-        (item: MediaFile) => item.id === newElement.mediaId,
+      const mediaAssets = editor.media.getAssets();
+      const asset = mediaAssets.find(
+        (item: MediaAsset) => item.id === newElement.mediaId,
       );
 
-      if (mediaItem?.width && mediaItem?.height) {
-        editor.project.updateCanvasSize({
-          size: {
-            width: mediaItem.width,
-            height: mediaItem.height,
+      if (asset?.width && asset?.height) {
+        editor.project.updateSettings({
+          settings: {
+            canvasSize: { width: asset.width, height: asset.height },
           },
         });
       }
 
-      if (mediaItem?.type === "video" && mediaItem?.fps) {
-        const activeProject = editor.project.getActive();
-        if (activeProject) {
-          editor.project.updateProjectFps({ fps: mediaItem.fps });
-        }
+      if (asset?.type === "video" && asset?.fps) {
+        editor.project.updateSettings({ settings: { fps: asset.fps } });
       }
     }
 

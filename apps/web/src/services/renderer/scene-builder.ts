@@ -1,64 +1,61 @@
-import { type TimelineTrack } from "@/types/timeline";
-import { type MediaFile } from "@/types/assets";
+import type { TimelineTrack, TimelineElement } from "@/types/timeline";
+import { MediaAsset } from "@/types/assets";
 import { RootNode } from "./nodes/root-node";
 import { VideoNode } from "./nodes/video-node";
 import { ImageNode } from "./nodes/image-node";
 import { TextNode } from "./nodes/text-node";
+import { StickerNode } from "./nodes/sticker-node";
 import { ColorNode } from "./nodes/color-node";
 import { BlurBackgroundNode } from "./nodes/blur-background-node";
-import { TBackgroundType } from "@/types/project";
-import { DEFAULT_BLUR_INTENSITY } from "@/constants/editor-constants";
+import { TBackground, TCanvasSize } from "@/types/project";
+import { DEFAULT_BLUR_INTENSITY } from "@/constants/project-constants";
 
 export type BuildSceneParams = {
-  canvasSize: { width: number; height: number };
+  canvasSize: TCanvasSize;
   tracks: TimelineTrack[];
-  mediaFiles: MediaFile[];
+  mediaAssets: MediaAsset[];
   duration: number;
-  backgroundColor?: string;
-  backgroundType?: TBackgroundType;
-  blurIntensity?: number;
+  background: TBackground;
 };
 
 export function buildScene(params: BuildSceneParams) {
   const {
     tracks,
-    mediaFiles,
+    mediaAssets,
     duration,
     canvasSize,
-    backgroundColor,
-    backgroundType,
-    blurIntensity,
+    background
   } = params;
 
   const rootNode = new RootNode({ duration });
-  const mediaMap = new Map(mediaFiles.map((m) => [m.id, m]));
+  const mediaMap = new Map(mediaAssets.map((m) => [m.id, m]));
 
   const elements = tracks
     .slice()
     .reverse()
     .filter((track) => !track.muted)
-    .flatMap((track) => track.elements);
+    .flatMap((track): TimelineElement[] => track.elements);
 
   const contentNodes = [];
 
   for (const element of elements) {
-    if (element.type === "media") {
-      const media = mediaMap.get(element.mediaId);
-      if (media && media.file) {
-        if (media.type === "video") {
+    if (element.type === "video" || element.type === "image") {
+      const mediaAsset = mediaMap.get(element.mediaId);
+      if (mediaAsset && mediaAsset.file) {
+        if (mediaAsset.type === "video") {
           contentNodes.push(
             new VideoNode({
-              file: media.file,
+              file: mediaAsset.file,
               duration: element.duration,
               timeOffset: element.startTime,
               trimStart: element.trimStart,
               trimEnd: element.trimEnd,
             }),
           );
-        } else if (media.type === "image") {
+        } else if (mediaAsset.type === "image") {
           contentNodes.push(
             new ImageNode({
-              file: media.file,
+              file: mediaAsset.file,
               duration: element.duration,
               timeOffset: element.startTime,
               trimStart: element.trimStart,
@@ -71,27 +68,40 @@ export function buildScene(params: BuildSceneParams) {
     }
 
     if (element.type === "text") {
-      const textElement = element;
       contentNodes.push(
         new TextNode({
-          ...textElement,
-          x: textElement.x + canvasSize.width / 2,
-          y: textElement.y + canvasSize.height / 2,
+          ...element,
+          canvasCenter: { x: canvasSize.width / 2, y: canvasSize.height / 2 },
           textBaseline: "middle",
+        }),
+      );
+    }
+
+    if (element.type === "sticker") {
+      contentNodes.push(
+        new StickerNode({
+          iconName: element.iconName,
+          duration: element.duration,
+          timeOffset: element.startTime,
+          trimStart: element.trimStart,
+          trimEnd: element.trimEnd,
+          transform: element.transform,
+          opacity: element.opacity,
+          color: element.color,
         }),
       );
     }
   }
 
-  if (backgroundType === "blur") {
+  if (background.type === "blur") {
     rootNode.add(
       new BlurBackgroundNode({
-        blurIntensity: blurIntensity ?? DEFAULT_BLUR_INTENSITY,
+        blurIntensity: background.blurIntensity ?? DEFAULT_BLUR_INTENSITY,
         contentNodes,
       }),
     );
-  } else if (backgroundColor && backgroundColor !== "transparent") {
-    rootNode.add(new ColorNode({ color: backgroundColor }));
+  } else if (background.type === "color" && background.color !== "transparent") {
+    rootNode.add(new ColorNode({ color: background.color }));
   }
 
   for (const node of contentNodes) {

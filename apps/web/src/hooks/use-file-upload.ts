@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { hasAssetDragData } from "@/lib/asset-drag";
+import { hasDragData } from "@/lib/drag-data";
 
 interface UseFileUploadOptions {
   accept?: string;
@@ -8,9 +8,7 @@ interface UseFileUploadOptions {
 }
 
 function containsFiles(dataTransfer: DataTransfer): boolean {
-  return (
-    !hasAssetDragData({ dataTransfer }) && dataTransfer.types.includes("Files")
-  );
+  return !hasDragData({ dataTransfer }) && dataTransfer.types.includes("Files");
 }
 
 export function useFileUpload({

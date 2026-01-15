@@ -17,4 +17,13 @@ export const DEFAULT_TEXT_ELEMENT: Omit<TextElement, "id"> = {
   startTime: 0,
   trimStart: 0,
   trimEnd: 0,
+  transform: {
+    scale: 1,
+    position: {
+      x: 0,
+      y: 0,
+    },
+    rotate: 0,
+  },
+  opacity: 1,
 };

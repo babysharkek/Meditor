@@ -1,11 +1,8 @@
 import { ThemeProvider } from "next-themes";
-import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "../components/ui/sonner";
 import { TooltipProvider } from "../components/ui/tooltip";
-import { StorageProvider } from "../components/storage-provider";
-import { ScenesMigrator } from "../components/providers/migrators/scenes-migrator";
 import { baseMetaData } from "./metadata";
 import { BotIdClient } from "botid/client";
 import { webEnv } from "@opencut/env/web";
@@ -33,12 +30,12 @@ export default function RootLayout({
         <BotIdClient protect={protectedRoutes} />
       </head>
       <body className={`${siteFont.className} font-sans antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="dark">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          disableTransitionOnChange={true}
+        >
           <TooltipProvider>
-            <StorageProvider>
-              <ScenesMigrator>{children}</ScenesMigrator>
-            </StorageProvider>
-            <Analytics />
             <Toaster />
             <Script
               src="https://cdn.databuddy.cc/databuddy.js"
@@ -52,6 +49,7 @@ export default function RootLayout({
               data-track-web-vitals={false}
               data-track-sessions={false}
             />
+            {children}
           </TooltipProvider>
         </ThemeProvider>
       </body>

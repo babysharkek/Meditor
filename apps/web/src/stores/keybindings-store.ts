@@ -2,40 +2,17 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { ActionWithOptionalArgs } from "@/constants/action-constants";
+import type { TActionWithOptionalArgs } from "@/lib/actions";
+import { getDefaultShortcuts } from "@/lib/actions";
 import { isAppleDevice, isTypableDOMElement } from "@/lib/utils";
 import { KeybindingConfig, ShortcutKey } from "@/types/keybinding";
 
-// Default keybindings configuration
-export const defaultKeybindings: KeybindingConfig = {
-  space: "toggle-play",
-  j: "seek-backward",
-  k: "toggle-play",
-  l: "seek-forward",
-  left: "frame-step-backward",
-  right: "frame-step-forward",
-  "shift+left": "jump-backward",
-  "shift+right": "jump-forward",
-  home: "goto-start",
-  enter: "goto-start",
-  end: "goto-end",
-  s: "split-element",
-  n: "toggle-snapping",
-  "ctrl+a": "select-all",
-  "ctrl+d": "duplicate-selected",
-  "ctrl+c": "copy-selected",
-  "ctrl+v": "paste-selected",
-  "ctrl+z": "undo",
-  "ctrl+shift+z": "redo",
-  "ctrl+y": "redo",
-  delete: "delete-selected",
-  backspace: "delete-selected",
-};
+export const defaultKeybindings: KeybindingConfig = getDefaultShortcuts();
 
 export interface KeybindingConflict {
   key: ShortcutKey;
-  existingAction: ActionWithOptionalArgs;
-  newAction: ActionWithOptionalArgs;
+  existingAction: TActionWithOptionalArgs;
+  newAction: TActionWithOptionalArgs;
 }
 
 interface KeybindingsState {
@@ -44,8 +21,7 @@ interface KeybindingsState {
   keybindingsEnabled: boolean;
   isRecording: boolean;
 
-  // Actions
-  updateKeybinding: (key: ShortcutKey, action: ActionWithOptionalArgs) => void;
+  updateKeybinding: (key: ShortcutKey, action: TActionWithOptionalArgs) => void;
   removeKeybinding: (key: ShortcutKey) => void;
   resetToDefaults: () => void;
   importKeybindings: (config: KeybindingConfig) => void;
@@ -53,13 +29,11 @@ interface KeybindingsState {
   enableKeybindings: () => void;
   disableKeybindings: () => void;
   setIsRecording: (isRecording: boolean) => void;
-
-  // Validation
   validateKeybinding: (
     key: ShortcutKey,
-    action: ActionWithOptionalArgs,
+    action: TActionWithOptionalArgs,
   ) => KeybindingConflict | null;
-  getKeybindingsForAction: (action: ActionWithOptionalArgs) => ShortcutKey[];
+  getKeybindingsForAction: (action: TActionWithOptionalArgs) => ShortcutKey[];
 
   // Utility
   getKeybindingString: (ev: KeyboardEvent) => ShortcutKey | null;
@@ -77,7 +51,7 @@ export const useKeybindingsStore = create<KeybindingsState>()(
       keybindingsEnabled: true,
       isRecording: false,
 
-      updateKeybinding: (key: ShortcutKey, action: ActionWithOptionalArgs) => {
+      updateKeybinding: (key: ShortcutKey, action: TActionWithOptionalArgs) => {
         set((state) => {
           const newKeybindings = { ...state.keybindings };
           newKeybindings[key] = action;
@@ -136,7 +110,7 @@ export const useKeybindingsStore = create<KeybindingsState>()(
 
       validateKeybinding: (
         key: ShortcutKey,
-        action: ActionWithOptionalArgs,
+        action: TActionWithOptionalArgs,
       ) => {
         const { keybindings } = get();
         const existingAction = keybindings[key];
@@ -155,7 +129,7 @@ export const useKeybindingsStore = create<KeybindingsState>()(
         set({ isRecording });
       },
 
-      getKeybindingsForAction: (action: ActionWithOptionalArgs) => {
+      getKeybindingsForAction: (action: TActionWithOptionalArgs) => {
         const { keybindings } = get();
         return Object.keys(keybindings).filter(
           (key) => keybindings[key as ShortcutKey] === action,
@@ -190,7 +164,7 @@ function generateKeybindingString(ev: KeyboardEvent): ShortcutKey | null {
     if (
       modifierKey === "shift" &&
       isDOMElement(target) &&
-      isTypableDOMElement(target as HTMLElement)
+      isTypableDOMElement({ element: target as HTMLElement })
     ) {
       return null;
     }
@@ -199,7 +173,10 @@ function generateKeybindingString(ev: KeyboardEvent): ShortcutKey | null {
   }
 
   // no modifier key here then we do not do anything while on input
-  if (isDOMElement(target) && isTypableDOMElement(target as HTMLElement))
+  if (
+    isDOMElement(target) &&
+    isTypableDOMElement({ element: target as HTMLElement })
+  )
     return null;
 
   // single key while not input

@@ -1,11 +1,10 @@
-// lib/rate-limit.ts
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { env } from "@/env";
+import { webEnv } from "@opencut/env/web";
 
 const redis = new Redis({
-  url: env.UPSTASH_REDIS_REST_URL,
-  token: env.UPSTASH_REDIS_REST_TOKEN,
+  url: webEnv.UPSTASH_REDIS_REST_URL,
+  token: webEnv.UPSTASH_REDIS_REST_TOKEN,
 });
 
 export const baseRateLimit = new Ratelimit({

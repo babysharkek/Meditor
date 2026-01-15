@@ -11,28 +11,28 @@ import { ReactNode, useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePlaybackStore } from "@/stores/playback-store";
-import { setAssetDragData } from "@/lib/asset-drag";
-import type { AssetDragData } from "@/types/assets";
+import { useEditor } from "@/hooks/use-editor";
+import { setDragData } from "@/lib/drag-data";
+import type { TimelineDragData } from "@/types/drag";
 
-export interface DraggableMediaItemProps {
+export interface DraggableItemProps {
   name: string;
   preview: ReactNode;
-  dragData: AssetDragData;
-  onDragStart?: (e: React.DragEvent) => void;
-  onAddToTimeline?: (currentTime: number) => void;
+  dragData: TimelineDragData;
+  onDragStart?: ({ e }: { e: React.DragEvent }) => void;
+  onAddToTimeline?: ({ currentTime }: { currentTime: number }) => void;
   aspectRatio?: number;
   className?: string;
   containerClassName?: string;
-  showPlusOnDrag?: boolean;
-  showLabel?: boolean;
-  rounded?: boolean;
+  shouldShowPlusOnDrag?: boolean;
+  shouldShowLabel?: boolean;
+  isRounded?: boolean;
   variant?: "card" | "compact";
   isDraggable?: boolean;
   isHighlighted?: boolean;
 }
 
-export function DraggableMediaItem({
+export function DraggableItem({
   name,
   preview,
   dragData,
@@ -41,23 +41,21 @@ export function DraggableMediaItem({
   aspectRatio = 16 / 9,
   className = "",
   containerClassName,
-  showPlusOnDrag = true,
-  showLabel = true,
-  rounded = true,
+  shouldShowPlusOnDrag = true,
+  shouldShowLabel = true,
+  isRounded = true,
   variant = "card",
   isDraggable = true,
   isHighlighted = false,
-}: DraggableMediaItemProps) {
+}: DraggableItemProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const dragRef = useRef<HTMLDivElement>(null);
-  const currentTime = isDraggable
-    ? usePlaybackStore((state) => state.currentTime)
-    : 0;
+  const editor = useEditor();
   const highlightClassName = "ring-2 ring-primary rounded-sm bg-primary/10";
 
   const handleAddToTimeline = () => {
-    onAddToTimeline?.(currentTime);
+    onAddToTimeline?.({ currentTime: editor.playback.getCurrentTime() });
   };
 
   const emptyImg = new window.Image();
@@ -81,13 +79,13 @@ export function DraggableMediaItem({
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setDragImage(emptyImg, 0, 0);
 
-    setAssetDragData({ dataTransfer: e.dataTransfer, dragData });
+    setDragData({ dataTransfer: e.dataTransfer, dragData });
     e.dataTransfer.effectAllowed = "copy";
 
     setDragPosition({ x: e.clientX, y: e.clientY });
     setIsDragging(true);
 
-    onDragStart?.(e);
+    onDragStart?.({ e });
   };
 
   const handleDragEnd = () => {
@@ -99,7 +97,7 @@ export function DraggableMediaItem({
       {variant === "card" ? (
         <div
           ref={dragRef}
-          className={cn("group relative", containerClassName ?? "h-28 w-28")}
+          className={cn("group relative", containerClassName ?? "size-28")}
         >
           <div
             className={cn(
@@ -112,8 +110,8 @@ export function DraggableMediaItem({
               ratio={aspectRatio}
               className={cn(
                 "bg-panel-accent relative overflow-hidden",
-                rounded && "rounded-md",
-                isDraggable && "[&::-webkit-drag-ghost]:opacity-0", // Webkit-specific ghost hiding
+                isRounded && "rounded-md",
+                isDraggable && "[&::-webkit-drag-ghost]:opacity-0",
               )}
               draggable={isDraggable}
               onDragStart={isDraggable ? handleDragStart : undefined}
@@ -127,7 +125,7 @@ export function DraggableMediaItem({
                 />
               )}
             </AspectRatio>
-            {showLabel && (
+            {shouldShowLabel && (
               <span
                 className="text-muted-foreground w-full truncate text-left text-[0.7rem]"
                 aria-label={name}
@@ -158,7 +156,7 @@ export function DraggableMediaItem({
             onDragStart={isDraggable ? handleDragStart : undefined}
             onDragEnd={isDraggable ? handleDragEnd : undefined}
           >
-            <div className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-[0.35rem]">
+            <div className="size-6 flex-shrink-0 overflow-hidden rounded-[0.35rem]">
               {preview}
             </div>
             <span className="w-full flex-1 truncate text-sm">{name}</span>
@@ -166,7 +164,6 @@ export function DraggableMediaItem({
         </div>
       )}
 
-      {/* Custom drag preview */}
       {isDraggable &&
         isDragging &&
         typeof document !== "undefined" &&
@@ -174,8 +171,8 @@ export function DraggableMediaItem({
           <div
             className="z-9999 pointer-events-none fixed"
             style={{
-              left: dragPosition.x - 40, // Center the preview (half of 80px)
-              top: dragPosition.y - 40, // Center the preview (half of 80px)
+              left: dragPosition.x - 40,
+              top: dragPosition.y - 40,
             }}
           >
             <div className="w-[80px]">
@@ -186,7 +183,7 @@ export function DraggableMediaItem({
                 <div className="h-full w-full [&_img]:h-full [&_img]:w-full [&_img]:rounded-none [&_img]:object-cover">
                   {preview}
                 </div>
-                {showPlusOnDrag && (
+                {shouldShowPlusOnDrag && (
                   <PlusButton
                     onClick={handleAddToTimeline}
                     tooltipText="Add to timeline or drag to position"

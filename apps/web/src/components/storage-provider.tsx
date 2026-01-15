@@ -1,8 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { useProjectStore } from "@/stores/project-store";
-import { useMediaStore } from "@/stores/media-store";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useEditor } from "@/hooks/use-editor";
 import { storageService } from "@/lib/storage/storage-service";
 import { toast } from "sonner";
 
@@ -35,14 +34,17 @@ export function StorageProvider({ children }: StorageProviderProps) {
     error: null,
   });
 
-  const loadAllProjects = useProjectStore((state) => state.loadAllProjects);
+  const editor = useEditor();
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     const initializeStorage = async () => {
       setStatus((prev) => ({ ...prev, isLoading: true }));
 
       try {
-        // Check browser support
         const hasSupport = storageService.isFullySupported();
 
         if (!hasSupport) {
@@ -51,8 +53,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
           );
         }
 
-        // Load saved projects (media will be loaded when a project is loaded)
-        await loadAllProjects();
+        await editor.project.loadAllProjects();
 
         setStatus({
           isInitialized: true,
@@ -72,7 +73,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     };
 
     initializeStorage();
-  }, [loadAllProjects]);
+  }, []);
 
   return (
     <StorageContext.Provider value={status}>{children}</StorageContext.Provider>

@@ -1,4 +1,3 @@
-import { DEFAULT_FPS } from "@/constants/editor-constants";
 import type { TTimeCode } from "@/types/time";
 
 export function roundToFrame({
@@ -14,7 +13,7 @@ export function roundToFrame({
 export function formatTimeCode({
   timeInSeconds,
   format = "HH:MM:SS:CS",
-  fps = DEFAULT_FPS,
+  fps,
 }: {
   timeInSeconds: number;
   format?: TTimeCode;
@@ -24,7 +23,7 @@ export function formatTimeCode({
   const minutes = Math.floor((timeInSeconds % 3600) / 60);
   const seconds = Math.floor(timeInSeconds % 60);
   const centiseconds = Math.floor((timeInSeconds % 1) * 100);
-  const frames = Math.floor((timeInSeconds % 1) * fps);
+  const frames = fps ? Math.floor((timeInSeconds % 1) * fps) : 0;
 
   switch (format) {
     case "MM:SS":
@@ -34,6 +33,7 @@ export function formatTimeCode({
     case "HH:MM:SS:CS":
       return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}:${centiseconds.toString().padStart(2, "0")}`;
     case "HH:MM:SS:FF":
+      if (!fps) throw new Error("FPS is required for HH:MM:SS:FF format");
       return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}:${frames.toString().padStart(2, "0")}`;
   }
 }
@@ -41,11 +41,11 @@ export function formatTimeCode({
 export function parseTimeCode({
   timeCode,
   format = "HH:MM:SS:CS",
-  fps = DEFAULT_FPS,
+  fps,
 }: {
   timeCode: string;
   format?: TTimeCode;
-  fps?: number;
+  fps: number;
 }): number | null {
   if (!timeCode || typeof timeCode !== "string") return null;
 
@@ -130,8 +130,6 @@ export function parseTimeCode({
   } catch {
     return null;
   }
-
-  return null;
 }
 
 export function guessTimeCodeFormat({

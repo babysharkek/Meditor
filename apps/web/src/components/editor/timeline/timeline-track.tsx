@@ -17,12 +17,12 @@ interface TimelineTrackContentProps {
   tracksScrollRef: React.RefObject<HTMLDivElement>;
   lastMouseXRef: React.RefObject<number>;
   onElementMouseDown: (params: {
-    e: React.MouseEvent;
+    event: React.MouseEvent;
     element: TimelineElementType;
     track: TimelineTrack;
   }) => void;
   onElementClick: (params: {
-    e: React.MouseEvent;
+    event: React.MouseEvent;
     element: TimelineElementType;
     track: TimelineTrack;
   }) => void;
@@ -71,11 +71,11 @@ export function TimelineTrackContent({
                   track={track}
                   zoomLevel={zoomLevel}
                   isSelected={isElementSelected}
-                  onElementMouseDown={(e, el) =>
-                    onElementMouseDown({ e, element: el, track })
+                  onElementMouseDown={(event, element) =>
+                    onElementMouseDown({ event, element, track })
                   }
-                  onElementClick={(e, el) =>
-                    onElementClick({ e, element: el, track })
+                  onElementClick={(event, element) =>
+                    onElementClick({ event, element, track })
                   }
                   dragState={dragState}
                 />

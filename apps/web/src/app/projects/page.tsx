@@ -3,7 +3,6 @@
 import {
   Calendar,
   ChevronLeft,
-  Loader2,
   MoreHorizontal,
   ArrowDown01,
   Plus,
@@ -15,7 +14,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import React, { useState } from "react";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
 import { RenameProjectDialog } from "@/components/rename-project-dialog";
 import { Button } from "@/components/ui/button";
@@ -36,10 +36,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EditorCore } from "@/core";
-import { useTimelineStore } from "@/stores/timeline-store";
-import type { TProject } from "@/types/project";
+import type { TProjectMetadata } from "@/types/project";
 import { toast } from "sonner";
+import { useEditor } from "@/hooks/use-editor";
 
 export default function ProjectsPage() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -50,7 +49,9 @@ export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("createdAt-desc");
   const router = useRouter();
-  const editor = EditorCore.getInstance();
+  const editor = useEditor();
+
+  const hasSearchQuery = searchQuery.trim().length > 0;
 
   const handleCreateProject = async () => {
     try {
@@ -66,7 +67,26 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleSelectProject = (projectId: string, checked: boolean) => {
+  const toggleSortOption = ({
+    sortField,
+  }: {
+    sortField: "createdAt" | "name";
+  }) => {
+    const isSameField = sortOption.startsWith(sortField);
+    const nextSortOption = isSameField
+      ? `${sortField}-${sortOption.endsWith("asc") ? "desc" : "asc"}`
+      : `${sortField}-asc`;
+
+    setSortOption(nextSortOption);
+  };
+
+  const handleSelectProject = ({
+    projectId,
+    checked,
+  }: {
+    projectId: string;
+    checked: boolean;
+  }) => {
     const newSelected = new Set(selectedProjects);
     if (checked) {
       newSelected.add(projectId);
@@ -76,9 +96,9 @@ export default function ProjectsPage() {
     setSelectedProjects(newSelected);
   };
 
-  const handleSelectAll = (checked: boolean) => {
+  const handleSelectAll = ({ checked }: { checked: boolean }) => {
     if (checked) {
-      setSelectedProjects(new Set(sortedProjects.map((p) => p.id)));
+      setSelectedProjects(new Set(sortedProjects.map((project) => project.id)));
     } else {
       setSelectedProjects(new Set());
     }
@@ -113,15 +133,18 @@ export default function ProjectsPage() {
     sortOption,
   });
 
-  const allSelected =
+  const isAllSelected =
     sortedProjects.length > 0 &&
     selectedProjects.size === sortedProjects.length;
-  const someSelected =
+  const hasSomeSelected =
     selectedProjects.size > 0 && selectedProjects.size < sortedProjects.length;
+
+  const isLoading = editor.project.getIsLoading();
+  const isInitialized = editor.project.getIsInitialized();
 
   return (
     <div className="bg-background min-h-screen">
-      <div className="flex h-16 w-full items-center justify-between px-6 pt-6">
+      <div className="flex h-16 w-full items-center justify-between px-6 pt-2">
         <Link
           href="/"
           className="hover:text-muted-foreground flex items-center gap-1 transition-colors"
@@ -160,7 +183,7 @@ export default function ProjectsPage() {
         <div className="mb-8 flex items-center justify-between">
           <div className="flex flex-col gap-3">
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Your Projects
+              Your projects
             </h1>
             <p className="text-muted-foreground">
               {sortedProjects.length}{" "}
@@ -185,7 +208,7 @@ export default function ProjectsPage() {
                     onClick={() => setIsBulkDeleteDialogOpen(true)}
                   >
                     <Trash2 className="size-4!" />
-                    Delete Selected ({selectedProjects.size})
+                    Delete selected ({selectedProjects.size})
                   </Button>
                 )}
               </div>
@@ -209,7 +232,7 @@ export default function ProjectsPage() {
             <Input
               placeholder="Search projects..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
             />
           </div>
           <div className="flex items-center gap-0">
@@ -219,47 +242,31 @@ export default function ProjectsPage() {
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
                       <Button
+                        aria-label="sort projects"
                         size="icon"
-                        variant="secondary"
-                        className="h-9 w-9 items-center justify-center"
+                        variant="outline"
+                        className="size-9 items-center justify-center"
                       >
                         <ArrowDown01
                           strokeWidth={1.5}
                           className="!size-[1.05rem]"
+                          aria-hidden="true"
                         />
                       </Button>
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      onClick={() => {
-                        if (sortOption.startsWith("createdAt")) {
-                          setSortOption(
-                            sortOption.endsWith("asc")
-                              ? "createdAt-desc"
-                              : "createdAt-asc",
-                          );
-                        } else {
-                          setSortOption("createdAt-asc");
-                        }
-                      }}
+                      onClick={() =>
+                        toggleSortOption({ sortField: "createdAt" })
+                      }
                     >
                       Created{" "}
                       {sortOption.startsWith("createdAt") &&
                         (sortOption.endsWith("asc") ? "↑" : "↓")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => {
-                        if (sortOption.startsWith("name")) {
-                          setSortOption(
-                            sortOption.endsWith("asc")
-                              ? "name-desc"
-                              : "name-asc",
-                          );
-                        } else {
-                          setSortOption("name-asc");
-                        }
-                      }}
+                      onClick={() => toggleSortOption({ sortField: "name" })}
                     >
                       Name{" "}
                       {sortOption.startsWith("name") &&
@@ -282,19 +289,21 @@ export default function ProjectsPage() {
         {isSelectionMode && sortedProjects.length > 0 && (
           <button
             type="button"
-            onClick={() => handleSelectAll(!allSelected)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleSelectAll(!allSelected);
+            onClick={() => handleSelectAll({ checked: !isAllSelected })}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                handleSelectAll({ checked: !isAllSelected });
               }
             }}
             className="bg-muted/30 mb-6 flex w-full items-center gap-2 rounded-lg border p-4 hover:cursor-pointer"
             tabIndex={0}
           >
-            <Checkbox checked={someSelected ? "indeterminate" : allSelected} />
+            <Checkbox
+              checked={hasSomeSelected ? "indeterminate" : isAllSelected}
+            />
             <span className="text-sm font-medium">
-              {allSelected ? "Deselect All" : "Select All"}
+              {isAllSelected ? "Deselect all" : "Select all"}
             </span>
             <span className="text-muted-foreground text-sm">
               ({selectedProjects.size} of {sortedProjects.length} selected)
@@ -302,15 +311,15 @@ export default function ProjectsPage() {
           </button>
         )}
 
-        {editor.project.isLoading || !editor.project.isInitialized ? (
+        {isLoading || !isInitialized ? (
           <div className="xs:grid-cols-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 8 }, (_, index) => (
               <div
-                key={`skeleton-${index}-${Date.now()}`}
+                key={`skeleton-${index}`}
                 className="bg-background overflow-hidden border-none p-0"
               >
                 <Skeleton className="bg-muted/50 aspect-square w-full" />
-                <div className="flex flex-col gap-1 px-0 pt-5">
+                <div className="flex flex-col gap-1.5 px-0 pt-5">
                   <Skeleton className="bg-muted/50 h-4 w-3/4" />
                   <div className="flex items-center gap-1.5">
                     <Skeleton className="bg-muted/50 h-4 w-4" />
@@ -320,13 +329,13 @@ export default function ProjectsPage() {
               </div>
             ))}
           </div>
-        ) : sortedProjects.length === 0 ? (
-          <NoProjects onCreateProject={handleCreateProject} />
-        ) : sortedProjects.length === 0 ? (
+        ) : sortedProjects.length === 0 && hasSearchQuery ? (
           <NoResults
             searchQuery={searchQuery}
             onClearSearch={() => setSearchQuery("")}
           />
+        ) : sortedProjects.length === 0 ? (
+          <NoProjects onCreateProject={handleCreateProject} />
         ) : (
           <div className="xs:grid-cols-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-4">
             {sortedProjects.map((project) => (
@@ -352,10 +361,16 @@ export default function ProjectsPage() {
 }
 
 interface ProjectCardProps {
-  project: TProject;
+  project: TProjectMetadata;
   isSelectionMode?: boolean;
   isSelected?: boolean;
-  onSelect?: (projectId: string, checked: boolean) => void;
+  onSelect?: ({
+    projectId,
+    checked,
+  }: {
+    projectId: string;
+    checked: boolean;
+  }) => void;
 }
 
 function ProjectCard({
@@ -367,9 +382,9 @@ function ProjectCard({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-  const { deleteProject, renameProject, duplicateProject } = useProjectStore();
+  const editor = useEditor();
 
-  const formatDate = (date: Date): string => {
+  const formatDate = ({ date }: { date: Date }): string => {
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -378,31 +393,34 @@ function ProjectCard({
   };
 
   const handleDeleteProject = async () => {
-    await deleteProject(project.id);
+    await editor.project.deleteProject({ id: project.id });
     setIsDropdownOpen(false);
   };
 
-  const handleRenameProject = async (newName: string) => {
-    await renameProject(project.id, newName);
+  const handleRenameProject = async ({ name }: { name: string }) => {
+    await editor.project.renameProject({ id: project.id, name });
     setIsRenameDialogOpen(false);
   };
 
   const handleDuplicateProject = async () => {
     setIsDropdownOpen(false);
-    await duplicateProject(project.id);
+    await editor.project.duplicateProject({ id: project.id });
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = ({e}: {}) => {
     if (isSelectionMode) {
       e.preventDefault();
-      onSelect?.(project.id, !isSelected);
+      onSelect?.({ projectId: project.id, checked: !isSelected });
     }
   };
 
-  const handleCardKeyDown = (e: React.KeyboardEvent) => {
-    if (isSelectionMode && (e.key === "Enter" || e.key === " ")) {
-      e.preventDefault();
-      onSelect?.(project.id, !isSelected);
+  const handleCardKeyDown = ({
+    key,
+    preventDefault,
+  }: KeyboardEvent<HTMLButtonElement>) => {
+    if (isSelectionMode && (key === "Enter" || key === " ")) {
+      preventDefault();
+      onSelect?.({ projectId: project.id, checked: !isSelected });
     }
   };
 
@@ -419,14 +437,17 @@ function ProjectCard({
       >
         {isSelectionMode && (
           <div className="absolute left-3 top-3 z-10">
-            <div className="bg-background/80 backdrop-blur-xs flex h-5 w-5 items-center justify-center rounded-full border">
+            <div className="bg-background/80 backdrop-blur-xs flex size-5 items-center justify-center rounded-full border">
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={(checked) =>
-                  onSelect?.(project.id, checked as boolean)
+                  onSelect?.({
+                    projectId: project.id,
+                    checked: checked === true,
+                  })
                 }
-                onClick={(e) => e.stopPropagation()}
-                className="h-4 w-4"
+                onClick={(event) => event.stopPropagation()}
+                className="size-4"
               />
             </div>
           </div>
@@ -442,7 +463,7 @@ function ProjectCard({
             />
           ) : (
             <div className="bg-muted/50 flex h-full w-full items-center justify-center">
-              <Video className="text-muted-foreground h-12 w-12 shrink-0" />
+              <Video className="text-muted-foreground size-12 shrink-0" />
             </div>
           )}
         </div>
@@ -460,6 +481,7 @@ function ProjectCard({
             >
               <DropdownMenuTrigger asChild>
                 <Button
+                  aria-label="project options"
                   variant="text"
                   size="sm"
                   className={`ml-2 size-6 shrink-0 p-0 transition-all ${
@@ -467,22 +489,22 @@ function ProjectCard({
                       ? "opacity-100"
                       : "opacity-0 group-hover:opacity-100"
                   }`}
-                  onClick={(e) => e.preventDefault()}
+                  onClick={(event) => event.preventDefault()}
                 >
-                  <MoreHorizontal />
+                  <MoreHorizontal aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                onCloseAutoFocus={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onCloseAutoFocus={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
                 }}
               >
                 <DropdownMenuItem
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
                     setIsDropdownOpen(false);
                     setIsRenameDialogOpen(true);
                   }}
@@ -490,9 +512,9 @@ function ProjectCard({
                   Rename
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
                     handleDuplicateProject();
                   }}
                 >
@@ -501,9 +523,9 @@ function ProjectCard({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   variant="destructive"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
                     setIsDropdownOpen(false);
                     setIsDeleteDialogOpen(true);
                   }}
@@ -518,7 +540,7 @@ function ProjectCard({
         <div className="space-y-1">
           <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
             <Calendar className="size-4!" />
-            <span>Created {formatDate(project.createdAt)}</span>
+            <span>Created {formatDate({ date: project.createdAt })}</span>
           </div>
         </div>
       </CardContent>
@@ -549,7 +571,7 @@ function ProjectCard({
       <RenameProjectDialog
         isOpen={isRenameDialogOpen}
         onOpenChange={setIsRenameDialogOpen}
-        onConfirm={handleRenameProject}
+        onConfirm={(name) => handleRenameProject({ name })}
         projectName={project.name}
       />
     </>
@@ -567,18 +589,20 @@ function CreateButton({ onClick }: { onClick?: () => void }) {
 
 function NoProjects({ onCreateProject }: { onCreateProject: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="bg-muted/30 mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-        <Video className="text-muted-foreground h-8 w-8" />
+    <div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
+      <div className="flex flex-col items-center gap-2">
+        <div className="bg-muted/30 flex size-16 items-center justify-center rounded-full">
+          <Video className="text-muted-foreground size-8" />
+        </div>
+        <h3 className="text-lg font-medium">No projects yet</h3>
+        <p className="text-muted-foreground max-w-md">
+          Start creating your first video project. Import media, edit, and
+          export professional videos.
+        </p>
       </div>
-      <h3 className="mb-2 text-lg font-medium">No projects yet</h3>
-      <p className="text-muted-foreground mb-6 max-w-md">
-        Start creating your first video project. Import media, edit, and export
-        professional videos.
-      </p>
       <Button size="lg" className="gap-2" onClick={onCreateProject}>
         <Plus className="h-4 w-4" />
-        Create Your First Project
+        Create your first project
       </Button>
     </div>
   );
@@ -592,16 +616,18 @@ function NoResults({
   onClearSearch: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="bg-muted/30 mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-        <Search className="text-muted-foreground h-8 w-8" />
+    <div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
+      <div className="flex flex-col items-center gap-2">
+        <div className="bg-muted/30 flex size-16 items-center justify-center rounded-full">
+          <Search className="text-muted-foreground size-8" />
+        </div>
+        <h3 className="text-lg font-medium">No results found</h3>
+        <p className="text-muted-foreground max-w-md">
+          Your search for "{searchQuery}" did not return any results.
+        </p>
       </div>
-      <h3 className="mb-2 text-lg font-medium">No results found</h3>
-      <p className="text-muted-foreground mb-6 max-w-md">
-        Your search for "{searchQuery}" did not return any results.
-      </p>
       <Button onClick={onClearSearch} variant="outline">
-        Clear Search
+        Clear search
       </Button>
     </div>
   );

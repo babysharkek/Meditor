@@ -23,7 +23,6 @@ export function RenameProjectDialog({
 }) {
   const [name, setName] = useState(projectName);
 
-  // Reset the name when dialog opens - this is better UX than syncing with every prop change
   const handleOpenChange = (open: boolean) => {
     if (open) {
       setName(projectName);
@@ -51,7 +50,7 @@ export function RenameProjectDialog({
             }
           }}
           placeholder="Enter a new name"
-          className="mt-0 bg-background border-2 border-border"
+          className="bg-background border-border mt-0 border-2"
         />
 
         <DialogFooter>

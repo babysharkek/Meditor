@@ -12,3 +12,6 @@ node_modules
 
 # cursor
 bun.lockb
+
+# Twiggy
+.cursor/rules/file-structure.mdc

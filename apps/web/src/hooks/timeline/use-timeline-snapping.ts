@@ -44,9 +44,7 @@ export function useTimelineSnapping({
             if (element.id === excludeElementId) return;
 
             const elementStart = element.startTime;
-            const elementEnd =
-              element.startTime +
-              (element.duration - element.trimStart - element.trimEnd);
+            const elementEnd = element.startTime + element.duration;
 
             snapPoints.push(
               {

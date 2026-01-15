@@ -1,10 +1,9 @@
 import { SceneExporter } from "../services/renderer/scene-exporter";
 import { buildScene } from "../services/renderer/scene-builder";
 import { EditorCore } from "@/core";
-import { DEFAULT_FPS, DEFAULT_CANVAS_SIZE } from "@/constants/editor-constants";
 import { ExportOptions, ExportResult } from "@/types/export";
 import { TimelineTrack, type AudioElement } from "@/types/timeline";
-import { MediaFile } from "@/types/assets";
+import { MediaAsset } from "@/types/assets";
 
 declare global {
   interface Window {
@@ -12,20 +11,17 @@ declare global {
   }
 }
 
-export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
-  format: "mp4",
-  quality: "high",
-  includeAudio: true,
-};
-
 async function collectAudioElements({
   tracks,
-  mediaFiles,
+  mediaAssets,
 }: {
   tracks: TimelineTrack[];
-  mediaFiles: MediaFile[];
+  mediaAssets: MediaAsset[];
 }): Promise<
-  Omit<AudioElement, "type" | "mediaId" | "volume" | "id" | "name">[]
+  Omit<
+    AudioElement,
+    "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceUrl"
+  >[]
 > {
   const AudioContextConstructor =
     window.AudioContext || window.webkitAudioContext;
@@ -33,9 +29,11 @@ async function collectAudioElements({
 
   const audioElements: Omit<
     AudioElement,
-    "type" | "mediaId" | "volume" | "id" | "name"
+    "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceUrl"
   >[] = [];
-  const mediaMap = new Map<string, MediaFile>(mediaFiles.map((m) => [m.id, m]));
+  const mediaMap = new Map<string, MediaAsset>(
+    mediaAssets.map((m) => [m.id, m]),
+  );
 
   for (const track of tracks) {
     if (track.muted) continue;
@@ -43,18 +41,23 @@ async function collectAudioElements({
     for (const element of track.elements) {
       if (element.type !== "audio") continue;
 
-      const mediaItem = mediaMap.get(element.mediaId);
-      if (!mediaItem || mediaItem.type !== "audio") continue;
-
-      const visibleDuration =
-        element.duration - element.trimStart - element.trimEnd;
-      if (visibleDuration <= 0) continue;
+      if (element.duration <= 0) continue;
 
       try {
-        const arrayBuffer = await mediaItem.file.arrayBuffer();
-        const audioBuffer = await audioContext.decodeAudioData(
-          arrayBuffer.slice(0),
-        );
+        let audioBuffer: AudioBuffer;
+
+        if (element.sourceType === "upload") {
+          const asset = mediaMap.get(element.mediaId);
+          if (!asset || asset.type !== "audio") continue;
+
+          const arrayBuffer = await asset.file.arrayBuffer();
+          audioBuffer = await audioContext.decodeAudioData(
+            arrayBuffer.slice(0),
+          );
+        } else {
+          // library audio - already has decoded buffer
+          audioBuffer = element.buffer;
+        }
 
         audioElements.push({
           buffer: audioBuffer,
@@ -65,7 +68,7 @@ async function collectAudioElements({
           muted: element.muted || track.muted || false,
         });
       } catch (error) {
-        console.warn(`Failed to decode audio file ${mediaItem.name}:`, error);
+        console.warn("Failed to decode audio:", error);
       }
     }
   }
@@ -79,22 +82,18 @@ function mixAudioChannels({
   outputLength,
   sampleRate,
 }: {
-  element: Omit<AudioElement, "type" | "mediaId" | "volume" | "id" | "name">;
+  element: Omit<
+    AudioElement,
+    "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceUrl"
+  >;
   outputBuffer: AudioBuffer;
   outputLength: number;
   sampleRate: number;
 }): void {
-  const {
-    buffer,
-    startTime,
-    trimStart,
-    trimEnd,
-    duration: elementDuration,
-  } = element;
+  const { buffer, startTime, trimStart, duration: elementDuration } = element;
 
   const sourceStartSample = Math.floor(trimStart * buffer.sampleRate);
-  const sourceDuration = elementDuration - trimStart - trimEnd;
-  const sourceLengthSamples = Math.floor(sourceDuration * buffer.sampleRate);
+  const sourceLengthSamples = Math.floor(elementDuration * buffer.sampleRate);
   const outputStartSample = Math.floor(startTime * sampleRate);
 
   const resampleRatio = sampleRate / buffer.sampleRate;
@@ -120,12 +119,12 @@ function mixAudioChannels({
 
 async function createTimelineAudioBuffer({
   tracks,
-  mediaFiles,
+  mediaAssets,
   duration,
   sampleRate = 44100,
 }: {
   tracks: TimelineTrack[];
-  mediaFiles: MediaFile[];
+  mediaAssets: MediaAsset[];
   duration: number;
   sampleRate?: number;
 }): Promise<AudioBuffer | null> {
@@ -133,7 +132,7 @@ async function createTimelineAudioBuffer({
     window.AudioContext || window.webkitAudioContext;
   const audioContext = new AudioContextConstructor();
 
-  const audioElements = await collectAudioElements({ tracks, mediaFiles });
+  const audioElements = await collectAudioElements({ tracks, mediaAssets });
 
   if (audioElements.length === 0) return null;
 
@@ -169,7 +168,7 @@ export async function exportProject({
 }: ExportOptions): Promise<ExportResult> {
   try {
     const editor = EditorCore.getInstance();
-    const activeProject = editor.project.activeProject;
+    const activeProject = editor.project.getActive();
 
     if (!activeProject) {
       return { success: false, error: "No active project" };
@@ -180,34 +179,27 @@ export async function exportProject({
       return { success: false, error: "Project is empty" };
     }
 
-    const exportFps = fps || activeProject.fps || DEFAULT_FPS;
-    const canvasSize = activeProject.canvasSize || DEFAULT_CANVAS_SIZE;
+    const exportFps = fps || activeProject.settings.fps;
+    const canvasSize = activeProject.settings.canvasSize;
     const tracks = editor.timeline.getTracks();
-    const mediaFiles = editor.media.getMediaFiles();
+    const mediaAssets = editor.media.getAssets();
 
     let audioBuffer: AudioBuffer | null = null;
     if (includeAudio) {
-      onProgress?.(0.05);
+      onProgress?.({ progress: 0.05 });
       audioBuffer = await createTimelineAudioBuffer({
         tracks,
-        mediaFiles,
+        mediaAssets,
         duration,
       });
     }
 
-    const backgroundColor =
-      activeProject.backgroundType === "blur"
-        ? "transparent"
-        : activeProject.backgroundColor || "#000000";
-
     const scene = buildScene({
       tracks,
-      mediaFiles,
+      mediaAssets,
       duration,
       canvasSize,
-      backgroundColor,
-      backgroundType: activeProject.backgroundType,
-      blurIntensity: activeProject.blurIntensity,
+      background: activeProject.settings.background,
     });
 
     const exporter = new SceneExporter({
@@ -222,7 +214,7 @@ export async function exportProject({
 
     exporter.on("progress", (progress) => {
       const adjustedProgress = includeAudio ? 0.05 + progress * 0.95 : progress;
-      onProgress?.(adjustedProgress);
+      onProgress?.({ progress: adjustedProgress });
     });
 
     let isCancelled = false;

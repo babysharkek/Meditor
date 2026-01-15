@@ -1,15 +1,13 @@
-import { TProject } from "@/types/project";
-import { MediaFile } from "@/types/assets";
+import { TProject, TProjectMetadata } from "@/types/project";
+import { MediaAsset } from "@/types/assets";
 import { IndexedDBAdapter } from "./indexeddb-adapter";
 import { OPFSAdapter } from "./opfs-adapter";
-import {
-  MediaFileData,
+import type {
+  MediaAssetData,
   StorageConfig,
   SerializedProject,
   SerializedScene,
-  TimelineData,
 } from "./types";
-import { TimelineTrack } from "@/types/timeline";
 import { SavedSoundsData, SavedSound, SoundEffect } from "@/types/sounds";
 
 class StorageService {
@@ -21,7 +19,6 @@ class StorageService {
     this.config = {
       projectsDb: "video-editor-projects",
       mediaDb: "video-editor-media",
-      timelineDb: "video-editor-timelines",
       savedSoundsDb: "video-editor-saved-sounds",
       version: 1,
     };
@@ -39,100 +36,85 @@ class StorageService {
     );
   }
 
-  // Helper to get project-specific media adapters
   private getProjectMediaAdapters({ projectId }: { projectId: string }) {
-    const mediaMetadataAdapter = new IndexedDBAdapter<MediaFileData>(
+    const mediaMetadataAdapter = new IndexedDBAdapter<MediaAssetData>(
       `${this.config.mediaDb}-${projectId}`,
       "media-metadata",
       this.config.version,
     );
 
-    const mediaFilesAdapter = new OPFSAdapter(`media-files-${projectId}`);
+    const mediaAssetsAdapter = new OPFSAdapter(`media-files-${projectId}`);
 
-    return { mediaMetadataAdapter, mediaFilesAdapter };
+    return { mediaMetadataAdapter, mediaAssetsAdapter };
   }
 
-  // Helper to get project-specific timeline adapter
-  private getProjectTimelineAdapter({
-    projectId,
-    sceneId,
-  }: {
-    projectId: string;
-    sceneId?: string;
-  }) {
-    const dbName = sceneId
-      ? `${this.config.timelineDb}-${projectId}-${sceneId}`
-      : `${this.config.timelineDb}-${projectId}`;
-
-    return new IndexedDBAdapter<TimelineData>(
-      dbName,
-      "timeline",
-      this.config.version,
-    );
-  }
-
-  // Project operations
   async saveProject({ project }: { project: TProject }): Promise<void> {
-    // Convert TProject to serializable format
     const serializedScenes: SerializedScene[] = project.scenes.map((scene) => ({
       id: scene.id,
       name: scene.name,
       isMain: scene.isMain,
+      tracks: scene.tracks,
+      bookmarks: scene.bookmarks,
       createdAt: scene.createdAt.toISOString(),
       updatedAt: scene.updatedAt.toISOString(),
-      timeline: scene.timeline,
     }));
 
     const serializedProject: SerializedProject = {
-      id: project.id,
-      name: project.name,
-      thumbnail: project.thumbnail,
-      createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString(),
+      metadata: {
+        id: project.metadata.id,
+        name: project.metadata.name,
+        thumbnail: project.metadata.thumbnail,
+        createdAt: project.metadata.createdAt.toISOString(),
+        updatedAt: project.metadata.updatedAt.toISOString(),
+      },
       scenes: serializedScenes,
       currentSceneId: project.currentSceneId,
-      backgroundColor: project.backgroundColor,
-      backgroundType: project.backgroundType,
-      blurIntensity: project.blurIntensity,
-      fps: project.fps,
-      canvasSize: project.canvasSize,
+      settings: project.settings,
+      version: project.version,
     };
 
-    await this.projectsAdapter.set(project.id, serializedProject);
+    await this.projectsAdapter.set(project.metadata.id, serializedProject);
   }
 
-  async loadProject({ id }: { id: string }): Promise<TProject | null> {
+  async loadProject({
+    id,
+  }: {
+    id: string;
+  }): Promise<{ project: TProject } | null> {
     const serializedProject = await this.projectsAdapter.get(id);
 
     if (!serializedProject) return null;
 
-    // Now convert serialized scenes back to Scene objects
     const scenes =
       serializedProject.scenes?.map((scene) => ({
         id: scene.id,
         name: scene.name,
         isMain: scene.isMain,
+        tracks: (scene.tracks ?? []).map((track) =>
+          track.type === "video"
+            ? { ...track, isMain: track.isMain ?? false } // legacy: isMain was optional
+            : track,
+        ),
+        bookmarks: scene.bookmarks ?? [],
         createdAt: new Date(scene.createdAt),
         updatedAt: new Date(scene.updatedAt),
-        timeline: scene.timeline,
-      })) || [];
+      })) ?? [];
 
-    // Convert back to TProject format
-    const project = {
-      id: serializedProject.id,
-      name: serializedProject.name,
-      thumbnail: serializedProject.thumbnail,
-      createdAt: new Date(serializedProject.createdAt),
-      updatedAt: new Date(serializedProject.updatedAt),
+    const project: TProject = {
+      metadata: {
+        id: serializedProject.metadata.id,
+        name: serializedProject.metadata.name,
+        thumbnail: serializedProject.metadata.thumbnail,
+        createdAt: new Date(serializedProject.metadata.createdAt),
+        updatedAt: new Date(serializedProject.metadata.updatedAt),
+      },
       scenes,
       currentSceneId: serializedProject.currentSceneId || "",
-      backgroundColor: serializedProject.backgroundColor,
-      backgroundType: serializedProject.backgroundType,
-      blurIntensity: serializedProject.blurIntensity,
-      fps: serializedProject.fps,
-      canvasSize: serializedProject.canvasSize,
+      settings: serializedProject.settings,
+      version: serializedProject.version,
     };
-    return project;
+
+    return { project };
   }
 
   async loadAllProjects(): Promise<TProject[]> {
@@ -140,14 +122,29 @@ class StorageService {
     const projects: TProject[] = [];
 
     for (const id of projectIds) {
-      const project = await this.loadProject({ id });
-      if (project) {
-        projects.push(project);
+      const result = await this.loadProject({ id });
+      if (result?.project) {
+        projects.push(result.project);
       }
     }
 
-    // Sort by last updated (most recent first)
     return projects.sort(
+      (a, b) => b.metadata.updatedAt.getTime() - a.metadata.updatedAt.getTime(),
+    );
+  }
+
+  async loadAllProjectsMetadata(): Promise<TProjectMetadata[]> {
+    const serializedProjects = await this.projectsAdapter.getAll();
+
+    const metadata = serializedProjects.map((serializedProject) => ({
+      id: serializedProject.metadata.id,
+      name: serializedProject.metadata.name,
+      thumbnail: serializedProject.metadata.thumbnail,
+      createdAt: new Date(serializedProject.metadata.createdAt),
+      updatedAt: new Date(serializedProject.metadata.updatedAt),
+    }));
+
+    return metadata.sort(
       (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
     );
   }
@@ -156,49 +153,46 @@ class StorageService {
     await this.projectsAdapter.remove(id);
   }
 
-  // Media operations
-  async saveMediaFile({
+  async saveMediaAsset({
     projectId,
-    mediaItem,
+    mediaAsset,
   }: {
     projectId: string;
-    mediaItem: MediaFile;
+    mediaAsset: MediaAsset;
   }): Promise<void> {
-    const { mediaMetadataAdapter, mediaFilesAdapter } =
+    const { mediaMetadataAdapter, mediaAssetsAdapter } =
       this.getProjectMediaAdapters({ projectId });
 
-    // Save file to project-specific OPFS
-    await mediaFilesAdapter.set(mediaItem.id, mediaItem.file);
+    await mediaAssetsAdapter.set(mediaAsset.id, mediaAsset.file);
 
-    // Save metadata to project-specific IndexedDB
-    const metadata: MediaFileData = {
-      id: mediaItem.id,
-      name: mediaItem.name,
-      type: mediaItem.type,
-      size: mediaItem.file.size,
-      lastModified: mediaItem.file.lastModified,
-      width: mediaItem.width,
-      height: mediaItem.height,
-      duration: mediaItem.duration,
-      thumbnailUrl: mediaItem.thumbnailUrl,
-      ephemeral: mediaItem.ephemeral,
+    const metadata: MediaAssetData = {
+      id: mediaAsset.id,
+      name: mediaAsset.name,
+      type: mediaAsset.type,
+      size: mediaAsset.file.size,
+      lastModified: mediaAsset.file.lastModified,
+      width: mediaAsset.width,
+      height: mediaAsset.height,
+      duration: mediaAsset.duration,
+      thumbnailUrl: mediaAsset.thumbnailUrl,
+      ephemeral: mediaAsset.ephemeral,
     };
 
-    await mediaMetadataAdapter.set(mediaItem.id, metadata);
+    await mediaMetadataAdapter.set(mediaAsset.id, metadata);
   }
 
-  async loadMediaFile({
+  async loadMediaAsset({
     projectId,
     id,
   }: {
     projectId: string;
     id: string;
-  }): Promise<MediaFile | null> {
-    const { mediaMetadataAdapter, mediaFilesAdapter } =
+  }): Promise<MediaAsset | null> {
+    const { mediaMetadataAdapter, mediaAssetsAdapter } =
       this.getProjectMediaAdapters({ projectId });
 
     const [file, metadata] = await Promise.all([
-      mediaFilesAdapter.get(id),
+      mediaAssetsAdapter.get(id),
       mediaMetadataAdapter.get(id),
     ]);
 
@@ -235,20 +229,20 @@ class StorageService {
     };
   }
 
-  async loadAllMediaFiles({
+  async loadAllMediaAssets({
     projectId,
   }: {
     projectId: string;
-  }): Promise<MediaFile[]> {
+  }): Promise<MediaAsset[]> {
     const { mediaMetadataAdapter } = this.getProjectMediaAdapters({
       projectId,
     });
 
     const mediaIds = await mediaMetadataAdapter.list();
-    const mediaItems: MediaFile[] = [];
+    const mediaItems: MediaAsset[] = [];
 
     for (const id of mediaIds) {
-      const item = await this.loadMediaFile({ projectId, id });
+      const item = await this.loadMediaAsset({ projectId, id });
       if (item) {
         mediaItems.push(item);
       }
@@ -257,18 +251,18 @@ class StorageService {
     return mediaItems;
   }
 
-  async deleteMediaFile({
+  async deleteMediaAsset({
     projectId,
     id,
   }: {
     projectId: string;
     id: string;
   }): Promise<void> {
-    const { mediaMetadataAdapter, mediaFilesAdapter } =
+    const { mediaMetadataAdapter, mediaAssetsAdapter } =
       this.getProjectMediaAdapters({ projectId });
 
     await Promise.all([
-      mediaFilesAdapter.remove(id),
+      mediaAssetsAdapter.remove(id),
       mediaMetadataAdapter.remove(id),
     ]);
   }
@@ -278,58 +272,13 @@ class StorageService {
   }: {
     projectId: string;
   }): Promise<void> {
-    const { mediaMetadataAdapter, mediaFilesAdapter } =
+    const { mediaMetadataAdapter, mediaAssetsAdapter } =
       this.getProjectMediaAdapters({ projectId });
 
     await Promise.all([
       mediaMetadataAdapter.clear(),
-      mediaFilesAdapter.clear(),
+      mediaAssetsAdapter.clear(),
     ]);
-  }
-
-  // Timeline operations - supports both legacy and scene-based storage
-  async saveTimeline({
-    projectId,
-    tracks,
-    sceneId,
-  }: {
-    projectId: string;
-    tracks: TimelineTrack[];
-    sceneId?: string;
-  }): Promise<void> {
-    const timelineAdapter = this.getProjectTimelineAdapter({
-      projectId,
-      sceneId,
-    });
-    const timelineData: TimelineData = {
-      tracks,
-      lastModified: new Date().toISOString(),
-    };
-    await timelineAdapter.set("timeline", timelineData);
-  }
-
-  async loadTimeline({
-    projectId,
-    sceneId,
-  }: {
-    projectId: string;
-    sceneId?: string;
-  }): Promise<TimelineTrack[] | null> {
-    const timelineAdapter = this.getProjectTimelineAdapter({
-      projectId,
-      sceneId,
-    });
-    const timelineData = await timelineAdapter.get("timeline");
-    return timelineData ? timelineData.tracks : null;
-  }
-
-  async deleteProjectTimeline({
-    projectId,
-  }: {
-    projectId: string;
-  }): Promise<void> {
-    const timelineAdapter = this.getProjectTimelineAdapter({ projectId });
-    await timelineAdapter.remove("timeline");
   }
 
   // Utility methods
@@ -356,21 +305,15 @@ class StorageService {
 
   async getProjectStorageInfo({ projectId }: { projectId: string }): Promise<{
     mediaItems: number;
-    hasTimeline: boolean;
   }> {
     const { mediaMetadataAdapter } = this.getProjectMediaAdapters({
       projectId,
     });
-    const timelineAdapter = this.getProjectTimelineAdapter({ projectId });
 
-    const [mediaIds, timelineData] = await Promise.all([
-      mediaMetadataAdapter.list(),
-      timelineAdapter.get("timeline"),
-    ]);
+    const mediaIds = await mediaMetadataAdapter.list();
 
     return {
       mediaItems: mediaIds.length,
-      hasTimeline: !!timelineData,
     };
   }
 
