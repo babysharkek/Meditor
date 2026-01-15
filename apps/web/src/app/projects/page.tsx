@@ -15,7 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { KeyboardEvent, MouseEvent } from "react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
 import { RenameProjectDialog } from "@/components/rename-project-dialog";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { TProjectMetadata } from "@/types/project";
 import { toast } from "sonner";
 import { useEditor } from "@/hooks/use-editor";
+import { formatDate } from "@/lib/utils";
 
 export default function ProjectsPage() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -50,8 +51,6 @@ export default function ProjectsPage() {
   const [sortOption, setSortOption] = useState("createdAt-desc");
   const router = useRouter();
   const editor = useEditor();
-
-  const hasSearchQuery = searchQuery.trim().length > 0;
 
   const handleCreateProject = async () => {
     try {
@@ -98,7 +97,9 @@ export default function ProjectsPage() {
 
   const handleSelectAll = ({ checked }: { checked: boolean }) => {
     if (checked) {
-      setSelectedProjects(new Set(sortedProjects.map((project) => project.id)));
+      setSelectedProjects(
+        new Set(projectsToDisplay.map((project) => project.id)),
+      );
     } else {
       setSelectedProjects(new Set());
     }
@@ -128,16 +129,18 @@ export default function ProjectsPage() {
     }
   };
 
-  const sortedProjects = editor.project.getFilteredAndSortedProjects({
+  const projectsToDisplay = editor.project.getFilteredAndSortedProjects({
     searchQuery,
     sortOption,
   });
 
   const isAllSelected =
-    sortedProjects.length > 0 &&
-    selectedProjects.size === sortedProjects.length;
+    projectsToDisplay.length > 0 &&
+    selectedProjects.size === projectsToDisplay.length;
+
   const hasSomeSelected =
-    selectedProjects.size > 0 && selectedProjects.size < sortedProjects.length;
+    selectedProjects.size > 0 &&
+    selectedProjects.size < projectsToDisplay.length;
 
   const isLoading = editor.project.getIsLoading();
   const isInitialized = editor.project.getIsInitialized();
@@ -186,8 +189,8 @@ export default function ProjectsPage() {
               Your projects
             </h1>
             <p className="text-muted-foreground">
-              {sortedProjects.length}{" "}
-              {sortedProjects.length === 1 ? "project" : "projects"}
+              {projectsToDisplay.length}{" "}
+              {projectsToDisplay.length === 1 ? "project" : "projects"}
               {isSelectionMode && selectedProjects.size > 0 && (
                 <span className="text-primary ml-2">
                   • {selectedProjects.size} selected
@@ -217,7 +220,7 @@ export default function ProjectsPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsSelectionMode(true)}
-                  disabled={sortedProjects.length === 0}
+                  disabled={projectsToDisplay.length === 0}
                 >
                   Select projects
                 </Button>
@@ -286,7 +289,7 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {isSelectionMode && sortedProjects.length > 0 && (
+        {isSelectionMode && projectsToDisplay.length > 0 && (
           <button
             type="button"
             onClick={() => handleSelectAll({ checked: !isAllSelected })}
@@ -306,39 +309,24 @@ export default function ProjectsPage() {
               {isAllSelected ? "Deselect all" : "Select all"}
             </span>
             <span className="text-muted-foreground text-sm">
-              ({selectedProjects.size} of {sortedProjects.length} selected)
+              ({selectedProjects.size} of {projectsToDisplay.length} selected)
             </span>
           </button>
         )}
 
         {isLoading || !isInitialized ? (
-          <div className="xs:grid-cols-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 8 }, (_, index) => (
-              <div
-                key={`skeleton-${index}`}
-                className="bg-background overflow-hidden border-none p-0"
-              >
-                <Skeleton className="bg-muted/50 aspect-square w-full" />
-                <div className="flex flex-col gap-1.5 px-0 pt-5">
-                  <Skeleton className="bg-muted/50 h-4 w-3/4" />
-                  <div className="flex items-center gap-1.5">
-                    <Skeleton className="bg-muted/50 h-4 w-4" />
-                    <Skeleton className="bg-muted/50 h-4 w-24" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : sortedProjects.length === 0 && hasSearchQuery ? (
-          <NoResults
-            searchQuery={searchQuery}
-            onClearSearch={() => setSearchQuery("")}
+          <ProjectsLoader />
+        ) : projectsToDisplay.length === 0 ? (
+          <EmptyState
+            search={{
+              query: searchQuery,
+              onClearSearch: () => setSearchQuery(""),
+            }}
+            onCreateProject={handleCreateProject}
           />
-        ) : sortedProjects.length === 0 ? (
-          <NoProjects onCreateProject={handleCreateProject} />
         ) : (
           <div className="xs:grid-cols-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-            {sortedProjects.map((project) => (
+            {projectsToDisplay.map((project) => (
               <ProjectCard
                 key={project.id}
                 project={project}
@@ -384,14 +372,6 @@ function ProjectCard({
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const editor = useEditor();
 
-  const formatDate = ({ date }: { date: Date }): string => {
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
   const handleDeleteProject = async () => {
     await editor.project.deleteProject({ id: project.id });
     setIsDropdownOpen(false);
@@ -407,19 +387,24 @@ function ProjectCard({
     await editor.project.duplicateProject({ id: project.id });
   };
 
-  const handleCardClick = ({e}: {}) => {
+  const handleCardClick = ({
+    event,
+  }: {
+    event: MouseEvent<HTMLButtonElement>;
+  }) => {
     if (isSelectionMode) {
-      e.preventDefault();
+      event.preventDefault();
       onSelect?.({ projectId: project.id, checked: !isSelected });
     }
   };
 
   const handleCardKeyDown = ({
-    key,
-    preventDefault,
-  }: KeyboardEvent<HTMLButtonElement>) => {
-    if (isSelectionMode && (key === "Enter" || key === " ")) {
-      preventDefault();
+    event,
+  }: {
+    event: KeyboardEvent<HTMLButtonElement>;
+  }) => {
+    if (isSelectionMode && (event.key === "Enter" || event.key === " ")) {
+      event.preventDefault();
       onSelect?.({ projectId: project.id, checked: !isSelected });
     }
   };
@@ -552,8 +537,8 @@ function ProjectCard({
       {isSelectionMode ? (
         <button
           type="button"
-          onClick={handleCardClick}
-          onKeyDown={handleCardKeyDown}
+          onClick={(event) => handleCardClick({ event })}
+          onKeyDown={(event) => handleCardKeyDown({ event })}
           className="group block w-full cursor-pointer text-left"
         >
           {cardContent}
@@ -578,6 +563,28 @@ function ProjectCard({
   );
 }
 
+function ProjectsLoader() {
+  return (
+    <div className="xs:grid-cols-2 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+      {Array.from({ length: 8 }, (_, index) => (
+        <div
+          key={`skeleton-${index}`}
+          className="bg-background overflow-hidden border-none p-0"
+        >
+          <Skeleton className="bg-muted/50 aspect-square w-full" />
+          <div className="flex flex-col gap-1.5 px-0 pt-5">
+            <Skeleton className="bg-muted/50 h-4 w-3/4" />
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="bg-muted/50 h-4 w-4" />
+              <Skeleton className="bg-muted/50 h-4 w-24" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function CreateButton({ onClick }: { onClick?: () => void }) {
   return (
     <Button className="flex" onClick={onClick}>
@@ -587,7 +594,35 @@ function CreateButton({ onClick }: { onClick?: () => void }) {
   );
 }
 
-function NoProjects({ onCreateProject }: { onCreateProject: () => void }) {
+function EmptyState({
+  search,
+  onCreateProject,
+}: {
+  search: { query: string; onClearSearch: () => void };
+  onCreateProject: () => void;
+}) {
+  const editor = useEditor();
+  const savedProjects = editor.project.getSavedProjects();
+
+  if (savedProjects.length > 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="bg-muted/30 flex size-16 items-center justify-center rounded-full">
+            <Search className="text-muted-foreground size-8" />
+          </div>
+          <h3 className="text-lg font-medium">No results found</h3>
+          <p className="text-muted-foreground max-w-md">
+            Your search for "{search.query}" did not return any results.
+          </p>
+        </div>
+        <Button onClick={search.onClearSearch} variant="outline">
+          Clear search
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
       <div className="flex flex-col items-center gap-2">
@@ -601,33 +636,8 @@ function NoProjects({ onCreateProject }: { onCreateProject: () => void }) {
         </p>
       </div>
       <Button size="lg" className="gap-2" onClick={onCreateProject}>
-        <Plus className="h-4 w-4" />
+        <Plus className="size-4" />
         Create your first project
-      </Button>
-    </div>
-  );
-}
-
-function NoResults({
-  searchQuery,
-  onClearSearch,
-}: {
-  searchQuery: string;
-  onClearSearch: () => void;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
-      <div className="flex flex-col items-center gap-2">
-        <div className="bg-muted/30 flex size-16 items-center justify-center rounded-full">
-          <Search className="text-muted-foreground size-8" />
-        </div>
-        <h3 className="text-lg font-medium">No results found</h3>
-        <p className="text-muted-foreground max-w-md">
-          Your search for "{searchQuery}" did not return any results.
-        </p>
-      </div>
-      <Button onClick={onClearSearch} variant="outline">
-        Clear search
       </Button>
     </div>
   );

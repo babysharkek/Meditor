@@ -40,7 +40,7 @@ Review every point below carefully for files to ensure they follow consistent co
   ```
 18. Components render UI. Domain logic (data transformations, business rules, state mutations) lives in hooks, utilities, or managers. Simple interaction logic (gesture detection, modifier keys) can stay in components if not too many lines of code/complex.
 
-19. Readability matters more than short names in the age of AI coding. Do not shorten names for the sake of "typing less". Nobody is typing code these days. AI agents are. Hence, clarity and readability are the most important things. Example: "event" is better than "e". "element" is better than "el".
+19. Readability matters more than short names in the age of AI coding. Do not shorten names for the sake of "typing less". Nobody is typing code these days. AI agents are. Hence, clarity and readability are the most important things. Example: "element" is better than "el".
 
 # Functions
 

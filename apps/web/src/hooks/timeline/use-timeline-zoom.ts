@@ -29,7 +29,6 @@ export function useTimelineZoom({
     const isHorizontalScrollGesture =
       event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY);
 
-    // allow scrollarea to handle horizontal scroll
     if (isHorizontalScrollGesture) {
       return;
     }

@@ -5,6 +5,14 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
+export function formatDate({ date }: { date: Date }): string {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export function capitalizeFirstLetter({ string }: { string: string }) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -38,7 +46,11 @@ export function generateUUID(): string {
   );
 }
 
-export function isTypableDOMElement({ element }: { element: HTMLElement }): boolean {
+export function isTypableDOMElement({
+  element,
+}: {
+  element: HTMLElement;
+}): boolean {
   if (element.isContentEditable) return true;
 
   if (element.tagName === "INPUT") {
