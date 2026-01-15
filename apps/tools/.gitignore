@@ -1,9 +1,0 @@
-# Turborepo
-.turbo
-
-# Env vars
-.env*
-!.env.example
-
-# Next
-.next/
