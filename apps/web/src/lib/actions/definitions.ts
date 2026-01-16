@@ -75,6 +75,16 @@ export const ACTIONS = {
     category: "editing",
     defaultShortcuts: ["s"],
   },
+  "split-selected-left": {
+    description: "Split element at playhead and keep left",
+    category: "editing",
+    defaultShortcuts: ["q"],
+  },
+  "split-selected-right": {
+    description: "Split element at playhead and keep right",
+    category: "editing",
+    defaultShortcuts: ["w"],
+  },
   "delete-selected": {
     description: "Delete selected elements",
     category: "editing",

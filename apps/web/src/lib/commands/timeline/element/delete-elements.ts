@@ -1,6 +1,7 @@
 import { Command } from "@/lib/commands/base-command";
 import type { TimelineTrack } from "@/types/timeline";
 import { EditorCore } from "@/core";
+import { isMainTrack } from "@/lib/timeline";
 
 export class DeleteElementsCommand extends Command {
   private savedState: TimelineTrack[] | null = null;
@@ -35,7 +36,7 @@ export class DeleteElementsCommand extends Command {
       })
       .filter(
         (track) =>
-          track.elements.length > 0 || (track.type === "video" && track.isMain),
+          track.elements.length > 0 || isMainTrack(track),
       );
 
     editor.timeline.updateTracks(updatedTracks);

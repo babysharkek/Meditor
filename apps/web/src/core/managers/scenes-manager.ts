@@ -17,6 +17,7 @@ import {
   removeBookmarkFromArray,
   isBookmarkAtTime,
 } from "@/lib/timeline/bookmark-utils";
+import { ensureMainTrack } from "@/lib/timeline/track-utils";
 
 export class ScenesManager {
   private active: TScene | null = null;
@@ -220,14 +221,34 @@ export class ScenesManager {
     try {
       const result = await storageService.loadProject({ id: projectId });
       if (result?.project.scenes) {
+        const { scenes: ensuredScenes, hasAddedMainTrack } =
+          this.ensureScenesHaveMainTrack({
+            scenes: result.project.scenes ?? [],
+          });
         const currentScene = findCurrentScene({
-          scenes: result.project.scenes,
+          scenes: ensuredScenes,
           currentSceneId: result.project.currentSceneId,
         });
 
-        this.list = result.project.scenes;
+        this.list = ensuredScenes;
         this.active = currentScene;
         this.notify();
+
+        if (hasAddedMainTrack) {
+          const activeProject = this.editor.project.getActive();
+          if (activeProject) {
+            const updatedProject = {
+              ...activeProject,
+              scenes: ensuredScenes,
+              metadata: {
+                ...activeProject.metadata,
+                updatedAt: new Date(),
+              },
+            };
+            await storageService.saveProject({ project: updatedProject });
+            this.editor.project.setActiveProject({ project: updatedProject });
+          }
+        }
       }
     } catch (error) {
       console.error("Failed to load project scenes:", error);
@@ -245,23 +266,26 @@ export class ScenesManager {
     currentSceneId?: string;
   }): void {
     const ensuredScenes = ensureMainScene({ scenes });
+    const { scenes: scenesWithMainTracks, hasAddedMainTrack } =
+      this.ensureScenesHaveMainTrack({ scenes: ensuredScenes });
     const currentScene = currentSceneId
-      ? ensuredScenes.find((s) => s.id === currentSceneId)
+      ? scenesWithMainTracks.find((s) => s.id === currentSceneId)
       : null;
 
-    const fallbackScene = getMainScene({ scenes: ensuredScenes });
+    const fallbackScene = getMainScene({ scenes: scenesWithMainTracks });
 
-    this.list = ensuredScenes;
+    this.list = scenesWithMainTracks;
     this.active = currentScene || fallbackScene;
     this.notify();
 
-    if (ensuredScenes.length > scenes.length) {
+    const hasAddedMainScene = ensuredScenes.length > scenes.length;
+    if (hasAddedMainScene || hasAddedMainTrack) {
       const activeProject = this.editor.project.getActive();
 
       if (activeProject) {
         const updatedProject = {
           ...activeProject,
-          scenes: ensuredScenes,
+          scenes: scenesWithMainTracks,
           metadata: {
             ...activeProject.metadata,
             updatedAt: new Date(),
@@ -370,6 +394,31 @@ export class ScenesManager {
       };
       this.editor.project.setActiveProject({ project: updatedProject });
     }
+  }
+
+  private ensureScenesHaveMainTrack({ scenes }: { scenes: TScene[] }): {
+    scenes: TScene[];
+    hasAddedMainTrack: boolean;
+  } {
+    let hasAddedMainTrack = false;
+    const ensuredScenes: TScene[] = [];
+
+    for (const scene of scenes) {
+      const existingTracks = scene.tracks ?? [];
+      const updatedTracks = ensureMainTrack({ tracks: existingTracks });
+      if (updatedTracks !== existingTracks) {
+        hasAddedMainTrack = true;
+        ensuredScenes.push({
+          ...scene,
+          tracks: updatedTracks,
+          updatedAt: new Date(),
+        });
+      } else {
+        ensuredScenes.push(scene);
+      }
+    }
+
+    return { scenes: ensuredScenes, hasAddedMainTrack };
   }
 
   private async updateProjectWithScenes({

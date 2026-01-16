@@ -21,8 +21,8 @@ import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import {
   getTrackClasses,
   getTrackHeight,
-  canHaveAudio,
-  canBeHidden,
+  canElementHaveAudio,
+  canElementBeHidden,
   hasMediaId,
 } from "@/lib/timeline";
 import {
@@ -88,10 +88,8 @@ export function TimelineElement({
       selected.elementId === element.id && selected.trackId === track.id,
   );
 
-  const elementWidth = Math.max(
-    TIMELINE_CONSTANTS.ELEMENT_MIN_WIDTH,
-    element.duration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel,
-  );
+  const elementWidth =
+    element.duration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
 
   const isBeingDragged = dragState.elementId === element.id;
   const elementStartTime =
@@ -118,7 +116,7 @@ export function TimelineElement({
     }
   };
 
-  const isMuted = canHaveAudio(element) && element.muted === true;
+  const isMuted = canElementHaveAudio(element) && element.muted === true;
 
   return (
     <ContextMenu>
@@ -160,7 +158,7 @@ export function TimelineElement({
           selectedCount={selectedElements.length}
           onClick={(event) => handleAction({ action: "copy-selected", event })}
         />
-        {canHaveAudio(element) && hasAudio && (
+        {canElementHaveAudio(element) && hasAudio && (
           <MuteMenuItem
             element={element}
             isMultipleSelected={selectedElements.length > 1}
@@ -172,7 +170,7 @@ export function TimelineElement({
             }
           />
         )}
-        {canBeHidden(element) && (
+        {canElementBeHidden(element) && (
           <VisibilityMenuItem
             element={element}
             isMultipleSelected={selectedElements.length > 1}
@@ -262,7 +260,7 @@ function ElementInner({
         {
           type: track.type,
         },
-      )} ${isBeingDragged ? "z-50" : "z-10"} ${canBeHidden(element) && element.hidden ? "opacity-50" : ""}`}
+      )} ${isBeingDragged ? "z-50" : "z-10"} ${canElementBeHidden(element) && element.hidden ? "opacity-50" : ""}`}
       onClick={(e) => onElementClick(e, element)}
       onMouseDown={(e) => onElementMouseDown(e, element)}
       onContextMenu={(e) => onElementMouseDown(e, element)}
@@ -276,7 +274,7 @@ function ElementInner({
         />
       </div>
 
-      {(hasAudio ? isMuted : canBeHidden(element) && element.hidden) && (
+      {(hasAudio ? isMuted : canElementBeHidden(element) && element.hidden) && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
           {hasAudio ? (
             <VolumeX className="size-6 text-white" />
@@ -397,13 +395,15 @@ function ElementContent({
           className={`relative size-full ${isSelected ? "bg-primary" : "bg-transparent"}`}
         >
           <div
-            className="absolute bottom-[0.25rem] left-0 right-0 top-[0.25rem]"
+            className="absolute left-0 right-0"
             style={{
               backgroundImage: imageUrl ? `url(${imageUrl})` : "none",
               backgroundRepeat: "repeat-x",
               backgroundSize: `${tileWidth}px ${trackHeight}px`,
               backgroundPosition: "left center",
               pointerEvents: "none",
+              top: isSelected ? "0.25rem" : "0rem",
+              bottom: isSelected ? "0.25rem" : "0rem",
             }}
             aria-label={`Tiled ${mediaAsset.type === "image" ? "background" : "thumbnail"} of ${mediaAsset.name}`}
           />
@@ -493,7 +493,7 @@ function VisibilityMenuItem({
   selectedCount: number;
   onClick: (e: React.MouseEvent) => void;
 }) {
-  const isHidden = canBeHidden(element) && element.hidden;
+  const isHidden = canElementBeHidden(element) && element.hidden;
 
   const getIcon = () => {
     if (isMultipleSelected && isCurrentElementSelected) {

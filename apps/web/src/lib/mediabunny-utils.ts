@@ -1,7 +1,6 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { Input, ALL_FORMATS, BlobSource } from "mediabunny";
-import { canHaveAudio } from "@/lib/timeline";
-import { mediaSupportsAudio } from "@/lib/media-utils";
+import { collectAudioMixSources } from "@/lib/audio-utils";
 import { useEditor } from "@/hooks/use-editor";
 
 let ffmpeg: FFmpeg | null = null;
@@ -66,6 +65,7 @@ export const extractTimelineAudio = async (
   }
 
   const tracks = editor.timeline.getTracks();
+  const mediaAssets = editor.media.getAssets();
   const totalDuration = editor.timeline.getTotalDuration();
 
   if (totalDuration === 0) {
@@ -79,77 +79,12 @@ export const extractTimelineAudio = async (
     });
   }
 
-  const audioElements: Array<{
-    file: File;
-    startTime: number;
-    duration: number;
-    trimStart: number;
-    trimEnd: number;
-    trackMuted: boolean;
-  }> = [];
+  const audioMixSources = await collectAudioMixSources({
+    tracks,
+    mediaAssets,
+  });
 
-  for (const track of tracks) {
-    if (track.muted) continue;
-
-    for (const element of track.elements) {
-      if (!canHaveAudio(element)) continue;
-
-      if (element.type === "audio") {
-        if (element.sourceType === "upload") {
-          const mediaAsset = editor.media
-            .getAssets()
-            .find((asset) => asset.id === element.mediaId);
-          if (!mediaAsset) continue;
-
-          audioElements.push({
-            file: mediaAsset.file,
-            startTime: element.startTime,
-            duration: element.duration,
-            trimStart: element.trimStart,
-            trimEnd: element.trimEnd,
-            trackMuted: track.muted || false,
-          });
-        } else {
-          // library audio - fetch from sourceUrl
-          try {
-            const response = await fetch(element.sourceUrl);
-            const blob = await response.blob();
-            const file = new File([blob], `${element.name}.mp3`, {
-              type: "audio/mpeg",
-            });
-            audioElements.push({
-              file,
-              startTime: element.startTime,
-              duration: element.duration,
-              trimStart: element.trimStart,
-              trimEnd: element.trimEnd,
-              trackMuted: track.muted || false,
-            });
-          } catch (error) {
-            console.warn("Failed to fetch library audio:", error);
-          }
-        }
-      } else if (element.type === "video") {
-        const mediaAsset = editor.media
-          .getAssets()
-          .find((asset) => asset.id === element.mediaId);
-        if (!mediaAsset) continue;
-
-        if (mediaSupportsAudio({ media: mediaAsset })) {
-          audioElements.push({
-            file: mediaAsset.file,
-            startTime: element.startTime,
-            duration: element.duration,
-            trimStart: element.trimStart,
-            trimEnd: element.trimEnd,
-            trackMuted: track.muted || false,
-          });
-        }
-      }
-    }
-  }
-
-  if (audioElements.length === 0) {
+  if (audioMixSources.length === 0) {
     // Return silent audio if no audio elements
     const silentDuration = Math.max(1, totalDuration); // At least 1 second
     try {
@@ -166,8 +101,8 @@ export const extractTimelineAudio = async (
   const filterInputs: string[] = [];
 
   try {
-    for (let i = 0; i < audioElements.length; i++) {
-      const element = audioElements[i];
+    for (let i = 0; i < audioMixSources.length; i++) {
+      const element = audioMixSources[i];
       const inputName = `input_${i}.${element.file.name.split(".").pop()}`;
       inputFiles.push(inputName);
 
@@ -193,9 +128,9 @@ export const extractTimelineAudio = async (
     }
 
     const mixFilter =
-      audioElements.length === 1
+      audioMixSources.length === 1
         ? `[audio_0]aresample=44100,aformat=sample_fmts=s16:channel_layouts=stereo[out]`
-        : `${filterInputs.map((_, i) => `[audio_${i}]`).join("")}amix=inputs=${audioElements.length}:duration=longest:dropout_transition=2,aresample=44100,aformat=sample_fmts=s16:channel_layouts=stereo[out]`;
+        : `${filterInputs.map((_, i) => `[audio_${i}]`).join("")}amix=inputs=${audioMixSources.length}:duration=longest:dropout_transition=2,aresample=44100,aformat=sample_fmts=s16:channel_layouts=stereo[out]`;
 
     const complexFilter = [...filterInputs, mixFilter].join(";");
     const outputName = "timeline_audio.wav";

@@ -2,6 +2,7 @@ import type { TimelineTrack, ElementType } from "@/types/timeline";
 import { TRACK_HEIGHTS, TRACK_GAP } from "@/constants/timeline-constants";
 import { wouldElementOverlap } from "./element-utils";
 import type { ComputeDropTargetParams, DropTarget } from "@/types/timeline";
+import { isMainTrack } from "./track-utils";
 
 function getTrackAtY({
   mouseY,
@@ -47,7 +48,7 @@ function isCompatible({
 }
 
 function getMainTrackIndex({ tracks }: { tracks: TimelineTrack[] }): number {
-  return tracks.findIndex((t) => t.type === "video" && t.isMain);
+  return tracks.findIndex((track) => isMainTrack(track));
 }
 
 function findInsertIndex({

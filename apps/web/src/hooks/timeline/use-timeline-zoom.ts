@@ -35,14 +35,14 @@ export function useTimelineZoom({
 
     // pinch-zoom (ctrl/meta + wheel)
     if (isZoomGesture) {
-      event.preventDefault();
       const zoomMultiplier = event.deltaY > 0 ? 1 / 1.1 : 1.1;
-      setZoomLevel((prev) =>
-        Math.max(
+      setZoomLevel((prev) => {
+        const nextZoom = Math.max(
           TIMELINE_CONSTANTS.ZOOM_MIN,
           Math.min(TIMELINE_CONSTANTS.ZOOM_MAX, prev * zoomMultiplier),
-        ),
-      );
+        );
+        return nextZoom;
+      });
       // for horizontal scrolling (when shift is held or horizontal wheel movement),
       // let the event bubble up to allow ScrollArea to handle it
       return;
@@ -51,25 +51,25 @@ export function useTimelineZoom({
 
   // prevent browser zoom in the timeline
   useEffect(() => {
-    const preventZoom = ({
-      ctrlKey,
-      metaKey,
-      target,
-      preventDefault,
-    }: WheelEvent) => {
-      if (
-        isInTimeline &&
-        (ctrlKey || metaKey) &&
-        containerRef.current?.contains(target as Node)
-      ) {
-        preventDefault();
+    const preventZoom = (event: WheelEvent) => {
+      const isZoomKeyPressed = event.ctrlKey || event.metaKey;
+      const isInContainer = containerRef.current?.contains(
+        event.target as Node,
+      );
+      const shouldPrevent =
+        isInTimeline && isZoomKeyPressed && Boolean(isInContainer);
+      if (shouldPrevent) {
+        event.preventDefault();
       }
     };
 
-    document.addEventListener("wheel", preventZoom, { passive: false });
+    document.addEventListener("wheel", preventZoom, {
+      passive: false,
+      capture: true,
+    });
 
     return () => {
-      document.removeEventListener("wheel", preventZoom);
+      document.removeEventListener("wheel", preventZoom, { capture: true });
     };
   }, [isInTimeline, containerRef]);
 

@@ -95,8 +95,6 @@ export function Captions() {
 
       const { text, segments } = await transcriptionResponse.json();
 
-      console.log("Transcription completed:", { text, segments });
-
       const shortCaptions: Array<{
         text: string;
         startTime: number;
@@ -132,7 +130,10 @@ export function Captions() {
         });
       });
 
-      const captionTrackId = editor.timeline.addTrack({ type: "text", index: 0 });
+      const captionTrackId = editor.timeline.addTrack({
+        type: "text",
+        index: 0,
+      });
 
       shortCaptions.forEach((caption, index) => {
         editor.timeline.addElementToTrack({
@@ -148,14 +149,10 @@ export function Captions() {
           } as TextElement,
         });
       });
-
-      console.log(
-        `✅ ${shortCaptions.length} short-form caption chunks added to timeline!`
-      );
     } catch (error) {
       console.error("Transcription failed:", error);
       setError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
+        error instanceof Error ? error.message : "An unexpected error occurred",
       );
     } finally {
       setIsProcessing(false);
@@ -164,7 +161,10 @@ export function Captions() {
   };
 
   return (
-    <BaseView ref={containerRef} className="flex flex-col justify-between h-full">
+    <BaseView
+      ref={containerRef}
+      className="flex h-full flex-col justify-between"
+    >
       <PropertyGroup title="Language">
         <LanguageSelect
           selectedCountry={selectedCountry}
@@ -176,8 +176,8 @@ export function Captions() {
 
       <div className="flex flex-col gap-4">
         {error && (
-          <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-            <p className="text-sm text-destructive">{error}</p>
+          <div className="bg-destructive/10 border-destructive/20 rounded-md border p-3">
+            <p className="text-destructive text-sm">{error}</p>
           </div>
         )}
 
@@ -192,7 +192,7 @@ export function Captions() {
           }}
           disabled={isProcessing}
         >
-          {isProcessing && <Loader2 className="mr-1 size-4 animate-spin" />}
+          {isProcessing && <Loader2 className="mr-1 animate-spin" />}
           {isProcessing ? processingStep : "Generate transcript"}
         </Button>
 
@@ -243,7 +243,7 @@ export function Captions() {
                   </div>
                 </div>
 
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   <strong>True zero-knowledge privacy:</strong> Encryption keys
                   are generated randomly in your browser and never stored
                   anywhere. It's cryptographically impossible for us, our cloud

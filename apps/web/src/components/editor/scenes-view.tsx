@@ -21,7 +21,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { canDeleteScene } from "@/lib/scene-utils";
+import { canDeleteScene, getMainScene } from "@/lib/scene-utils";
 import { toast } from "sonner";
 import { useEditor } from "@/hooks/use-editor";
 
@@ -85,6 +85,11 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
     setIsSelectMode(false);
   };
 
+  const isMainSceneSelected = (() => {
+    const mainScene = getMainScene({ scenes });
+    return Boolean(mainScene?.id && selectedScenes.has(mainScene.id));
+  })();
+
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
@@ -114,15 +119,19 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
               <DeleteDialog
                 count={selectedScenes.size}
                 onDelete={handleDeleteSelected}
-                disabled={Array.from(selectedScenes).some(
-                  (id) => scenes.find((s) => s.id === id)?.isMain,
-                )}
-              >
-                <Button className="rounded-md" variant="destructive" size="sm">
-                  <Trash2 />
-                  Delete ({selectedScenes.size})
-                </Button>
-              </DeleteDialog>
+                disabled={isMainSceneSelected}
+                trigger={
+                  <Button
+                    className="rounded-md"
+                    variant="destructive"
+                    disabled={isMainSceneSelected}
+                    size="sm"
+                  >
+                    <Trash2 />
+                    Delete ({selectedScenes.size})
+                  </Button>
+                }
+              />
             )}
           </div>
           {scenes.length === 0 ? (
@@ -167,12 +176,12 @@ function DeleteDialog({
   count,
   onDelete,
   disabled,
-  children,
+  trigger,
 }: {
   count: number;
   onDelete: () => void;
   disabled?: boolean;
-  children: React.ReactNode;
+  trigger: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -183,7 +192,7 @@ function DeleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete Scenes</DialogTitle>

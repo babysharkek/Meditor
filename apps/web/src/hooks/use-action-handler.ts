@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import {
   TAction,
   TActionFunc,
@@ -14,7 +14,7 @@ export function useActionHandler<A extends TAction>(
   isActive: TActionHandlerOptions,
 ) {
   const handlerRef = useRef(handler);
-  const [isBound, setIsBound] = useState(false);
+  const isBoundRef = useRef(false);
 
   useEffect(() => {
     handlerRef.current = handler;
@@ -32,36 +32,34 @@ export function useActionHandler<A extends TAction>(
       isActive === undefined ||
       (typeof isActive === "boolean" ? isActive : isActive.current);
 
-    if (shouldBind && !isBound) {
+    if (shouldBind && !isBoundRef.current) {
       bindAction(action, stableHandler);
-      setIsBound(true);
-    } else if (!shouldBind && isBound) {
+      isBoundRef.current = true;
+    } else if (!shouldBind && isBoundRef.current) {
       unbindAction(action, stableHandler);
-      setIsBound(false);
+      isBoundRef.current = false;
     }
 
     return () => {
-      if (isBound) {
-        unbindAction(action, stableHandler);
-        setIsBound(false);
-      }
+      unbindAction(action, stableHandler);
+      isBoundRef.current = false;
     };
-  }, [action, stableHandler, isActive, isBound]);
+  }, [action, stableHandler, isActive]);
 
   useEffect(() => {
     if (isActive && typeof isActive === "object" && "current" in isActive) {
       const interval = setInterval(() => {
         const shouldBind = isActive.current;
-        if (shouldBind !== isBound) {
+        if (shouldBind !== isBoundRef.current) {
           if (shouldBind) {
             bindAction(action, stableHandler);
           } else {
             unbindAction(action, stableHandler);
           }
-          setIsBound(shouldBind);
+          isBoundRef.current = shouldBind;
         }
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [action, stableHandler, isActive, isBound]);
+  }, [action, stableHandler, isActive]);
 }

@@ -138,6 +138,38 @@ export function useEditorActions() {
   );
 
   useActionHandler(
+    "split-selected-left",
+    () => {
+      const splitElementIds = editor.timeline.splitElements({
+        elements: selectedElements,
+        splitTime: editor.playback.getCurrentTime(),
+        retainSide: "left",
+      });
+
+      if (splitElementIds.length === 0) {
+        toast.error("Playhead must be positioned over the selected element(s)");
+      }
+    },
+    undefined,
+  );
+
+  useActionHandler(
+    "split-selected-right",
+    () => {
+      const splitElementIds = editor.timeline.splitElements({
+        elements: selectedElements,
+        splitTime: editor.playback.getCurrentTime(),
+        retainSide: "right",
+      });
+
+      if (splitElementIds.length === 0) {
+        toast.error("Playhead must be positioned over the selected element(s)");
+      }
+    },
+    undefined,
+  );
+
+  useActionHandler(
     "delete-selected",
     () => {
       if (selectedElements.length === 0) {

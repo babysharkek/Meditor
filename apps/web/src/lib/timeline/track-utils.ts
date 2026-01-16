@@ -1,10 +1,30 @@
-import type { TrackType, TimelineTrack, ElementType } from "@/types/timeline";
+import type {
+  TrackType,
+  TimelineTrack,
+  ElementType,
+  VideoTrack,
+  AudioTrack,
+  StickerTrack,
+  TextTrack,
+} from "@/types/timeline";
 import {
   TRACK_COLORS,
   TRACK_HEIGHTS,
   TRACK_GAP,
 } from "@/constants/timeline-constants";
 import { generateUUID } from "@/lib/utils";
+
+export function canTracktHaveAudio(
+  track: TimelineTrack,
+): track is VideoTrack | AudioTrack {
+  return track.type === "audio" || track.type === "video";
+}
+
+export function canTrackBeHidden(
+  track: TimelineTrack,
+): track is VideoTrack | TextTrack | StickerTrack {
+  return track.type !== "audio";
+}
 
 export function getTrackColor({ type }: { type: TrackType }) {
   return TRACK_COLORS[type];
@@ -47,12 +67,16 @@ export function getTotalTracksHeight({
   return tracksHeight + gapsHeight;
 }
 
+export function isMainTrack(track: TimelineTrack): track is VideoTrack {
+  return track.type === "video" && track.isMain === true;
+}
+
 export function getMainTrack({
   tracks,
 }: {
   tracks: TimelineTrack[];
 }): TimelineTrack | null {
-  return tracks.find((track) => track.type === "video" && track.isMain) ?? null;
+  return tracks.find((track) => isMainTrack(track)) ?? null;
 }
 
 export function ensureMainTrack({
@@ -60,9 +84,7 @@ export function ensureMainTrack({
 }: {
   tracks: TimelineTrack[];
 }): TimelineTrack[] {
-  const hasMainTrack = tracks.some(
-    (track) => track.type === "video" && track.isMain,
-  );
+  const hasMainTrack = tracks.some((track) => isMainTrack(track));
 
   if (!hasMainTrack) {
     const mainTrack: TimelineTrack = {

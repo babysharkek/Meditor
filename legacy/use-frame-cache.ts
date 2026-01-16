@@ -178,16 +178,7 @@ export function useFrameCache(options: FrameCacheOptions = {}) {
         activeProject,
         sceneId
       );
-      console.log(cached.timelineHash === currentHash);
       if (cached.timelineHash !== currentHash) {
-        // Cache is stale, remove it
-        console.log(
-          "Cache miss - hash mismatch:",
-          JSON.stringify({
-            cachedHash: cached.timelineHash.slice(0, 100),
-            currentHash: currentHash.slice(0, 100),
-          })
-        );
         frameCacheRef.current.delete(frameKey);
         return null;
       }

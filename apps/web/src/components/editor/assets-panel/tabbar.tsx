@@ -55,7 +55,7 @@ export function TabBar() {
           return (
             <div
               className={cn(
-                "z-[100] flex cursor-pointer flex-col items-center gap-0.5",
+                "flex cursor-pointer flex-col items-center gap-0.5",
                 activeTab === tabKey
                   ? "text-primary !opacity-100"
                   : "text-muted-foreground",
@@ -73,7 +73,7 @@ export function TabBar() {
                   variant="sidebar"
                   sideOffset={8}
                 >
-                  <div className="dark:text-base-gray-950 text-sm font-medium leading-none text-black dark:text-white">
+                  <div className="text-foreground text-sm font-medium leading-none">
                     {tab.label}
                   </div>
                 </TooltipContent>
@@ -99,7 +99,7 @@ function FadeOverlay({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute left-0 right-0 z-[101] h-6 transition-opacity duration-200",
+        "pointer-events-none absolute left-0 right-0 h-6 transition-opacity duration-200",
         direction === "top" && show
           ? "from-panel top-0 bg-gradient-to-b to-transparent"
           : "from-panel bottom-0 bg-gradient-to-t to-transparent",

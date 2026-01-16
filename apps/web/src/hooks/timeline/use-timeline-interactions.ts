@@ -11,7 +11,6 @@ interface UseTimelineInteractionsProps {
   zoomLevel: number;
   duration: number;
   isSelecting: boolean;
-  justFinishedSelecting: boolean;
   clearSelectedElements: () => void;
   seek: (time: number) => void;
 }
@@ -23,7 +22,6 @@ export function useTimelineInteractions({
   zoomLevel,
   duration,
   isSelecting,
-  justFinishedSelecting,
   clearSelectedElements,
   seek,
 }: UseTimelineInteractionsProps) {
@@ -71,7 +69,7 @@ export function useTimelineInteractions({
 
       if (deltaX > 5 || deltaY > 5 || deltaTime > 500) return false;
 
-      if (isSelecting || justFinishedSelecting) return false;
+      if (isSelecting) return false;
 
       if (target.closest(".timeline-element")) return false;
 
@@ -84,7 +82,7 @@ export function useTimelineInteractions({
 
       return true;
     },
-    [isSelecting, justFinishedSelecting, clearSelectedElements, playheadRef],
+    [isSelecting, clearSelectedElements, playheadRef],
   );
 
   const handleTimelineSeek = useCallback(

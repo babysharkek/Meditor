@@ -98,43 +98,21 @@ function ToolbarLeftSection() {
   return (
     <div className="flex items-center gap-1">
       <TooltipProvider delayDuration={500}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              type="button"
-              onClick={(event) =>
-                handleAction({ action: "toggle-play", event })
-              }
-            >
-              {isPlaying ? (
-                <Pause className="size-4" />
-              ) : (
-                <Play className="size-4" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {isPlaying ? "Pause (Space)" : "Play (Space)"}
-          </TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={isPlaying ? <Pause /> : <Play />}
+          tooltip={isPlaying ? "Pause" : "Play"}
+          onClick={({ event }) =>
+            handleAction({ action: "toggle-play", event })
+          }
+        />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              type="button"
-              onClick={(event) => handleAction({ action: "goto-start", event })}
-            >
-              <SkipBack className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Return to Start (Home / Enter)</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<SkipBack />}
+          tooltip="Go to start"
+          onClick={({ event }) => handleAction({ action: "goto-start", event })}
+        />
 
-        <div className="bg-border mx-1 h-6 w-px" />
+        <div className="bg-border mx-2 h-10 w-px" />
 
         <TimeDisplay
           currentTime={currentTime}
@@ -142,137 +120,76 @@ function ToolbarLeftSection() {
           fps={activeProject.settings.fps}
         />
 
-        <div className="bg-border mx-1 h-6 w-px" />
+        <div className="bg-border mx-1 h-10 w-px" />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              type="button"
-              onClick={() => {
-                editor.timeline.splitElements({
-                  elements: selectedElements,
-                  splitTime: editor.playback.getCurrentTime(),
-                });
-              }}
-            >
-              <Scissors className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Split element (Ctrl+S)</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<Scissors />}
+          tooltip="Split element"
+          onClick={({ event }) =>
+            handleAction({ action: "split-selected", event })
+          }
+        />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              type="button"
-              onClick={() => {
-                editor.timeline.splitElements({
-                  elements: selectedElements,
-                  splitTime: editor.playback.getCurrentTime(),
-                  retainSide: "left",
-                });
-              }}
-            >
-              <ArrowLeftToLine className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Split and keep left (Ctrl+Q)</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<ArrowLeftToLine />}
+          tooltip="Split and keep left"
+          onClick={({ event }) =>
+            handleAction({ action: "split-selected-left", event })
+          }
+        />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              type="button"
-              onClick={() => {
-                editor.timeline.splitElements({
-                  elements: selectedElements,
-                  splitTime: editor.playback.getCurrentTime(),
-                  retainSide: "right",
-                });
-              }}
-            >
-              <ArrowRightToLine className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Split and keep right (Ctrl+W)</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<ArrowRightToLine />}
+          tooltip="Split and keep right"
+          onClick={({ event }) =>
+            handleAction({ action: "split-selected-right", event })
+          }
+        />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="text" size="icon" disabled type="button">
-              <SplitSquareHorizontal className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Separate audio (Coming soon)</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<SplitSquareHorizontal />}
+          tooltip="Coming soon" /* Separate audio */
+          disabled={true}
+          onClick={({ event }) => {}}
+        />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              type="button"
-              onClick={(event) =>
-                handleAction({ action: "duplicate-selected", event })
-              }
-            >
-              <Copy className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Duplicate element (Ctrl+D)</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<Copy />}
+          tooltip="Duplicate element"
+          onClick={({ event }) =>
+            handleAction({ action: "duplicate-selected", event })
+          }
+        />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="text" size="icon" type="button" disabled>
-              <Snowflake className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Freeze frame (F) (Coming soon)</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<Snowflake />}
+          tooltip="Coming soon" /* Freeze frame */
+          disabled={true}
+          onClick={({ event }) => {}}
+        />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              type="button"
-              onClick={(event) =>
-                handleAction({ action: "delete-selected", event })
-              }
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Delete element (Delete)</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<Trash2 />}
+          tooltip="Delete element"
+          onClick={({ event }) =>
+            handleAction({ action: "delete-selected", event })
+          }
+        />
 
         <div className="bg-border mx-1 h-6 w-px" />
 
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              type="button"
-              onClick={(event) =>
-                handleAction({ action: "toggle-bookmark", event })
-              }
-            >
+          <ToolbarButton
+            icon={
               <Bookmark
-                className={`size-4 ${currentBookmarked ? "fill-primary text-primary" : ""}`}
+                className={currentBookmarked ? "fill-primary text-primary" : ""}
               />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {currentBookmarked ? "Remove bookmark" : "Add bookmark"}
-          </TooltipContent>
+            }
+            tooltip={currentBookmarked ? "Remove bookmark" : "Add bookmark"}
+            onClick={({ event }) =>
+              handleAction({ action: "toggle-bookmark", event })
+            }
+          />
         </Tooltip>
       </TooltipProvider>
     </div>
@@ -348,23 +265,17 @@ function ToolbarRightSection({
   return (
     <div className="flex items-center gap-1">
       <TooltipProvider delayDuration={500}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="text" size="icon" type="button" onClick={() => {}}>
-              <Magnet className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Auto snapping</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<Magnet />}
+          tooltip="Auto snapping"
+          onClick={() => {}}
+        />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="text" size="icon" type="button" onClick={() => {}}>
-              <Link className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Enable Ripple Editing</TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={<Link />}
+          tooltip="Ripple editing"
+          onClick={() => {}}
+        />
       </TooltipProvider>
 
       <div className="bg-border mx-1 h-6 w-px" />
@@ -376,7 +287,7 @@ function ToolbarRightSection({
           type="button"
           onClick={() => onZoom({ direction: "out" })}
         >
-          <ZoomOut className="size-4" />
+          <ZoomOut />
         </Button>
         <Slider
           className="w-24"
@@ -392,9 +303,38 @@ function ToolbarRightSection({
           type="button"
           onClick={() => onZoom({ direction: "in" })}
         >
-          <ZoomIn className="size-4" />
+          <ZoomIn />
         </Button>
       </div>
     </div>
+  );
+}
+
+function ToolbarButton({
+  icon,
+  tooltip,
+  onClick,
+  disabled,
+}: {
+  icon: React.ReactNode;
+  tooltip: string;
+  onClick: ({ event }: { event: React.MouseEvent }) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Tooltip delayDuration={200}>
+      <TooltipTrigger asChild>
+        <Button
+          variant="text"
+          size="icon"
+          type="button"
+          onClick={(event) => onClick({ event })}
+          className={disabled ? "cursor-not-allowed opacity-50" : ""}
+        >
+          {icon}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{tooltip}</TooltipContent>
+    </Tooltip>
   );
 }

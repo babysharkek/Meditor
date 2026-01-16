@@ -1,19 +1,9 @@
 import type { EditorCore } from "@/core";
 import type { RootNode } from "@/services/renderer/nodes/root-node";
 import type { ExportOptions, ExportResult } from "@/types/export";
-import type { TimelineTrack } from "@/types/timeline";
-import type { MediaAsset } from "@/types/assets";
 import { SceneExporter } from "@/services/renderer/scene-exporter";
 import { buildScene } from "@/services/renderer/scene-builder";
-
-interface AudioElement {
-  buffer: AudioBuffer;
-  startTime: number;
-  duration: number;
-  trimStart: number;
-  trimEnd: number;
-  muted: boolean;
-}
+import { createTimelineAudioBuffer } from "@/lib/audio-utils";
 
 export class RendererManager {
   private renderTree: RootNode | null = null;
@@ -58,7 +48,7 @@ export class RendererManager {
       let audioBuffer: AudioBuffer | null = null;
       if (includeAudio) {
         onProgress?.({ progress: 0.05 });
-        audioBuffer = await this.createTimelineAudioBuffer({
+        audioBuffer = await createTimelineAudioBuffer({
           tracks,
           mediaAssets,
           duration,
@@ -126,121 +116,6 @@ export class RendererManager {
         error: error instanceof Error ? error.message : "Unknown export error",
       };
     }
-  }
-
-  private async createTimelineAudioBuffer({
-    tracks,
-    mediaAssets,
-    duration,
-    sampleRate = 44100,
-  }: {
-    tracks: TimelineTrack[];
-    mediaAssets: MediaAsset[];
-    duration: number;
-    sampleRate?: number;
-  }): Promise<AudioBuffer | null> {
-    const AudioContextClass =
-      window.AudioContext ||
-      (window as typeof window & { webkitAudioContext: typeof AudioContext })
-        .webkitAudioContext;
-    const audioContext = new AudioContextClass();
-
-    const audioElements: AudioElement[] = [];
-    const mediaMap = new Map<string, MediaAsset>(
-      mediaAssets.map((m) => [m.id, m]),
-    );
-
-    for (const track of tracks) {
-      if (track.muted) continue;
-
-      for (const element of track.elements) {
-        if (element.type !== "audio") {
-          continue;
-        }
-
-        if (element.duration <= 0) continue;
-
-        try {
-          let audioBuffer: AudioBuffer;
-
-          if (element.sourceType === "upload") {
-            const mediaAsset = mediaMap.get(element.mediaId);
-            if (!mediaAsset || mediaAsset.type !== "audio") {
-              continue;
-            }
-
-            const arrayBuffer = await mediaAsset.file.arrayBuffer();
-            audioBuffer = await audioContext.decodeAudioData(
-              arrayBuffer.slice(0),
-            );
-          } else {
-            // library audio - already has decoded buffer
-            audioBuffer = element.buffer;
-          }
-
-          audioElements.push({
-            buffer: audioBuffer,
-            startTime: element.startTime,
-            duration: element.duration,
-            trimStart: element.trimStart,
-            trimEnd: element.trimEnd,
-            muted: element.muted || track.muted || false,
-          });
-        } catch (error) {
-          console.warn("Failed to decode audio:", error);
-        }
-      }
-    }
-
-    if (audioElements.length === 0) {
-      return null;
-    }
-
-    const outputChannels = 2;
-    const outputLength = Math.ceil(duration * sampleRate);
-    const outputBuffer = audioContext.createBuffer(
-      outputChannels,
-      outputLength,
-      sampleRate,
-    );
-
-    for (const element of audioElements) {
-      if (element.muted) continue;
-
-      const {
-        buffer,
-        startTime,
-        trimStart,
-        duration: elementDuration,
-      } = element;
-
-      const sourceStartSample = Math.floor(trimStart * buffer.sampleRate);
-      const sourceLengthSamples = Math.floor(
-        elementDuration * buffer.sampleRate,
-      );
-      const outputStartSample = Math.floor(startTime * sampleRate);
-
-      const resampleRatio = sampleRate / buffer.sampleRate;
-      const resampledLength = Math.floor(sourceLengthSamples * resampleRatio);
-
-      for (let channel = 0; channel < outputChannels; channel++) {
-        const outputData = outputBuffer.getChannelData(channel);
-        const sourceChannel = Math.min(channel, buffer.numberOfChannels - 1);
-        const sourceData = buffer.getChannelData(sourceChannel);
-
-        for (let i = 0; i < resampledLength; i++) {
-          const outputIndex = outputStartSample + i;
-          if (outputIndex >= outputLength) break;
-
-          const sourceIndex = sourceStartSample + Math.floor(i / resampleRatio);
-          if (sourceIndex >= sourceData.length) break;
-
-          outputData[outputIndex] += sourceData[sourceIndex];
-        }
-      }
-    }
-
-    return outputBuffer;
   }
 
   subscribe(listener: () => void): () => void {

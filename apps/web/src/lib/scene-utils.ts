@@ -1,5 +1,6 @@
 import { TScene } from "@/types/timeline";
 import { generateUUID } from "@/lib/utils";
+import { ensureMainTrack } from "@/lib/timeline/track-utils";
 
 export function getMainScene({ scenes }: { scenes: TScene[] }): TScene | null {
   return scenes.find((scene) => scene.isMain) || null;
@@ -8,15 +9,7 @@ export function getMainScene({ scenes }: { scenes: TScene[] }): TScene | null {
 export function ensureMainScene({ scenes }: { scenes: TScene[] }): TScene[] {
   const hasMain = scenes.some((scene) => scene.isMain);
   if (!hasMain) {
-    const mainScene: TScene = {
-      id: generateUUID(),
-      name: "Main scene",
-      isMain: true,
-      tracks: [],
-      bookmarks: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    const mainScene = buildDefaultScene({ name: "Main scene", isMain: true });
     return [mainScene, ...scenes];
   }
   return scenes;
@@ -29,11 +22,12 @@ export function buildDefaultScene({
   name: string;
   isMain: boolean;
 }): TScene {
+  const tracks = ensureMainTrack({ tracks: [] });
   return {
     id: generateUUID(),
     name,
     isMain,
-    tracks: [],
+    tracks,
     bookmarks: [],
     createdAt: new Date(),
     updatedAt: new Date(),

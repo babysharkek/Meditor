@@ -322,7 +322,7 @@ const ColorCircle = ({
 }) => (
   <div
     className={`absolute border-3 border-white rounded-full shadow-lg pointer-events-none ${
-      size === "sm" ? "w-3 h-3" : "w-4 h-4"
+      size === "sm" ? "size-3" : "size-4"
     }`}
     style={{
       left: position.left,

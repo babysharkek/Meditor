@@ -9,6 +9,7 @@ import { ColorNode } from "./nodes/color-node";
 import { BlurBackgroundNode } from "./nodes/blur-background-node";
 import { TBackground, TCanvasSize } from "@/types/project";
 import { DEFAULT_BLUR_INTENSITY } from "@/constants/project-constants";
+import { canTracktHaveAudio } from "@/lib/timeline";
 
 export type BuildSceneParams = {
   canvasSize: TCanvasSize;
@@ -33,7 +34,7 @@ export function buildScene(params: BuildSceneParams) {
   const elements = tracks
     .slice()
     .reverse()
-    .filter((track) => !track.muted)
+    .filter((track) => !(canTracktHaveAudio(track) && track.muted))
     .flatMap((track): TimelineElement[] => track.elements);
 
   const contentNodes = [];

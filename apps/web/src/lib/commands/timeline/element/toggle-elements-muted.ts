@@ -1,6 +1,6 @@
 import { Command } from "@/lib/commands/base-command";
 import type { TimelineTrack } from "@/types/timeline";
-import { canHaveAudio } from "@/lib/timeline/element-utils";
+import { canElementHaveAudio } from "@/lib/timeline/element-utils";
 import { EditorCore } from "@/core";
 
 export class ToggleElementsMutedCommand extends Command {
@@ -17,7 +17,7 @@ export class ToggleElementsMutedCommand extends Command {
     const mutableElements = this.elements.filter(({ trackId, elementId }) => {
       const track = this.savedState?.find((t) => t.id === trackId);
       const element = track?.elements.find((e) => e.id === elementId);
-      return element && canHaveAudio(element);
+      return element && canElementHaveAudio(element);
     });
 
     if (mutableElements.length === 0) {
@@ -27,7 +27,7 @@ export class ToggleElementsMutedCommand extends Command {
     const shouldMute = mutableElements.some(({ trackId, elementId }) => {
       const track = this.savedState?.find((t) => t.id === trackId);
       const element = track?.elements.find((e) => e.id === elementId);
-      return element && canHaveAudio(element) && !element.muted;
+      return element && canElementHaveAudio(element) && !element.muted;
     });
 
     const updatedTracks = this.savedState.map((track) => {
@@ -37,7 +37,7 @@ export class ToggleElementsMutedCommand extends Command {
             track.id === trackId && element.id === elementId,
         );
         return shouldUpdate &&
-          canHaveAudio(element) &&
+          canElementHaveAudio(element) &&
           element.muted !== shouldMute
           ? { ...element, muted: shouldMute }
           : element;

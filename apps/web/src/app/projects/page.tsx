@@ -15,7 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { KeyboardEvent, MouseEvent } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
 import { RenameProjectDialog } from "@/components/rename-project-dialog";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MigrationDialog } from "@/components/editor/migration-dialog";
 import type { TProjectMetadata } from "@/types/project";
 import { toast } from "sonner";
 import { useEditor } from "@/hooks/use-editor";
@@ -51,6 +52,12 @@ export default function ProjectsPage() {
   const [sortOption, setSortOption] = useState("createdAt-desc");
   const router = useRouter();
   const editor = useEditor();
+
+  useEffect(() => {
+    if (!editor.project.getIsInitialized()) {
+      editor.project.loadAllProjects();
+    }
+  }, [editor.project]);
 
   const handleCreateProject = async () => {
     try {
@@ -147,6 +154,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="bg-background min-h-screen">
+      <MigrationDialog />
       <div className="flex h-16 w-full items-center justify-between px-6 pt-2">
         <Link
           href="/"
@@ -636,7 +644,7 @@ function EmptyState({
         </p>
       </div>
       <Button size="lg" className="gap-2" onClick={onCreateProject}>
-        <Plus className="size-4" />
+        <Plus />
         Create your first project
       </Button>
     </div>

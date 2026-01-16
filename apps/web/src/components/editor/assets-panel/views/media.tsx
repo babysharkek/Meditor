@@ -231,9 +231,9 @@ export function MediaView() {
               className="w-full"
             >
               {isProcessing ? (
-                <Loader2 className="size-4 animate-spin" />
+                <Loader2 className="animate-spin" />
               ) : (
-                <CloudUpload className="size-4" />
+                <CloudUpload />
               )}
               <span>Upload</span>
             </Button>

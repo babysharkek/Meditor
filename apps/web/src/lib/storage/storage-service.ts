@@ -9,11 +9,13 @@ import type {
   SerializedScene,
 } from "./types";
 import { SavedSoundsData, SavedSound, SoundEffect } from "@/types/sounds";
+import { migrations, runStorageMigrations } from "@/lib/migrations";
 
 class StorageService {
   private projectsAdapter: IndexedDBAdapter<SerializedProject>;
   private savedSoundsAdapter: IndexedDBAdapter<SavedSoundsData>;
   private config: StorageConfig;
+  private migrationsPromise: Promise<void> | null = null;
 
   constructor() {
     this.config = {
@@ -34,6 +36,18 @@ class StorageService {
       "saved-sounds",
       this.config.version,
     );
+  }
+
+  private async ensureMigrations(): Promise<void> {
+    if (this.migrationsPromise) {
+      await this.migrationsPromise;
+      return;
+    }
+
+    this.migrationsPromise = runStorageMigrations({ migrations }).then(
+      () => undefined,
+    );
+    await this.migrationsPromise;
   }
 
   private getProjectMediaAdapters({ projectId }: { projectId: string }) {
@@ -81,9 +95,18 @@ class StorageService {
   }: {
     id: string;
   }): Promise<{ project: TProject } | null> {
+    await this.ensureMigrations();
     const serializedProject = await this.projectsAdapter.get(id);
 
     if (!serializedProject) return null;
+
+    console.log(
+      "[storage] loadProject scenes",
+      JSON.stringify({
+        projectId: id,
+        scenes: serializedProject.scenes ?? [],
+      }),
+    );
 
     const scenes =
       serializedProject.scenes?.map((scene) => ({
@@ -134,6 +157,7 @@ class StorageService {
   }
 
   async loadAllProjectsMetadata(): Promise<TProjectMetadata[]> {
+    await this.ensureMigrations();
     const serializedProjects = await this.projectsAdapter.getAll();
 
     const metadata = serializedProjects.map((serializedProject) => ({

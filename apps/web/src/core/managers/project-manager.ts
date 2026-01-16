@@ -15,7 +15,11 @@ import {
 } from "@/constants/project-constants";
 import { buildDefaultScene } from "@/lib/scene-utils";
 import { generateThumbnail } from "@/lib/media-processing-utils";
-import { CURRENT_VERSION, runMigrations } from "@/lib/migrations";
+import {
+  CURRENT_STORAGE_VERSION,
+  migrations,
+  runStorageMigrations,
+} from "@/lib/migrations";
 
 export interface MigrationState {
   isMigrating: boolean;
@@ -30,6 +34,7 @@ export class ProjectManager {
   private isLoading = true;
   private isInitialized = false;
   private invalidProjectIds = new Set<string>();
+  private storageMigrationPromise: Promise<void> | null = null;
   private listeners = new Set<() => void>();
   private migrationState: MigrationState = {
     isMigrating: false,
@@ -39,6 +44,43 @@ export class ProjectManager {
   };
 
   constructor(private editor: EditorCore) {}
+
+  private async ensureStorageMigrations(): Promise<void> {
+    if (this.storageMigrationPromise) {
+      await this.storageMigrationPromise;
+      return;
+    }
+
+    this.storageMigrationPromise = (async () => {
+      let hasShownState = false;
+
+      await runStorageMigrations({
+        migrations,
+        callbacks: {
+          onMigrationStart: ({ fromVersion, toVersion }) => {
+            hasShownState = true;
+            this.setMigrationState({
+              isMigrating: true,
+              fromVersion,
+              toVersion,
+              projectName: null,
+            });
+          },
+        },
+      });
+
+      if (hasShownState) {
+        this.setMigrationState({
+          isMigrating: false,
+          fromVersion: null,
+          toVersion: null,
+          projectName: null,
+        });
+      }
+    })();
+
+    await this.storageMigrationPromise;
+  }
 
   async createNewProject({ name }: { name: string }): Promise<string> {
     const mainScene = buildDefaultScene({ name: "Main scene", isMain: true });
@@ -59,7 +101,7 @@ export class ProjectManager {
           color: DEFAULT_COLOR,
         },
       },
-      version: CURRENT_VERSION,
+      version: CURRENT_STORAGE_VERSION,
     };
 
     this.active = newProject;
@@ -88,6 +130,7 @@ export class ProjectManager {
       this.notify();
     }
 
+    await this.ensureStorageMigrations();
     this.editor.media.clearAllAssets();
     this.editor.scenes.clearScenes();
 
@@ -97,34 +140,7 @@ export class ProjectManager {
         throw new Error(`Project with id ${id} not found`);
       }
 
-      let project = result.project;
-      const migrationResult = runMigrations({ project });
-
-      if (migrationResult.migrated) {
-        const startTime = Date.now();
-
-        this.setMigrationState({
-          isMigrating: true,
-          fromVersion: migrationResult.fromVersion ?? null,
-          toVersion: migrationResult.toVersion ?? null,
-          projectName: project.metadata.name,
-        });
-
-        project = migrationResult.project;
-        await storageService.saveProject({ project });
-
-        const elapsed = Date.now() - startTime;
-        if (elapsed < 300) {
-          await new Promise((resolve) => setTimeout(resolve, 300 - elapsed));
-        }
-
-        this.setMigrationState({
-          isMigrating: false,
-          fromVersion: null,
-          toVersion: null,
-          projectName: null,
-        });
-      }
+      const project = result.project;
 
       this.active = project;
       this.notify();
@@ -173,6 +189,7 @@ export class ProjectManager {
       this.notify();
     }
 
+    await this.ensureStorageMigrations();
     try {
       const metadata = await storageService.loadAllProjectsMetadata();
       this.savedProjects = metadata;

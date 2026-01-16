@@ -183,12 +183,12 @@ project-manager.ts
     isLoading
     isInitialized
     invalidProjectIds
+    storageMigrationPromise: Promise<void> | null
     listeners
     migrationState: MigrationState
     constructor(private editor: EditorCore)
     async createNewProject({ name }: { name: string }): Promise<string>
-    async loadProject({ id }: { id: string }): Promise<void>
-    // ... and 21 more
+    // ... and 22 more
   }
 
 renderer-manager.ts
@@ -391,14 +391,16 @@ use-scroll-sync.ts
     rulerScrollRef,
     tracksScrollRef,
     trackLabelsScrollRef,
+    bookmarksScrollRef,
   }: UseScrollSyncProps)
 
 use-selection-box.ts
   export function useSelectionBox({
     containerRef,
-    playheadRef,
     onSelectionComplete,
     isEnabled = true,
+    tracksScrollRef,
+    zoomLevel,
   }: UseSelectionBoxProps)
 
 use-sound-search.ts
@@ -464,7 +466,6 @@ use-timeline-interactions.ts
     zoomLevel,
     duration,
     isSelecting,
-    justFinishedSelecting,
     clearSelectedElements,
     seek,
   }: UseTimelineInteractionsProps)
@@ -508,6 +509,39 @@ use-timeline-zoom.ts
   }: UseTimelineZoomProps): UseTimelineZoomReturn
 
 ## apps/web/src/lib
+
+audio-utils.ts
+  export type CollectedAudioElement = Omit<
+    AudioElement,
+    "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceU...
+  export function createAudioContext(): AudioContext
+  export function collectAudioElements({
+    tracks,
+    mediaAssets,
+    audioContext,
+  }: {
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+    audioContext: AudioContext;
+  }): Promise<CollectedAudioElement[]>
+  export function collectAudioMixSources({
+    tracks,
+    mediaAssets,
+  }: {
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+  }): Promise<AudioMixSource[]>
+  export function createTimelineAudioBuffer({
+    tracks,
+    mediaAssets,
+    duration,
+    sampleRate = 44100,
+  }: {
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+    duration: number;
+    sampleRate?: number;
+  }): Promise<AudioBuffer | null>
 
 blog-query.ts
   export function getPosts()
@@ -785,9 +819,14 @@ transcription-utils.ts
 
 utils.ts
   export function cn(...inputs: ClassValue[]): string
+  export function formatDate({ date }: { date: Date }): string
   export function capitalizeFirstLetter({ string }: { string: string })
   export function generateUUID(): string
-  export function isTypableDOMElement({ element }: { element: HTMLElement }): boolean
+  export function isTypableDOMElement({
+    element,
+  }: {
+    element: HTMLElement;
+  }): boolean
   export function isAppleDevice(): boolean
   export function clamp({
     value,
@@ -1326,10 +1365,10 @@ drop-utils.ts
   }): number
 
 element-utils.ts
-  export function canHaveAudio(
+  export function canElementHaveAudio(
     element: TimelineElement,
   )
-  export function canBeHidden(
+  export function canElementBeHidden(
     element: TimelineElement,
   )
   export function hasMediaId(
@@ -1410,6 +1449,12 @@ index.ts
   }): number
 
 track-utils.ts
+  export function canTracktHaveAudio(
+    track: TimelineTrack,
+  )
+  export function canTrackBeHidden(
+    track: TimelineTrack,
+  )
   export function getTrackColor({ type }: { type: TrackType })
   export function getTrackClasses({ type }: { type: TrackType })
   export function getTrackHeight({ type }: { type: TrackType }): number
@@ -1425,6 +1470,7 @@ track-utils.ts
   }: {
     tracks: Array<{ type: TrackType }>;
   }): number
+  export function isMainTrack(track: TimelineTrack)
   export function getMainTrack({
     tracks,
   }: {
@@ -1872,18 +1918,23 @@ timeline.ts
     type: "video"
     elements: (VideoElement | ImageElement)[]
     isMain: boolean
+    muted: boolean
+    hidden: boolean
   }
   export interface TextTrack extends BaseTrack {
     type: "text"
     elements: TextElement[]
+    hidden: boolean
   }
   export interface AudioTrack extends BaseTrack {
     type: "audio"
     elements: AudioElement[]
+    muted: boolean
   }
   export interface StickerTrack extends BaseTrack {
     type: "sticker"
     elements: StickerElement[]
+    hidden: boolean
   }
   export type TimelineTrack = VideoTrack | TextTrack | AudioTrack | StickerTrack
   export interface Transform {

@@ -1,6 +1,7 @@
 import { Command } from "@/lib/commands/base-command";
 import type { TimelineTrack } from "@/types/timeline";
 import { EditorCore } from "@/core";
+import { canTracktHaveAudio } from "@/lib/timeline";
 
 export class ToggleTrackMuteCommand extends Command {
   private savedState: TimelineTrack[] | null = null;
@@ -13,8 +14,17 @@ export class ToggleTrackMuteCommand extends Command {
     const editor = EditorCore.getInstance();
     this.savedState = editor.timeline.getTracks();
 
-    const updatedTracks = this.savedState.map((t) =>
-      t.id === this.trackId ? { ...t, muted: !t.muted } : t,
+    const targetTrack = this.savedState.find(
+      (track) => track.id === this.trackId,
+    );
+    if (!targetTrack) {
+      return;
+    }
+
+    const updatedTracks = this.savedState.map((track) =>
+      track.id === this.trackId && canTracktHaveAudio(track)
+        ? { ...track, muted: !track.muted }
+        : track,
     );
 
     editor.timeline.updateTracks(updatedTracks);

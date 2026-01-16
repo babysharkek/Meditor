@@ -245,6 +245,7 @@ export function useElementInteraction({
       element: TimelineElement;
       track: TimelineTrack;
     }) => {
+      event.stopPropagation();
       mouseDownLocationRef.current = { x: event.clientX, y: event.clientY };
 
       const isRightClick = event.button === 2;

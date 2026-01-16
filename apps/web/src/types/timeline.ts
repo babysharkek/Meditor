@@ -13,28 +13,32 @@ export type TrackType = "video" | "text" | "audio" | "sticker";
 interface BaseTrack {
   id: string;
   name: string;
-  muted?: boolean;
 }
 
 export interface VideoTrack extends BaseTrack {
   type: "video";
   elements: (VideoElement | ImageElement)[];
   isMain: boolean;
+  muted: boolean;
+  hidden: boolean;
 }
 
 export interface TextTrack extends BaseTrack {
   type: "text";
   elements: TextElement[];
+  hidden: boolean;
 }
 
 export interface AudioTrack extends BaseTrack {
   type: "audio";
   elements: AudioElement[];
+  muted: boolean;
 }
 
 export interface StickerTrack extends BaseTrack {
   type: "sticker";
   elements: StickerElement[];
+  hidden: boolean;
 }
 
 export type TimelineTrack = VideoTrack | TextTrack | AudioTrack | StickerTrack;
@@ -46,15 +50,6 @@ export interface Transform {
     y: number;
   };
   rotate: number;
-}
-
-interface BaseTimelineElement {
-  id: string;
-  name: string;
-  duration: number;
-  startTime: number;
-  trimStart: number;
-  trimEnd: number;
 }
 
 interface BaseAudioElement extends BaseTimelineElement {
@@ -72,6 +67,15 @@ export interface UploadAudioElement extends BaseAudioElement {
 export interface LibraryAudioElement extends BaseAudioElement {
   sourceType: "library";
   sourceUrl: string;
+}
+
+interface BaseTimelineElement {
+  id: string;
+  name: string;
+  duration: number;
+  startTime: number;
+  trimStart: number;
+  trimEnd: number;
 }
 
 export type AudioElement = UploadAudioElement | LibraryAudioElement;

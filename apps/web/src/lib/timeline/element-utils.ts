@@ -14,13 +14,13 @@ import {
   UploadAudioElement,
 } from "@/types/timeline";
 
-export function canHaveAudio(
+export function canElementHaveAudio(
   element: TimelineElement,
 ): element is AudioElement | VideoElement {
   return element.type === "audio" || element.type === "video";
 }
 
-export function canBeHidden(
+export function canElementBeHidden(
   element: TimelineElement,
 ): element is VideoElement | ImageElement | TextElement | StickerElement {
   return element.type !== "audio";

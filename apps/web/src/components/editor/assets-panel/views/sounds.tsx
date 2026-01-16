@@ -239,7 +239,7 @@ function SoundEffectsView() {
               size="icon"
               className={cn(showCommercialOnly && "text-primary")}
             >
-              <ListFilter className="w-4 h-4" />
+              <ListFilter />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
@@ -521,9 +521,9 @@ function AudioItem({
       <div className="relative w-12 h-12 bg-accent rounded-md flex items-center justify-center overflow-hidden shrink-0">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
         {isPlaying ? (
-          <PauseIcon className="w-5 h-5" />
+          <PauseIcon className="size-5" />
         ) : (
-          <PlayIcon className="w-5 h-5" />
+          <PlayIcon className="size-5" />
         )}
       </div>
 
@@ -542,7 +542,7 @@ function AudioItem({
           onClick={handleAddToTimeline}
           title="Add to timeline"
         >
-          <PlusIcon className="w-4 h-4" />
+          <PlusIcon />
         </Button>
         <Button
           variant="text"
@@ -555,7 +555,7 @@ function AudioItem({
           onClick={handleSaveClick}
           title={isSaved ? "Remove from saved" : "Save sound"}
         >
-          <HeartIcon className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
+          <HeartIcon className={`${isSaved ? "fill-current" : ""}`} />
         </Button>
       </div>
     </div>

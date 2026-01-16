@@ -91,25 +91,6 @@ export function useTimelinePlayhead({
       const fps = activeProject.settings.fps;
       const time = snapTimeToFrame({ time: rawTime, fps });
 
-      // debug logging
-      if (rawX < 0 || x !== rawX) {
-        console.log(
-          "PLAYHEAD DEBUG:",
-          JSON.stringify({
-            mouseX: event.clientX,
-            rulerLeft: rect.left,
-            rawX,
-            constrainedX: x,
-            timelineContentWidth,
-            rawTime,
-            finalTime: time,
-            duration,
-            zoomLevel,
-            playheadPx: time * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel,
-          }),
-        );
-      }
-
       setScrubTime(time);
       seek(time); // update video preview in real time
 
