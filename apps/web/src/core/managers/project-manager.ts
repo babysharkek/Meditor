@@ -8,6 +8,7 @@ import type { TimelineElement } from "@/types/timeline";
 import { storageService } from "@/lib/storage/storage-service";
 import { toast } from "sonner";
 import { generateUUID } from "@/lib/utils";
+import { UpdateProjectSettingsCommand } from "@/lib/commands/project";
 import {
   DEFAULT_FPS,
   DEFAULT_CANVAS_SIZE,
@@ -130,6 +131,7 @@ export class ProjectManager {
       this.notify();
     }
 
+    this.editor.save.pause();
     await this.ensureStorageMigrations();
     this.editor.media.clearAllAssets();
     this.editor.scenes.clearScenes();
@@ -159,6 +161,7 @@ export class ProjectManager {
     } finally {
       this.isLoading = false;
       this.notify();
+      this.editor.save.resume();
     }
   }
 
@@ -339,27 +342,20 @@ export class ProjectManager {
 
   async updateSettings({
     settings,
+    pushHistory = true,
   }: {
     settings: Partial<TProjectSettings>;
+    pushHistory?: boolean;
   }): Promise<void> {
     if (!this.active) return;
 
-    const updatedProject: TProject = {
-      ...this.active,
-      settings: { ...this.active.settings, ...settings },
-      metadata: { ...this.active.metadata, updatedAt: new Date() },
-    };
-
-    try {
-      await storageService.saveProject({ project: updatedProject });
-      this.active = updatedProject;
-      this.notify();
-    } catch (error) {
-      console.error("Failed to update settings:", error);
-      toast.error("Failed to update settings", {
-        description: "Please try again",
-      });
+    const command = new UpdateProjectSettingsCommand(settings);
+    if (pushHistory) {
+      this.editor.command.execute({ command });
+      return;
     }
+
+    command.execute();
   }
 
   async updateThumbnail({ thumbnail }: { thumbnail: string }): Promise<void> {
@@ -369,15 +365,10 @@ export class ProjectManager {
       ...this.active,
       metadata: { ...this.active.metadata, thumbnail, updatedAt: new Date() },
     };
-
-    try {
-      await storageService.saveProject({ project: updatedProject });
-      this.active = updatedProject;
-      this.notify();
-      this.updateMetadata(updatedProject);
-    } catch (error) {
-      console.error("Failed to update thumbnail:", error);
-    }
+    this.active = updatedProject;
+    this.notify();
+    this.updateMetadata(updatedProject);
+    this.editor.save.markDirty();
   }
 
   async prepareExit(): Promise<void> {

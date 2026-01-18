@@ -7,10 +7,11 @@ import {
   type RefObject,
 } from "react";
 import { useEditor } from "@/hooks/use-editor";
-import { useElementSelection } from "@/hooks/use-element-selection";
+import { useElementSelection } from "@/hooks/timeline/element/use-element-selection";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { snapTimeToFrame } from "@/lib/time-utils";
 import { computeDropTarget } from "@/lib/timeline/drop-utils";
+import { generateUUID } from "@/lib/utils";
 import type {
   ElementDragState,
   TimelineElement,
@@ -24,6 +25,7 @@ interface UseElementInteractionProps {
   zoomLevel: number;
   timelineRef: RefObject<HTMLDivElement | null>;
   tracksContainerRef: RefObject<HTMLDivElement | null>;
+  tracksScrollRef: RefObject<HTMLDivElement | null>;
   onSnapPointChange?: (snapPoint: SnapPoint | null) => void;
 }
 
@@ -32,27 +34,80 @@ const initialDragState: ElementDragState = {
   elementId: null,
   trackId: null,
   startMouseX: 0,
+  startMouseY: 0,
   startElementTime: 0,
   clickOffsetTime: 0,
   currentTime: 0,
 };
 
+interface PendingDragState {
+  elementId: string;
+  trackId: string;
+  startMouseX: number;
+  startMouseY: number;
+  startElementTime: number;
+  clickOffsetTime: number;
+}
+
+function getMouseTimeFromClientX({
+  clientX,
+  containerRect,
+  zoomLevel,
+  scrollLeft,
+}: {
+  clientX: number;
+  containerRect: DOMRect;
+  zoomLevel: number;
+  scrollLeft: number;
+}): number {
+  const mouseX = clientX - containerRect.left + scrollLeft;
+  return Math.max(
+    0,
+    mouseX / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel),
+  );
+}
+
+function getClickOffsetTime({
+  clientX,
+  elementRect,
+  zoomLevel,
+}: {
+  clientX: number;
+  elementRect: DOMRect;
+  zoomLevel: number;
+}): number {
+  const clickOffsetX = clientX - elementRect.left;
+  return clickOffsetX / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel);
+}
+
+function getElementDuration({ element }: { element: TimelineElement }): number {
+  return element.duration - element.trimStart - element.trimEnd;
+}
+
+interface StartDragParams
+  extends Omit<ElementDragState, "isDragging" | "currentTime"> {
+  initialCurrentTime: number;
+}
+
 export function useElementInteraction({
   zoomLevel,
   timelineRef,
   tracksContainerRef,
+  tracksScrollRef,
   onSnapPointChange,
 }: UseElementInteractionProps) {
   const editor = useEditor();
   const tracks = editor.timeline.getTracks();
   const {
-    isSelected,
-    select,
+    isElementSelected,
+    selectElement,
     handleElementClick: handleSelectionClick,
   } = useElementSelection();
 
   const [dragState, setDragState] =
     useState<ElementDragState>(initialDragState);
+  const [isPendingDrag, setIsPendingDrag] = useState(false);
+  const pendingDragRef = useRef<PendingDragState | null>(null);
   const lastMouseXRef = useRef(0);
   const mouseDownLocationRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -61,17 +116,20 @@ export function useElementInteraction({
       elementId,
       trackId,
       startMouseX,
+      startMouseY,
       startElementTime,
       clickOffsetTime,
-    }: Omit<ElementDragState, "isDragging" | "currentTime">) => {
+      initialCurrentTime,
+    }: StartDragParams) => {
       setDragState({
         isDragging: true,
         elementId,
         trackId,
         startMouseX,
+        startMouseY,
         startElementTime,
         clickOffsetTime,
-        currentTime: startElementTime,
+        currentTime: initialCurrentTime,
       });
     },
     [],
@@ -81,37 +139,77 @@ export function useElementInteraction({
     setDragState(initialDragState);
   }, []);
 
-  // mouse move: update drag time
   useEffect(() => {
-    if (!dragState.isDragging) return;
+    if (!dragState.isDragging && !isPendingDrag) return;
 
-    const handleMouseMove = ({ clientX }: MouseEvent) => {
-      if (!timelineRef.current) return;
+    const handleMouseMove = ({ clientX, clientY }: MouseEvent) => {
+      let startedDragThisEvent = false;
+      const timeline = timelineRef.current;
+      const scrollContainer = tracksScrollRef.current;
+      if (!timeline || !scrollContainer) return;
       lastMouseXRef.current = clientX;
 
+      if (isPendingDrag && pendingDragRef.current) {
+        const deltaX = Math.abs(clientX - pendingDragRef.current.startMouseX);
+        const deltaY = Math.abs(clientY - pendingDragRef.current.startMouseY);
+        if (deltaX > DRAG_THRESHOLD_PX || deltaY > DRAG_THRESHOLD_PX) {
+          const activeProject = editor.project.getActive();
+          if (!activeProject) return;
+          const scrollLeft = scrollContainer.scrollLeft;
+          const mouseTime = getMouseTimeFromClientX({
+            clientX,
+            containerRect: scrollContainer.getBoundingClientRect(),
+            zoomLevel,
+            scrollLeft,
+          });
+          const adjustedTime = Math.max(
+            0,
+            mouseTime - pendingDragRef.current.clickOffsetTime,
+          );
+          const snappedTime = snapTimeToFrame({
+            time: adjustedTime,
+            fps: activeProject.settings.fps,
+          });
+          startDrag({
+            ...pendingDragRef.current,
+            initialCurrentTime: snappedTime,
+          });
+          startedDragThisEvent = true;
+          pendingDragRef.current = null;
+          setIsPendingDrag(false);
+        } else {
+          return;
+        }
+      }
+
+      if (startedDragThisEvent) {
+        return;
+      }
+
       if (dragState.elementId && dragState.trackId) {
-        const alreadySelected = isSelected({
+        const alreadySelected = isElementSelected({
           trackId: dragState.trackId,
           elementId: dragState.elementId,
         });
         if (!alreadySelected) {
-          select({
+          selectElement({
             trackId: dragState.trackId,
             elementId: dragState.elementId,
           });
         }
       }
 
-      const rect = timelineRef.current.getBoundingClientRect();
-      const mouseX = clientX - rect.left;
-      const mouseTime = Math.max(
-        0,
-        mouseX / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel),
-      );
-      const adjustedTime = Math.max(0, mouseTime - dragState.clickOffsetTime);
-
       const activeProject = editor.project.getActive();
       if (!activeProject) return;
+
+      const scrollLeft = scrollContainer.scrollLeft;
+      const mouseTime = getMouseTimeFromClientX({
+        clientX,
+        containerRect: scrollContainer.getBoundingClientRect(),
+        zoomLevel,
+        scrollLeft,
+      });
+      const adjustedTime = Math.max(0, mouseTime - dragState.clickOffsetTime);
       const fps = activeProject.settings.fps;
       const snappedTime = snapTimeToFrame({ time: adjustedTime, fps });
       setDragState((previousDragState) => ({
@@ -128,13 +226,15 @@ export function useElementInteraction({
     dragState.elementId,
     dragState.trackId,
     zoomLevel,
-    isSelected,
-    select,
+    isElementSelected,
+    selectElement,
     editor.project,
     timelineRef,
+    tracksScrollRef,
+    isPendingDrag,
+    startDrag,
   ]);
 
-  // mouse up: resolve drop
   useEffect(() => {
     if (!dragState.isDragging) return;
 
@@ -164,12 +264,24 @@ export function useElementInteraction({
         return;
       }
 
-      const elementDuration =
-        movingElement.duration -
-        movingElement.trimStart -
-        movingElement.trimEnd;
-      const mouseX = clientX - containerRect.left;
+      const elementDuration = getElementDuration({ element: movingElement });
+      const scrollLeft = tracksScrollRef.current?.scrollLeft ?? 0;
+      const scrollContainerRect =
+        tracksScrollRef.current?.getBoundingClientRect();
+      const mouseX = scrollContainerRect
+        ? clientX - scrollContainerRect.left + scrollLeft
+        : clientX - containerRect.left + scrollLeft;
       const mouseY = clientY - containerRect.top;
+      if (mouseDownLocationRef.current) {
+        const deltaX = Math.abs(clientX - mouseDownLocationRef.current.x);
+        const deltaY = Math.abs(clientY - mouseDownLocationRef.current.y);
+        if (deltaX <= DRAG_THRESHOLD_PX && deltaY <= DRAG_THRESHOLD_PX) {
+          mouseDownLocationRef.current = null;
+          endDrag();
+          onSnapPointChange?.(null);
+          return;
+        }
+      }
 
       const dropTarget = computeDropTarget({
         elementType: movingElement.type,
@@ -181,27 +293,19 @@ export function useElementInteraction({
         elementDuration,
         pixelsPerSecond: TIMELINE_CONSTANTS.PIXELS_PER_SECOND,
         zoomLevel,
+        excludeElementId: movingElement.id,
       });
-
-      const activeProject = editor.project.getActive();
-      if (!activeProject) {
-        endDrag();
-        onSnapPointChange?.(null);
-        return;
-      }
-      const fps = activeProject.settings.fps;
-      const snappedTime = snapTimeToFrame({ time: dropTarget.xPosition, fps });
+      const snappedTime = dragState.currentTime;
 
       if (dropTarget.isNewTrack) {
-        const newTrackId = editor.timeline.addTrack({
-          type: sourceTrack.type,
-          index: dropTarget.trackIndex,
-        });
+        const newTrackId = generateUUID();
+        
         editor.timeline.moveElement({
           sourceTrackId: dragState.trackId,
           targetTrackId: newTrackId,
           elementId: dragState.elementId,
           newStartTime: snappedTime,
+          createTrack: { type: sourceTrack.type, index: dropTarget.trackIndex },
         });
       } else {
         const targetTrack = tracks[dropTarget.trackIndex];
@@ -230,10 +334,23 @@ export function useElementInteraction({
     tracks,
     endDrag,
     onSnapPointChange,
-    editor.project,
     editor.timeline,
     tracksContainerRef,
+    tracksScrollRef,
   ]);
+
+  useEffect(() => {
+    if (!isPendingDrag) return;
+
+    const handleMouseUp = () => {
+      pendingDragRef.current = null;
+      setIsPendingDrag(false);
+      onSnapPointChange?.(null);
+    };
+
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, [isPendingDrag, onSnapPointChange]);
 
   const handleElementMouseDown = useCallback(
     ({
@@ -253,7 +370,7 @@ export function useElementInteraction({
 
       // right-click
       if (isRightClick) {
-        const alreadySelected = isSelected({
+        const alreadySelected = isElementSelected({
           trackId: track.id,
           elementId: element.id,
         });
@@ -277,22 +394,24 @@ export function useElementInteraction({
       }
 
       // start drag
-      const elementRect = (
-        event.currentTarget as HTMLElement
-      ).getBoundingClientRect();
-      const clickOffsetX = event.clientX - elementRect.left;
-      const clickOffsetTime =
-        clickOffsetX / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel);
-
-      startDrag({
+      const clickOffsetTime = getClickOffsetTime({
+        clientX: event.clientX,
+        elementRect: (
+          event.currentTarget as HTMLElement
+        ).getBoundingClientRect(),
+        zoomLevel,
+      });
+      pendingDragRef.current = {
         elementId: element.id,
         trackId: track.id,
         startMouseX: event.clientX,
+        startMouseY: event.clientY,
         startElementTime: element.startTime,
         clickOffsetTime,
-      });
+      };
+      setIsPendingDrag(true);
     },
-    [zoomLevel, startDrag, isSelected, handleSelectionClick],
+    [zoomLevel, isElementSelected, handleSelectionClick],
   );
 
   const handleElementClick = useCallback(
@@ -321,15 +440,15 @@ export function useElementInteraction({
       if (event.metaKey || event.ctrlKey || event.shiftKey) return;
 
       // single click: select if not selected
-      const alreadySelected = isSelected({
+      const alreadySelected = isElementSelected({
         trackId: track.id,
         elementId: element.id,
       });
       if (!alreadySelected) {
-        select({ trackId: track.id, elementId: element.id });
+        selectElement({ trackId: track.id, elementId: element.id });
       }
     },
-    [isSelected, select],
+    [isElementSelected, selectElement],
   );
 
   return {

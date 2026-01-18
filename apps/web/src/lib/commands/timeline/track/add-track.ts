@@ -2,6 +2,7 @@ import { Command } from "@/lib/commands/base-command";
 import type { TrackType, TimelineTrack } from "@/types/timeline";
 import { generateUUID } from "@/lib/utils";
 import { EditorCore } from "@/core";
+import { buildEmptyTrack } from "@/lib/timeline/track-utils";
 
 export class AddTrackCommand extends Command {
   private trackId: string;
@@ -19,34 +20,10 @@ export class AddTrackCommand extends Command {
     const editor = EditorCore.getInstance();
     this.savedState = editor.timeline.getTracks();
 
-    const trackName =
-      this.type === "video"
-        ? "Video track"
-        : this.type === "text"
-          ? "Text track"
-          : this.type === "audio"
-            ? "Audio track"
-            : this.type === "sticker"
-              ? "Sticker track"
-              : "Track";
-
-    const newTrack: TimelineTrack =
-      this.type === "video"
-        ? {
-            id: this.trackId,
-            name: trackName,
-            type: "video",
-            elements: [],
-            muted: false,
-            isMain: false,
-          }
-        : {
-            id: this.trackId,
-            name: trackName,
-            type: this.type,
-            elements: [],
-            muted: false,
-          };
+    const newTrack: TimelineTrack = buildEmptyTrack({
+      id: this.trackId,
+      type: this.type,
+    });
 
     let updatedTracks: TimelineTrack[];
     if (this.index !== undefined) {

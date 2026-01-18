@@ -60,15 +60,15 @@ function ProjectSettingsTabs() {
               <div className="flex-1 p-5">
                 <BackgroundView />
               </div>
-              <div className="bg-panel/85 sticky -bottom-0 flex flex-col backdrop-blur-lg">
+              {/* <div className="bg-panel/85 sticky -bottom-0 flex flex-col backdrop-blur-lg">
                 <Separator />
                 <Button className="text-muted-foreground hover:text-foreground/85 h-auto w-fit !bg-transparent p-5 py-4 text-xs shadow-none">
                   Custom background
                   <PlusIcon />
                 </Button>
-              </div>
+              </div> */}
 
-              {/* another ui, looks so beautiful I don't wanna remove it */}
+              {/* another ui */}
               {/* <div className="flex flex-col justify-center items-center pb-5 sticky bottom-0">
                 <Button className="w-fit h-auto gap-1.5 px-3.5 py-1.5 bg-foreground hover:bg-foreground/85 text-background rounded-full">
                   <span className="text-sm">Custom</span>

@@ -67,6 +67,67 @@ export function getTotalTracksHeight({
   return tracksHeight + gapsHeight;
 }
 
+export function buildEmptyTrack({
+  id,
+  type,
+  name,
+}: {
+  id: string;
+  type: TrackType;
+  name?: string;
+}): TimelineTrack {
+  const trackName =
+    name ??
+    (type === "video"
+      ? "Video track"
+      : type === "text"
+        ? "Text track"
+        : type === "audio"
+          ? "Audio track"
+          : type === "sticker"
+            ? "Sticker track"
+            : "Track");
+
+  switch (type) {
+    case "video":
+      return {
+        id,
+        name: trackName,
+        type: "video",
+        elements: [],
+        hidden: false,
+        muted: false,
+        isMain: false,
+      };
+    case "text":
+      return {
+        id,
+        name: trackName,
+        type: "text",
+        elements: [],
+        hidden: false,
+      };
+    case "sticker":
+      return {
+        id,
+        name: trackName,
+        type: "sticker",
+        elements: [],
+        hidden: false,
+      };
+    case "audio":
+      return {
+        id,
+        name: trackName,
+        type: "audio",
+        elements: [],
+        muted: false,
+      };
+    default:
+      throw new Error(`Unsupported track type: ${type}`);
+  }
+}
+
 export function isMainTrack(track: TimelineTrack): track is VideoTrack {
   return track.type === "video" && track.isMain === true;
 }
@@ -94,6 +155,7 @@ export function ensureMainTrack({
       elements: [],
       muted: false,
       isMain: true,
+      hidden: false,
     };
     return [mainTrack, ...tracks];
   }

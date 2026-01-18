@@ -17,8 +17,7 @@ export interface KeyboardShortcut {
   icon?: React.ReactNode;
 }
 
-// Convert key binding format to display format
-const formatKey = (key: string): string => {
+function formatKey({ key }: { key: string }): string {
   return key
     .replace("ctrl", getPlatformSpecialKey())
     .replace("alt", getPlatformAlternateKey())
@@ -34,27 +33,24 @@ const formatKey = (key: string): string => {
     .replace("delete", "Delete")
     .replace("backspace", "Backspace")
     .replace("-", "+");
-};
+}
 
-export const useKeyboardShortcutsHelp = () => {
+export function useKeyboardShortcutsHelp() {
   const { keybindings } = useKeybindingsStore();
 
   const shortcuts = useMemo(() => {
     const result: KeyboardShortcut[] = [];
-
-    // Group keybindings by action
-    const actionToKeys: Record<string, Array<string>> = {};
+    const actionToKeys: Record<string, string[]> = {};
 
     for (const [key, action] of Object.entries(keybindings)) {
       if (action) {
         if (!actionToKeys[action]) {
           actionToKeys[action] = [];
         }
-        actionToKeys[action].push(formatKey(key));
+        actionToKeys[action].push(formatKey({ key }));
       }
     }
 
-    // Convert to shortcuts format
     for (const [actionId, keys] of Object.entries(actionToKeys)) {
       if (!Object.prototype.hasOwnProperty.call(ACTIONS, actionId)) {
         continue;
@@ -71,7 +67,6 @@ export const useKeyboardShortcutsHelp = () => {
       });
     }
 
-    // Sort shortcuts by category first, then by description to ensure consistent ordering
     return result.sort((a, b) => {
       if (a.category !== b.category) {
         return a.category.localeCompare(b.category);
@@ -83,4 +78,4 @@ export const useKeyboardShortcutsHelp = () => {
   return {
     shortcuts,
   };
-};
+}

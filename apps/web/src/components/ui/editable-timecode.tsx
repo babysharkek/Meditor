@@ -10,7 +10,7 @@ interface EditableTimecodeProps {
   duration: number;
   format?: TTimeCode;
   fps: number;
-  onTimeChange?: (time: number) => void;
+  onTimeChange?: ({ time }: { time: number }) => void;
   className?: string;
   disabled?: boolean;
 }
@@ -54,43 +54,57 @@ export function EditableTimecode({
       return;
     }
 
-    // Clamp time to valid range
     const clampedTime = Math.max(
       0,
       duration ? Math.min(duration, parsedTime) : parsedTime,
     );
 
-    onTimeChange?.(clampedTime);
+    onTimeChange?.({ time: clampedTime });
     setIsEditing(false);
     setInputValue("");
     setHasError(false);
     enterPressedRef.current = false;
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+  const handleKeyDown = ({
+    key,
+    preventDefault,
+  }: React.KeyboardEvent<HTMLInputElement>) => {
+    if (key === "Enter") {
+      preventDefault();
       enterPressedRef.current = true;
       applyEdit();
-    } else if (e.key === "Escape") {
-      e.preventDefault();
+    } else if (key === "Escape") {
+      preventDefault();
       cancelEditing();
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
+  const handleInputChange = ({
+    target,
+  }: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(target.value);
     setHasError(false);
   };
 
   const handleBlur = () => {
-    // Only apply edit if Enter wasn't pressed (to avoid double processing)
     if (!enterPressedRef.current && isEditing) {
       applyEdit();
     }
   };
 
-  // Focus input when entering edit mode
+  const handleDisplayKeyDown = ({
+    key,
+    preventDefault,
+  }: React.KeyboardEvent<HTMLSpanElement>) => {
+    if (disabled) return;
+
+    if (key === "Enter" || key === " ") {
+      preventDefault();
+      startEditing();
+    }
+  };
+
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
@@ -123,6 +137,9 @@ export function EditableTimecode({
   return (
     <span
       onClick={startEditing}
+      onKeyDown={handleDisplayKeyDown}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
       className={cn(
         "text-primary cursor-pointer font-mono text-xs tabular-nums",
         "hover:bg-muted/50 -mx-1 px-1 transition-colors hover:rounded",

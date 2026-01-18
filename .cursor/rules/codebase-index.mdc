@@ -109,9 +109,9 @@ index.ts
     project: ProjectManager
     media: MediaManager
     renderer: RendererManager
+    save: SaveManager
     static getInstance(): EditorCore
-    static reset(): void
-    // ... and 1 more
+    // ... and 2 more
   }
 
 ## apps/web/src/core/managers
@@ -206,6 +206,24 @@ renderer-manager.ts
     subscribe(listener: () => void): () => void
   }
 
+save-manager.ts
+  export class SaveManager {
+    debounceMs: number
+    isPaused
+    isSaving
+    hasPendingSave
+    saveTimer: ReturnType<typeof setTimeout> | null
+    unsubscribeHandlers: Array<() => void>
+    constructor(
+      private editor: EditorCore,
+      { debounceMs = 800 }: SaveManagerOptions = {},
+    )
+    start(): void
+    stop(): void
+    pause(): void
+    // ... and 3 more
+  }
+
 scenes-manager.ts
   export class ScenesManager {
     active: TScene | null
@@ -239,54 +257,54 @@ timeline-manager.ts
     constructor(private editor: EditorCore)
     addTrack({ type, index }: { type: TrackType; index?: number }): string
     removeTrack({ trackId }: { trackId: string }): void
-    addElementToTrack({
-      trackId,
-      element,
-    }: {
-      trackId: string;
-      element: CreateTimelineElement;
+    addElementToTrack({
+      trackId,
+      element,
+    }: {
+      trackId: string;
+      element: CreateTimelineElement;
     }): void
-    updateElementTrim({
-      trackId,
-      elementId,
-      trimStart,
-      trimEnd,
-      pushHistory = true,
-    }: {
-      trackId: string;
-      elementId: string;
-      trimStart: number;
-      trimEnd: number;
-      pushHistory?: boolean;
+    updateElementTrim({
+      elementId,
+      trimStart,
+      trimEnd,
+      pushHistory = true,
+    }: {
+      elementId: string;
+      trimStart: number;
+      trimEnd: number;
+      pushHistory?: boolean;
     }): void
-    updateElementDuration({
-      trackId,
-      elementId,
-      duration,
-      pushHistory = true,
-    }: {
-      trackId: string;
-      elementId: string;
-      duration: number;
-      pushHistory?: boolean;
+    updateElementDuration({
+      trackId,
+      elementId,
+      duration,
+      pushHistory = true,
+    }: {
+      trackId: string;
+      elementId: string;
+      duration: number;
+      pushHistory?: boolean;
     }): void
-    updateElementStartTime({
-      elements,
-      startTime,
-    }: {
-      elements: { trackId: string; elementId: string }[];
-      startTime: number;
+    updateElementStartTime({
+      elements,
+      startTime,
+    }: {
+      elements: { trackId: string; elementId: string }[];
+      startTime: number;
     }): void
-    moveElement({
-      sourceTrackId,
-      targetTrackId,
-      elementId,
-      newStartTime,
-    }: {
-      sourceTrackId: string;
-      targetTrackId: string;
-      elementId: string;
-      newStartTime: number;
+    moveElement({
+      sourceTrackId,
+      targetTrackId,
+      elementId,
+      newStartTime,
+      createTrack,
+    }: {
+      sourceTrackId: string;
+      targetTrackId: string;
+      elementId: string;
+      newStartTime: number;
+      createTrack?: { type: TrackType; index: number };
     }): void
     toggleTrackMute({ trackId }: { trackId: string }): void
     // ... and 14 more
@@ -305,35 +323,8 @@ syntax-ui.tsx
 
 ## apps/web/src/hooks
 
-use-action-handler.ts
-  export function useActionHandler(
-    action: A,
-    handler: TActionFunc<A>,
-    isActive: TActionHandlerOptions,
-  )
-
-use-edge-auto-scroll.ts
-  export function useEdgeAutoScroll({
-    isActive,
-    getMouseClientX,
-    rulerScrollRef,
-    tracksScrollRef,
-    contentWidth,
-    edgeThreshold = 100,
-    maxScrollSpeed = 15,
-  }: UseEdgeAutoScrollParams): void
-
-use-editor-actions.ts
-  export function useEditorActions()
-
 use-editor.ts
   export function useEditor(): EditorCore
-
-use-element-selection.ts
-  export function useElementSelection()
-
-use-file-paste.ts
-  export function useFilePaste({ onFilesPaste }: UseFilePasteOptions)
 
 use-file-upload.ts
   export function useFileUpload({
@@ -365,16 +356,7 @@ use-keyboard-shortcuts-help.ts
     action: TAction
     icon?: React.ReactNode
   }
-  export const useKeyboardShortcutsHelp = () => ...
-
-use-mobile.tsx
-  export function useIsMobile()
-
-use-prevent-scroll.ts
-  export function usePreventScroll({ enabled = true, element }: UsePreventScrollOptions = {})
-
-use-project-initialize.ts
-  export function useProjectInitialize({ projectId }: { projectId: string })
+  export function useKeyboardShortcutsHelp()
 
 use-raf-loop.ts
   export function useRafLoop(callback: ({ time }: { time: number }) => void)
@@ -385,6 +367,40 @@ use-reveal-item.ts
     onClearHighlight: () => void,
     highlightDuration = 1000,
   )
+
+use-sound-search.ts
+  export function useSoundSearch({
+    query,
+    commercialOnly,
+  }: {
+    query: string;
+    commercialOnly: boolean;
+  })
+
+## apps/web/src/hooks/actions
+
+use-action-handler.ts
+  export function useActionHandler(
+    action: A,
+    handler: TActionFunc<A>,
+    isActive: TActionHandlerOptions,
+  )
+
+use-editor-actions.ts
+  export function useEditorActions()
+
+## apps/web/src/hooks/timeline
+
+use-edge-auto-scroll.ts
+  export function useEdgeAutoScroll({
+    isActive,
+    getMouseClientX,
+    rulerScrollRef,
+    tracksScrollRef,
+    contentWidth,
+    edgeThreshold = 100,
+    maxScrollSpeed = 15,
+  }: UseEdgeAutoScrollParams): void
 
 use-scroll-sync.ts
   export function useScrollSync({
@@ -402,44 +418,6 @@ use-selection-box.ts
     tracksScrollRef,
     zoomLevel,
   }: UseSelectionBoxProps)
-
-use-sound-search.ts
-  export function useSoundSearch({
-    query,
-    commercialOnly,
-  }: {
-    query: string;
-    commercialOnly: boolean;
-  })
-
-use-toast.ts
-  export const reducer = (state: State, action: Action): State => ...
-
-## apps/web/src/hooks/timeline
-
-use-element-interaction.ts
-  export function useElementInteraction({
-    zoomLevel,
-    timelineRef,
-    tracksContainerRef,
-    onSnapPointChange,
-  }: UseElementInteractionProps)
-
-use-element-resize.ts
-  export interface ResizeState {
-    elementId: string
-    side: "left" | "right"
-    startX: number
-    initialTrimStart: number
-    initialTrimEnd: number
-    initialStartTime: number
-    initialDuration: number
-  }
-  export function useTimelineElementResize({
-    element,
-    track,
-    zoomLevel,
-  }: UseTimelineElementResizeProps)
 
 use-snap-indicator-position.ts
   export function useSnapIndicatorPosition({
@@ -461,6 +439,7 @@ use-timeline-drag-drop.ts
 use-timeline-interactions.ts
   export function useTimelineInteractions({
     playheadRef,
+    trackLabelsRef,
     rulerScrollRef,
     tracksScrollRef,
     zoomLevel,
@@ -496,10 +475,10 @@ use-timeline-snapping.ts
     enableElementSnapping?: boolean
     enablePlayheadSnapping?: boolean
   }
-  export function useTimelineSnapping({
-    snapThreshold = 10,
-    enableElementSnapping = true,
-    enablePlayheadSnapping = true,
+  export function useTimelineSnapping({
+    snapThreshold = 10,
+    enableElementSnapping = true,
+    enablePlayheadSnapping = true,
   }: UseTimelineSnappingOptions = {})
 
 use-timeline-zoom.ts
@@ -507,6 +486,36 @@ use-timeline-zoom.ts
     containerRef,
     isInTimeline = false,
   }: UseTimelineZoomProps): UseTimelineZoomReturn
+
+## apps/web/src/hooks/timeline/element
+
+use-element-interaction.ts
+  export function useElementInteraction({
+    zoomLevel,
+    timelineRef,
+    tracksContainerRef,
+    tracksScrollRef,
+    onSnapPointChange,
+  }: UseElementInteractionProps)
+
+use-element-resize.ts
+  export interface ResizeState {
+    elementId: string
+    side: "left" | "right"
+    startX: number
+    initialTrimStart: number
+    initialTrimEnd: number
+    initialStartTime: number
+    initialDuration: number
+  }
+  export function useTimelineElementResize({
+    element,
+    track,
+    zoomLevel,
+  }: UseTimelineElementResizeProps)
+
+use-element-selection.ts
+  export function useElementSelection()
 
 ## apps/web/src/lib
 
@@ -973,6 +982,17 @@ remove-media-asset.ts
     undo(): void
   }
 
+## apps/web/src/lib/commands/project
+
+update-project-settings.ts
+  export class UpdateProjectSettingsCommand extends Command {
+    savedSettings: TProjectSettings | null
+    savedUpdatedAt: Date | null
+    constructor(private updates: Partial<TProjectSettings>)
+    execute(): void
+    undo(): void
+  }
+
 ## apps/web/src/lib/commands/scene
 
 create-scene.ts
@@ -1078,11 +1098,12 @@ duplicate-elements.ts
 move-element.ts
   export class MoveElementCommand extends Command {
     savedState: TimelineTrack[] | null
-    constructor(
-      private sourceTrackId: string,
-      private targetTrackId: string,
-      private elementId: string,
-      private newStartTime: number,
+    constructor(
+      private sourceTrackId: string,
+      private targetTrackId: string,
+      private elementId: string,
+      private newStartTime: number,
+      private createTrack?: { type: TrackType; index: number },
     )
     execute(): void
     undo(): void
@@ -1146,7 +1167,6 @@ update-element-trim.ts
   export class UpdateElementTrimCommand extends Command {
     savedState: TimelineTrack[] | null
     constructor(
-      private trackId: string,
       private elementId: string,
       private trimStart: number,
       private trimEnd: number,
@@ -1205,6 +1225,14 @@ remove-track.ts
 
 toggle-track-mute.ts
   export class ToggleTrackMuteCommand extends Command {
+    savedState: TimelineTrack[] | null
+    constructor(private trackId: string)
+    execute(): void
+    undo(): void
+  }
+
+toggle-track-visibility.ts
+  export class ToggleTrackVisibilityCommand extends Command {
     savedState: TimelineTrack[] | null
     constructor(private trackId: string)
     execute(): void
@@ -1355,6 +1383,7 @@ drop-utils.ts
     elementDuration,
     pixelsPerSecond,
     zoomLevel,
+    excludeElementId,
   }: ComputeDropTargetParams): DropTarget
   export function getDropLineY({
     dropTarget,
@@ -1470,6 +1499,15 @@ track-utils.ts
   }: {
     tracks: Array<{ type: TrackType }>;
   }): number
+  export function buildEmptyTrack({
+    id,
+    type,
+    name,
+  }: {
+    id: string;
+    type: TrackType;
+    name?: string;
+  }): TimelineTrack
   export function isMainTrack(track: TimelineTrack)
   export function getMainTrack({
     tracks,
@@ -1623,9 +1661,9 @@ sticker-node.ts
   }
 
 text-node.ts
-  export type TextNodeParams = TextElement & {
-    canvasCenter: { x: number; y: number };
-    textBaseline?: CanvasTextBaseline;
+  export type TextNodeParams = TextElement & {
+    canvasCenter: { x: number; y: number };
+    textBaseline?: CanvasTextBaseline;
   }
   export class TextNode extends BaseNode<TextNodeParams> {
     isInRange({ time }: { time: number })
@@ -1939,9 +1977,9 @@ timeline.ts
   export type TimelineTrack = VideoTrack | TextTrack | AudioTrack | StickerTrack
   export interface Transform {
     scale: number
-    position: {
-      x: number;
-      y: number;
+    position: {
+      x: number;
+      y: number;
     }
     rotate: number
   }
@@ -1990,30 +2028,31 @@ timeline.ts
     opacity: number
     color?: string
   }
-  export type TimelineElement = | AudioElement
-    | VideoElement
-    | ImageElement
-    | TextElement
+  export type TimelineElement = | AudioElement
+    | VideoElement
+    | ImageElement
+    | TextElement
     | StickerElement
   export type ElementType = TimelineElement["type"]
   export type CreateUploadAudioElement = Omit<UploadAudioElement, "id">
   export type CreateLibraryAudioElement = Omit<LibraryAudioElement, "id">
-  export type CreateAudioElement = | CreateUploadAudioElement
+  export type CreateAudioElement = | CreateUploadAudioElement
     | CreateLibraryAudioElement
   export type CreateVideoElement = Omit<VideoElement, "id">
   export type CreateImageElement = Omit<ImageElement, "id">
   export type CreateTextElement = Omit<TextElement, "id">
   export type CreateStickerElement = Omit<StickerElement, "id">
-  export type CreateTimelineElement = | CreateAudioElement
-    | CreateVideoElement
-    | CreateImageElement
-    | CreateTextElement
-    | ...
+  export type CreateTimelineElement = | CreateAudioElement
+    | CreateVideoElement
+    | CreateImageElement
+    | CreateTextElement
+    | Crea...
   export interface ElementDragState {
     isDragging: boolean
     elementId: string | null
     trackId: string | null
     startMouseX: number
+    startMouseY: number
     startElementTime: number
     clickOffsetTime: number
     currentTime: number
@@ -2034,6 +2073,7 @@ timeline.ts
     elementDuration: number
     pixelsPerSecond: number
     zoomLevel: number
+    excludeElementId?: string
   }
   export interface ClipboardItem {
     trackType: TrackType

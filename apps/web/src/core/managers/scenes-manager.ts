@@ -1,23 +1,24 @@
 import type { EditorCore } from "@/core";
-import type { TScene } from "@/types/timeline";
+import type { TimelineTrack, TScene } from "@/types/timeline";
 import { storageService } from "@/lib/storage/storage-service";
-import { toast } from "sonner";
 import {
-  updateSceneInArray,
   getMainScene,
   ensureMainScene,
-  buildDefaultScene,
   canDeleteScene,
-  getFallbackSceneAfterDelete,
   findCurrentScene,
 } from "@/lib/scene-utils";
 import {
   getFrameTime,
-  toggleBookmarkInArray,
-  removeBookmarkFromArray,
   isBookmarkAtTime,
 } from "@/lib/timeline/bookmark-utils";
 import { ensureMainTrack } from "@/lib/timeline/track-utils";
+import {
+  CreateSceneCommand,
+  DeleteSceneCommand,
+  RemoveBookmarkCommand,
+  RenameSceneCommand,
+  ToggleBookmarkCommand,
+} from "@/lib/commands/scene";
 
 export class ScenesManager {
   private active: TScene | null = null;
@@ -33,16 +34,13 @@ export class ScenesManager {
     name: string;
     isMain: boolean;
   }): Promise<string> {
-    const newScene = buildDefaultScene({ name, isMain });
-    const updatedScenes = [...this.list, newScene];
-
-    try {
-      await this.updateProjectWithScenes({ updatedScenes });
-      return newScene.id;
-    } catch (error) {
-      console.error("Failed to create scene:", error);
-      throw error;
+    if (!this.editor.project.getActive()) {
+      throw new Error("No active project");
     }
+
+    const command = new CreateSceneCommand(name, isMain);
+    this.editor.command.execute({ command });
+    return command.getSceneId();
   }
 
   async deleteScene({ sceneId }: { sceneId: string }): Promise<void> {
@@ -57,23 +55,12 @@ export class ScenesManager {
       throw new Error(reason);
     }
 
-    const updatedScenes = this.list.filter((s) => s.id !== sceneId);
-
-    const newCurrentScene = getFallbackSceneAfterDelete({
-      scenes: updatedScenes,
-      deletedSceneId: sceneId,
-      currentSceneId: this.active?.id || null,
-    });
-
-    try {
-      await this.updateProjectWithScenes({
-        updatedScenes,
-        updatedSceneId: newCurrentScene?.id,
-      });
-    } catch (error) {
-      console.error("Failed to delete scene:", error);
-      throw error;
+    if (!this.editor.project.getActive()) {
+      throw new Error("No active project");
     }
+
+    const command = new DeleteSceneCommand(sceneId);
+    this.editor.command.execute({ command });
   }
 
   async renameScene({
@@ -83,21 +70,12 @@ export class ScenesManager {
     sceneId: string;
     name: string;
   }): Promise<void> {
-    const updatedScenes = updateSceneInArray({
-      scenes: this.list,
-      sceneId,
-      updates: { name, updatedAt: new Date() },
-    });
-
-    try {
-      await this.updateProjectWithScenes({
-        updatedScenes,
-        updatedSceneId: sceneId,
-      });
-    } catch (error) {
-      console.error("Failed to rename scene:", error);
-      throw error;
+    if (!this.editor.project.getActive()) {
+      throw new Error("No active project");
     }
+
+    const command = new RenameSceneCommand(sceneId, name);
+    this.editor.command.execute({ command });
   }
 
   async switchToScene({ sceneId }: { sceneId: string }): Promise<void> {
@@ -119,7 +97,6 @@ export class ScenesManager {
         },
       };
 
-      await storageService.saveProject({ project: updatedProject });
       this.editor.project.setActiveProject({ project: updatedProject });
     }
 
@@ -128,39 +105,8 @@ export class ScenesManager {
   }
 
   async toggleBookmark({ time }: { time: number }): Promise<void> {
-    const activeScene = this.getActiveScene();
-    if (!activeScene || !this.active) return;
-
-    const activeProject = this.editor.project.getActive();
-    if (!activeProject) return;
-
-    const frameTime = getFrameTime({
-      time,
-      fps: activeProject.settings.fps,
-    });
-
-    const updatedBookmarks = toggleBookmarkInArray({
-      bookmarks: activeScene.bookmarks,
-      frameTime,
-    });
-
-    const updatedScenes = updateSceneInArray({
-      scenes: this.list,
-      sceneId: activeScene.id,
-      updates: { bookmarks: updatedBookmarks },
-    });
-
-    try {
-      await this.updateProjectWithScenes({
-        updatedScenes,
-        updatedSceneId: activeScene.id,
-      });
-    } catch (error) {
-      console.error("Failed to update scene bookmarks:", error);
-      toast.error("Failed to update bookmarks", {
-        description: "Please try again",
-      });
-    }
+    const command = new ToggleBookmarkCommand(time);
+    this.editor.command.execute({ command });
   }
 
   isBookmarked({ time }: { time: number }): boolean {
@@ -178,43 +124,8 @@ export class ScenesManager {
   }
 
   async removeBookmark({ time }: { time: number }): Promise<void> {
-    const activeScene = this.getActiveScene();
-    if (!activeScene || !this.active) return;
-
-    const activeProject = this.editor.project.getActive();
-    if (!activeProject) return;
-
-    const frameTime = getFrameTime({
-      time,
-      fps: activeProject.settings.fps,
-    });
-
-    const updatedBookmarks = removeBookmarkFromArray({
-      bookmarks: activeScene.bookmarks,
-      frameTime,
-    });
-
-    if (updatedBookmarks.length === activeScene.bookmarks.length) {
-      return;
-    }
-
-    const updatedScenes = updateSceneInArray({
-      scenes: this.list,
-      sceneId: activeScene.id,
-      updates: { bookmarks: updatedBookmarks },
-    });
-
-    try {
-      await this.updateProjectWithScenes({
-        updatedScenes,
-        updatedSceneId: activeScene.id,
-      });
-    } catch (error) {
-      console.error("Failed to update scene bookmarks:", error);
-      toast.error("Failed to remove bookmark", {
-        description: "Please try again",
-      });
-    }
+    const command = new RemoveBookmarkCommand(time);
+    this.editor.command.execute({ command });
   }
 
   async loadProjectScenes({ projectId }: { projectId: string }): Promise<void> {
@@ -245,8 +156,8 @@ export class ScenesManager {
                 updatedAt: new Date(),
               },
             };
-            await storageService.saveProject({ project: updatedProject });
             this.editor.project.setActiveProject({ project: updatedProject });
+            this.editor.save.markDirty({ force: true });
           }
         }
       }
@@ -292,17 +203,8 @@ export class ScenesManager {
           },
         };
 
-        storageService
-          .saveProject({ project: updatedProject })
-          .then(() => {
-            this.editor.project.setActiveProject({ project: updatedProject });
-          })
-          .catch((error) => {
-            console.error(
-              "Failed to save project with background scene:",
-              error,
-            );
-          });
+        this.editor.project.setActiveProject({ project: updatedProject });
+        this.editor.save.markDirty({ force: true });
       }
     }
   }
@@ -347,9 +249,6 @@ export class ScenesManager {
           updatedAt: new Date(),
         },
       };
-      storageService.saveProject({ project: updatedProject }).catch((error) => {
-        console.error("Failed to persist scenes:", error);
-      });
       this.editor.project.setActiveProject({ project: updatedProject });
     }
   }
@@ -366,7 +265,7 @@ export class ScenesManager {
   updateSceneTracks({
     tracks,
   }: {
-    tracks: import("@/types/timeline").TimelineTrack[];
+    tracks: TimelineTrack[];
   }): void {
     if (!this.active) return;
 
@@ -421,36 +320,4 @@ export class ScenesManager {
     return { scenes: ensuredScenes, hasAddedMainTrack };
   }
 
-  private async updateProjectWithScenes({
-    updatedScenes,
-    updatedSceneId,
-  }: {
-    updatedScenes: TScene[];
-    updatedSceneId?: string;
-  }): Promise<void> {
-    const activeProject = this.editor.project.getActive();
-
-    if (!activeProject) {
-      throw new Error("No active project");
-    }
-
-    const updatedScene = updatedSceneId
-      ? updatedScenes.find((s) => s.id === updatedSceneId)
-      : this.active;
-
-    const updatedProject = {
-      ...activeProject,
-      scenes: updatedScenes,
-      metadata: {
-        ...activeProject.metadata,
-        updatedAt: new Date(),
-      },
-    };
-
-    await storageService.saveProject({ project: updatedProject });
-    this.editor.project.setActiveProject({ project: updatedProject });
-    this.list = updatedScenes;
-    this.active = updatedScene || null;
-    this.notify();
-  }
 }

@@ -5,6 +5,7 @@ import { ProjectManager } from "./managers/project-manager";
 import { MediaManager } from "./managers/media-manager";
 import { RendererManager } from "./managers/renderer-manager";
 import { CommandManager } from "./managers/commands";
+import { SaveManager } from "./managers/save-manager";
 import { buildScene } from "@/services/renderer/scene-builder";
 import { SceneExporter } from "@/services/renderer/scene-exporter";
 import type { ExportOptions } from "@/types/export";
@@ -19,6 +20,7 @@ export class EditorCore {
   public readonly project: ProjectManager;
   public readonly media: MediaManager;
   public readonly renderer: RendererManager;
+  public readonly save: SaveManager;
 
   private constructor() {
     this.command = new CommandManager();
@@ -28,6 +30,8 @@ export class EditorCore {
     this.project = new ProjectManager(this);
     this.media = new MediaManager(this);
     this.renderer = new RendererManager(this);
+    this.save = new SaveManager(this);
+    this.save.start();
   }
 
   static getInstance(): EditorCore {

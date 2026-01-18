@@ -1,17 +1,16 @@
 "use client";
 
-import { useTimelineStore } from "@/stores/timeline-store";
 import { ScrollArea } from "../../ui/scroll-area";
 import { AudioProperties } from "./audio-properties";
 import { VideoProperties } from "./video-properties";
 import { TextProperties } from "./text-properties";
 import { SquareSlashIcon } from "lucide-react";
 import { useEditor } from "@/hooks/use-editor";
+import { useElementSelection } from "@/hooks/timeline/element/use-element-selection";
 
 export function PropertiesPanel() {
-  const { selectedElements } = useTimelineStore();
-
-  const editor = useEditor();
+    const editor = useEditor();
+  const { selectedElements } = useElementSelection();
 
   const elementsWithTracks = editor.timeline.getElementsWithTracks({
     elements: selectedElements,

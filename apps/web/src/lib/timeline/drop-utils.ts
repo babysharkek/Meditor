@@ -94,6 +94,7 @@ export function computeDropTarget({
   elementDuration,
   pixelsPerSecond,
   zoomLevel,
+  excludeElementId,
 }: ComputeDropTargetParams): DropTarget {
   const xPosition = isExternalDrop
     ? playheadTime
@@ -159,6 +160,7 @@ export function computeDropTarget({
     elements: track.elements,
     startTime: xPosition,
     endTime,
+    excludeElementId,
   });
 
   if (isTrackCompatible && !hasOverlap) {

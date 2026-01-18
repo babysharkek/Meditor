@@ -9,6 +9,7 @@ interface TimelineBookmarksRowProps {
   bookmarksScrollRef: React.RefObject<HTMLDivElement>;
   handleWheel: (e: React.WheelEvent) => void;
   handleTimelineContentClick: (e: React.MouseEvent) => void;
+  handleRulerTrackingMouseDown: (e: React.MouseEvent) => void;
   handleRulerMouseDown: (e: React.MouseEvent) => void;
 }
 
@@ -18,6 +19,7 @@ export function TimelineBookmarksRow({
   bookmarksScrollRef,
   handleWheel,
   handleTimelineContentClick,
+  handleRulerTrackingMouseDown,
   handleRulerMouseDown,
 }: TimelineBookmarksRowProps) {
   const editor = useEditor();
@@ -28,6 +30,7 @@ export function TimelineBookmarksRow({
       className="relative mt-0.5 h-4 flex-1 overflow-hidden"
       onWheel={handleWheel}
       onClick={handleTimelineContentClick}
+      onMouseDown={handleRulerTrackingMouseDown}
       data-bookmarks-area
     >
       <ScrollArea className="scrollbar-hidden w-full" ref={bookmarksScrollRef}>

@@ -100,14 +100,6 @@ class StorageService {
 
     if (!serializedProject) return null;
 
-    console.log(
-      "[storage] loadProject scenes",
-      JSON.stringify({
-        projectId: id,
-        scenes: serializedProject.scenes ?? [],
-      }),
-    );
-
     const scenes =
       serializedProject.scenes?.map((scene) => ({
         id: scene.id,

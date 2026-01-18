@@ -1,16 +1,17 @@
 "use client";
 
 import { useTimelineStore } from "@/stores/timeline-store";
-import { useActionHandler } from "@/hooks/use-action-handler";
-import { useEditor } from "./use-editor";
+import { useActionHandler } from "@/hooks/actions/use-action-handler";
+import { useEditor } from "../use-editor";
 import { PasteCommand } from "@/lib/commands/timeline/clipboard/paste";
 import { toast } from "sonner";
+import { useElementSelection } from "../timeline/element/use-element-selection";
 
 export function useEditorActions() {
   const editor = useEditor();
   const activeProject = editor.project.getActive();
-  const timelineStore = useTimelineStore.getState();
-  const selectedElements = timelineStore.selectedElements;
+  const { selectedElements, setElementSelection } = useElementSelection();
+  const { clipboard, setClipboard, toggleSnapping } = useTimelineStore();
 
   useActionHandler(
     "toggle-play",
@@ -191,7 +192,7 @@ export function useEditorActions() {
           elementId: element.id,
         })),
       );
-      timelineStore.setSelectedElements({ elements: allElements });
+      setElementSelection({ elements: allElements });
     },
     undefined,
   );
@@ -205,7 +206,7 @@ export function useEditorActions() {
   );
 
   useActionHandler(
-    "toggle-mute-selected",
+    "toggle-elements-muted-selected",
     () => {
       editor.timeline.toggleElementsMuted({ elements: selectedElements });
     },
@@ -213,7 +214,7 @@ export function useEditorActions() {
   );
 
   useActionHandler(
-    "toggle-visibility-selected",
+    "toggle-elements-visibility-selected",
     () => {
       editor.timeline.toggleElementsVisibility({ elements: selectedElements });
     },
@@ -244,7 +245,7 @@ export function useEditorActions() {
         };
       });
 
-      timelineStore.setClipboard({ items });
+      setClipboard({ items });
     },
     undefined,
   );
@@ -252,7 +253,6 @@ export function useEditorActions() {
   useActionHandler(
     "paste-selected",
     () => {
-      const clipboard = timelineStore.clipboard;
       if (!clipboard?.items.length) return;
 
       const currentTime = editor.playback.getCurrentTime();
@@ -266,7 +266,7 @@ export function useEditorActions() {
   useActionHandler(
     "toggle-snapping",
     () => {
-      timelineStore.toggleSnapping();
+      toggleSnapping();
     },
     undefined,
   );

@@ -1,6 +1,6 @@
 import { snapTimeToFrame } from "@/lib/time-utils";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useEdgeAutoScroll } from "@/hooks/use-edge-auto-scroll";
+import { useEdgeAutoScroll } from "@/hooks/timeline/use-edge-auto-scroll";
 import { useEditor } from "../use-editor";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 

@@ -1,7 +1,10 @@
 import { Command } from "@/lib/commands/base-command";
 import { EditorCore } from "@/core";
-import type { TimelineTrack, TimelineElement } from "@/types/timeline";
-import { validateElementTrackCompatibility } from "@/lib/timeline/track-utils";
+import type { TimelineTrack, TimelineElement, TrackType } from "@/types/timeline";
+import {
+  buildEmptyTrack,
+  validateElementTrackCompatibility,
+} from "@/lib/timeline/track-utils";
 
 export class MoveElementCommand extends Command {
   private savedState: TimelineTrack[] | null = null;
@@ -11,6 +14,7 @@ export class MoveElementCommand extends Command {
     private targetTrackId: string,
     private elementId: string,
     private newStartTime: number,
+    private createTrack?: { type: TrackType; index: number },
   ) {
     super();
   }
@@ -27,7 +31,17 @@ export class MoveElementCommand extends Command {
       return;
     }
 
-    const targetTrack = this.savedState.find((t) => t.id === this.targetTrackId);
+    let targetTrack = this.savedState.find((t) => t.id === this.targetTrackId);
+    let tracksToUpdate = this.savedState;
+    if (!targetTrack && this.createTrack) {
+      const newTrack = buildEmptyTrack({
+        id: this.targetTrackId,
+        type: this.createTrack.type,
+      });
+      tracksToUpdate = [...this.savedState];
+      tracksToUpdate.splice(this.createTrack.index, 0, newTrack);
+      targetTrack = newTrack;
+    }
     if (!targetTrack) {
       console.error("Target track not found");
       return;
@@ -50,7 +64,7 @@ export class MoveElementCommand extends Command {
 
     const isSameTrack = this.sourceTrackId === this.targetTrackId;
 
-    const updatedTracks = this.savedState.map((track) => {
+    const updatedTracks = tracksToUpdate.map((track) => {
       if (isSameTrack && track.id === this.sourceTrackId) {
         return {
           ...track,

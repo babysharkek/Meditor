@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { getCumulativeHeightBefore, getTrackHeight } from "@/lib/timeline";
-import { useEditor } from "./use-editor";
+import { useEditor } from "../use-editor";
 
 interface UseSelectionBoxProps {
   containerRef: React.RefObject<HTMLElement>;

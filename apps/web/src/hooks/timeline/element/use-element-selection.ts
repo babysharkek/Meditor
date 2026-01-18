@@ -4,28 +4,29 @@ import { useTimelineStore } from "@/stores/timeline-store";
 type ElementRef = { trackId: string; elementId: string };
 
 export function useElementSelection() {
-  const selectedElements = useTimelineStore((s) => s.selectedElements);
-  const setSelectedElements = useTimelineStore((s) => s.setSelectedElements);
+  const { selectedElements, setSelectedElements } = useTimelineStore();
 
-  const isSelected = useCallback(
+  const isElementSelected = useCallback(
     ({ trackId, elementId }: ElementRef) =>
       selectedElements.some(
-        (el) => el.trackId === trackId && el.elementId === elementId,
+        (element) =>
+          element.trackId === trackId && element.elementId === elementId,
       ),
     [selectedElements],
   );
 
-  const select = useCallback(
+  const selectElement = useCallback(
     ({ trackId, elementId }: ElementRef) => {
       setSelectedElements({ elements: [{ trackId, elementId }] });
     },
     [setSelectedElements],
   );
 
-  const addToSelection = useCallback(
+  const addElementToSelection = useCallback(
     ({ trackId, elementId }: ElementRef) => {
       const alreadySelected = selectedElements.some(
-        (el) => el.trackId === trackId && el.elementId === elementId,
+        (element) =>
+          element.trackId === trackId && element.elementId === elementId,
       );
       if (alreadySelected) return;
 
@@ -36,38 +37,40 @@ export function useElementSelection() {
     [selectedElements, setSelectedElements],
   );
 
-  const removeFromSelection = useCallback(
+  const removeElementFromSelection = useCallback(
     ({ trackId, elementId }: ElementRef) => {
       setSelectedElements({
         elements: selectedElements.filter(
-          (el) => !(el.trackId === trackId && el.elementId === elementId),
+          (element) =>
+            !(element.trackId === trackId && element.elementId === elementId),
         ),
       });
     },
     [selectedElements, setSelectedElements],
   );
 
-  const toggleSelection = useCallback(
+  const toggleElementSelection = useCallback(
     ({ trackId, elementId }: ElementRef) => {
       const alreadySelected = selectedElements.some(
-        (el) => el.trackId === trackId && el.elementId === elementId,
+        (element) =>
+          element.trackId === trackId && element.elementId === elementId,
       );
 
       if (alreadySelected) {
-        removeFromSelection({ trackId, elementId });
+        removeElementFromSelection({ trackId, elementId });
       } else {
-        addToSelection({ trackId, elementId });
+        addElementToSelection({ trackId, elementId });
       }
     },
-    [selectedElements, addToSelection, removeFromSelection],
+    [selectedElements, addElementToSelection, removeElementFromSelection],
   );
 
-  const clearSelection = useCallback(() => {
+  const clearElementSelection = useCallback(() => {
     setSelectedElements({ elements: [] });
   }, [setSelectedElements]);
 
-  const setSelection = useCallback(
-    (elements: ElementRef[]) => {
+  const setElementSelection = useCallback(
+    ({ elements }: { elements: ElementRef[] }) => {
       setSelectedElements({ elements });
     },
     [setSelectedElements],
@@ -85,37 +88,23 @@ export function useElementSelection() {
       isMultiKey,
     }: ElementRef & { isMultiKey: boolean }) => {
       if (isMultiKey) {
-        toggleSelection({ trackId, elementId });
+        toggleElementSelection({ trackId, elementId });
       } else {
-        select({ trackId, elementId });
+        selectElement({ trackId, elementId });
       }
     },
-    [toggleSelection, select],
-  );
-
-  /**
-   * Ensures element is selected without toggling.
-   * Used for drag operations where we want to select if not already.
-   */
-  const ensureSelected = useCallback(
-    ({ trackId, elementId }: ElementRef) => {
-      if (!isSelected({ trackId, elementId })) {
-        select({ trackId, elementId });
-      }
-    },
-    [isSelected, select],
+    [toggleElementSelection, selectElement],
   );
 
   return {
     selectedElements,
-    isSelected,
-    select,
-    setSelection,
-    addToSelection,
-    removeFromSelection,
-    toggleSelection,
-    clearSelection,
+    isElementSelected,
+    selectElement,
+    setElementSelection,
+    addElementToSelection,
+    removeElementFromSelection,
+    toggleElementSelection,
+    clearElementSelection,
     handleElementClick,
-    ensureSelected,
   };
 }

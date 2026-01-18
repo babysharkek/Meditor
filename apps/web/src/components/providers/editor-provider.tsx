@@ -8,7 +8,7 @@ import {
   useKeybindingsListener,
   useKeybindingDisabler,
 } from "@/hooks/use-keybindings";
-import { useEditorActions } from "@/hooks/use-editor-actions";
+import { useEditorActions } from "@/hooks/actions/use-editor-actions";
 
 interface EditorProviderProps {
   projectId: string;

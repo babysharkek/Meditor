@@ -115,11 +115,11 @@ export const ACTIONS = {
     category: "selection",
     defaultShortcuts: ["ctrl+d"],
   },
-  "toggle-mute-selected": {
+  "toggle-elements-muted-selected": {
     description: "Mute/unmute selected elements",
     category: "selection",
   },
-  "toggle-visibility-selected": {
+  "toggle-elements-visibility-selected": {
     description: "Show/hide selected elements",
     category: "selection",
   },

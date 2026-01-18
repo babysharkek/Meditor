@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TimelineElement, TimelineTrack } from "@/types/timeline";
 import { snapTimeToFrame } from "@/lib/time-utils";
 import { EditorCore } from "@/core";
-import { UpdateElementTrimCommand } from "@/lib/commands/timeline/element/update-element-trim";
-import { UpdateElementStartTimeCommand } from "@/lib/commands/timeline/element/update-element-start-time";
-import { UpdateElementDurationCommand } from "@/lib/commands/timeline/element/update-element-duration";
 
 export interface ResizeState {
   elementId: string;
@@ -35,6 +32,10 @@ export function useTimelineElementResize({
   const [currentTrimEnd, setCurrentTrimEnd] = useState(element.trimEnd);
   const [currentStartTime, setCurrentStartTime] = useState(element.startTime);
   const [currentDuration, setCurrentDuration] = useState(element.duration);
+  const currentTrimStartRef = useRef(element.trimStart);
+  const currentTrimEndRef = useRef(element.trimEnd);
+  const currentStartTimeRef = useRef(element.startTime);
+  const currentDurationRef = useRef(element.duration);
 
   useEffect(() => {
     if (!resizing) return;
@@ -82,6 +83,10 @@ export function useTimelineElementResize({
     setCurrentTrimEnd(element.trimEnd);
     setCurrentStartTime(element.startTime);
     setCurrentDuration(element.duration);
+    currentTrimStartRef.current = element.trimStart;
+    currentTrimEndRef.current = element.trimEnd;
+    currentStartTimeRef.current = element.startTime;
+    currentDurationRef.current = element.duration;
   };
 
   const canExtendElementDuration = () => {
@@ -126,6 +131,9 @@ export function useTimelineElementResize({
         setCurrentTrimStart(newTrimStart);
         setCurrentStartTime(newStartTime);
         setCurrentDuration(newDuration);
+        currentTrimStartRef.current = newTrimStart;
+        currentStartTimeRef.current = newStartTime;
+        currentDurationRef.current = newDuration;
       } else if (calculated < 0) {
         if (canExtendElementDuration()) {
           const extensionAmount = Math.abs(calculated);
@@ -143,6 +151,9 @@ export function useTimelineElementResize({
           setCurrentTrimStart(0);
           setCurrentStartTime(newStartTime);
           setCurrentDuration(newDuration);
+          currentTrimStartRef.current = 0;
+          currentStartTimeRef.current = newStartTime;
+          currentDurationRef.current = newDuration;
         } else {
           const trimDelta = 0 - resizing.initialTrimStart;
           const newStartTime = snapTimeToFrame({
@@ -157,6 +168,9 @@ export function useTimelineElementResize({
           setCurrentTrimStart(0);
           setCurrentStartTime(newStartTime);
           setCurrentDuration(newDuration);
+          currentTrimStartRef.current = 0;
+          currentStartTimeRef.current = newStartTime;
+          currentDurationRef.current = newDuration;
         }
       }
     } else {
@@ -176,6 +190,8 @@ export function useTimelineElementResize({
 
           setCurrentDuration(newDuration);
           setCurrentTrimEnd(0);
+          currentDurationRef.current = newDuration;
+          currentTrimEndRef.current = 0;
         } else {
           const extensionToLimit = resizing.initialTrimEnd;
           const newDuration = snapTimeToFrame({
@@ -185,6 +201,8 @@ export function useTimelineElementResize({
 
           setCurrentDuration(newDuration);
           setCurrentTrimEnd(0);
+          currentDurationRef.current = newDuration;
+          currentTrimEndRef.current = 0;
         }
       } else {
         const maxTrimEnd = sourceDuration - resizing.initialTrimStart - 0.1;
@@ -201,6 +219,8 @@ export function useTimelineElementResize({
 
         setCurrentTrimEnd(finalTrimEnd);
         setCurrentDuration(newDuration);
+        currentTrimEndRef.current = finalTrimEnd;
+        currentDurationRef.current = newDuration;
       }
     }
   };
@@ -208,36 +228,36 @@ export function useTimelineElementResize({
   const handleResizeEnd = () => {
     if (!resizing) return;
 
-    const trimStartChanged = currentTrimStart !== resizing.initialTrimStart;
-    const trimEndChanged = currentTrimEnd !== resizing.initialTrimEnd;
-    const startTimeChanged = currentStartTime !== resizing.initialStartTime;
-    const durationChanged = currentDuration !== resizing.initialDuration;
+    const finalTrimStart = currentTrimStartRef.current;
+    const finalTrimEnd = currentTrimEndRef.current;
+    const finalStartTime = currentStartTimeRef.current;
+    const finalDuration = currentDurationRef.current;
+    const trimStartChanged = finalTrimStart !== resizing.initialTrimStart;
+    const trimEndChanged = finalTrimEnd !== resizing.initialTrimEnd;
+    const startTimeChanged = finalStartTime !== resizing.initialStartTime;
+    const durationChanged = finalDuration !== resizing.initialDuration;
 
     if (trimStartChanged || trimEndChanged) {
-      const trimCommand = new UpdateElementTrimCommand(
-        track.id,
-        element.id,
-        currentTrimStart,
-        currentTrimEnd,
-      );
-      editor.command.execute({ command: trimCommand });
+      editor.timeline.updateElementTrim({
+        elementId: element.id,
+        trimStart: finalTrimStart,
+        trimEnd: finalTrimEnd,
+      });
     }
 
     if (startTimeChanged) {
-      const startTimeCommand = new UpdateElementStartTimeCommand(
-        [{ trackId: track.id, elementId: element.id }],
-        currentStartTime,
-      );
-      editor.command.execute({ command: startTimeCommand });
+      editor.timeline.updateElementStartTime({
+        elements: [{ trackId: track.id, elementId: element.id }],
+        startTime: finalStartTime,
+      });
     }
 
     if (durationChanged) {
-      const durationCommand = new UpdateElementDurationCommand(
-        track.id,
-        element.id,
-        currentDuration,
-      );
-      editor.command.execute({ command: durationCommand });
+      editor.timeline.updateElementDuration({
+        trackId: track.id,
+        elementId: element.id,
+        duration: finalDuration,
+      });
     }
 
     setResizing(null);

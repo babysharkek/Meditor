@@ -97,11 +97,15 @@ export class AddElementToTrackCommand extends Command {
           settings: {
             canvasSize: { width: asset.width, height: asset.height },
           },
+          pushHistory: false,
         });
       }
 
       if (asset?.type === "video" && asset?.fps) {
-        editor.project.updateSettings({ settings: { fps: asset.fps } });
+        editor.project.updateSettings({
+          settings: { fps: asset.fps },
+          pushHistory: false,
+        });
       }
     }
 

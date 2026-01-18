@@ -1,5 +1,4 @@
 import { useEditor } from "@/hooks/use-editor";
-import { useElementSelection } from "@/hooks/use-element-selection";
 import {
   TooltipProvider,
   Tooltip,
@@ -37,6 +36,8 @@ import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { EditableTimecode } from "@/components/ui/editable-timecode";
 import { ScenesView } from "../scenes-view";
 import { type TAction, invokeAction } from "@/lib/actions";
+import { cn } from "@/lib/utils";
+import { useTimelineStore } from "@/stores/timeline-store";
 
 export function TimelineToolbar({
   zoomLevel,
@@ -49,13 +50,13 @@ export function TimelineToolbar({
     const newZoomLevel =
       direction === "in"
         ? Math.min(
-            TIMELINE_CONSTANTS.ZOOM_MAX,
-            zoomLevel + TIMELINE_CONSTANTS.ZOOM_STEP,
-          )
+          TIMELINE_CONSTANTS.ZOOM_MAX,
+          zoomLevel + TIMELINE_CONSTANTS.ZOOM_STEP,
+        )
         : Math.max(
-            TIMELINE_CONSTANTS.ZOOM_MIN,
-            zoomLevel - TIMELINE_CONSTANTS.ZOOM_STEP,
-          );
+          TIMELINE_CONSTANTS.ZOOM_MIN,
+          zoomLevel - TIMELINE_CONSTANTS.ZOOM_STEP,
+        );
     setZoomLevel({ zoom: newZoomLevel });
   };
 
@@ -75,13 +76,9 @@ export function TimelineToolbar({
 }
 
 function ToolbarLeftSection() {
-  const { selectedElements } = useElementSelection();
-
   const editor = useEditor();
   const currentTime = editor.playback.getCurrentTime();
-  const duration = editor.timeline.getTotalDuration();
   const isPlaying = editor.playback.getIsPlaying();
-  const activeProject = editor.project.getActive();
   const currentBookmarked = editor.scenes.isBookmarked({ time: currentTime });
 
   const handleAction = ({
@@ -114,11 +111,7 @@ function ToolbarLeftSection() {
 
         <div className="bg-border mx-2 h-10 w-px" />
 
-        <TimeDisplay
-          currentTime={currentTime}
-          duration={duration}
-          fps={activeProject.settings.fps}
-        />
+        <TimeDisplay />
 
         <div className="bg-border mx-1 h-10 w-px" />
 
@@ -148,9 +141,9 @@ function ToolbarLeftSection() {
 
         <ToolbarButton
           icon={<SplitSquareHorizontal />}
-          tooltip="Coming soon" /* Separate audio */
+          tooltip="Coming soon" /* separate audio */
           disabled={true}
-          onClick={({ event }) => {}}
+          onClick={({ event }) => { }}
         />
 
         <ToolbarButton
@@ -163,9 +156,9 @@ function ToolbarLeftSection() {
 
         <ToolbarButton
           icon={<Snowflake />}
-          tooltip="Coming soon" /* Freeze frame */
+          tooltip="Coming soon" /* freeze frame */
           disabled={true}
-          onClick={({ event }) => {}}
+          onClick={({ event }) => { }}
         />
 
         <ToolbarButton
@@ -196,31 +189,26 @@ function ToolbarLeftSection() {
   );
 }
 
-function TimeDisplay({
-  currentTime,
-  duration,
-  fps,
-}: {
-  currentTime: number;
-  duration: number;
-  fps: number;
-}) {
+function TimeDisplay() {
   const editor = useEditor();
+  const currentTime = editor.playback.getCurrentTime();
+  const totalDuration = editor.timeline.getTotalDuration();
+  const fps = editor.project.getActive().settings.fps;
 
   return (
     <div className="flex flex-row items-center justify-center px-2">
       <EditableTimecode
         time={currentTime}
-        duration={duration}
+        duration={totalDuration}
         format="HH:MM:SS:FF"
         fps={fps}
-        onTimeChange={(time) => editor.playback.seek({ time })}
+        onTimeChange={({ time }) => editor.playback.seek({ time })}
         className="text-center"
       />
       <div className="text-muted-foreground px-2 font-mono text-xs">/</div>
       <div className="text-muted-foreground text-center font-mono text-xs">
         {formatTimeCode({
-          timeInSeconds: duration,
+          timeInSeconds: totalDuration,
           format: "HH:MM:SS:FF",
           fps,
         })}
@@ -242,7 +230,7 @@ function SceneSelector() {
         <ScenesView>
           <SplitButtonRight
             disabled={scenesCount === 1}
-            onClick={() => {}}
+            onClick={() => { }}
             type="button"
           >
             <LayersIcon className="size-4" />
@@ -262,19 +250,21 @@ function ToolbarRightSection({
   onZoomChange: (zoom: number) => void;
   onZoom: (options: { direction: "in" | "out" }) => void;
 }) {
+  const { snappingEnabled, rippleEditingEnabled, toggleSnapping, toggleRippleEditing } = useTimelineStore();
+
   return (
     <div className="flex items-center gap-1">
       <TooltipProvider delayDuration={500}>
         <ToolbarButton
-          icon={<Magnet />}
+          icon={<Magnet className={cn(snappingEnabled ? "text-primary" : "")} />}
           tooltip="Auto snapping"
-          onClick={() => {}}
+          onClick={() => toggleSnapping()}
         />
 
         <ToolbarButton
-          icon={<Link />}
+          icon={<Link className={cn(rippleEditingEnabled ? "text-primary" : "")} />}
           tooltip="Ripple editing"
-          onClick={() => {}}
+          onClick={() => toggleRippleEditing()}
         />
       </TooltipProvider>
 

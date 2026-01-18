@@ -154,6 +154,7 @@ export interface ElementDragState {
   elementId: string | null;
   trackId: string | null;
   startMouseX: number;
+  startMouseY: number;
   startElementTime: number;
   clickOffsetTime: number;
   currentTime: number;
@@ -176,6 +177,7 @@ export interface ComputeDropTargetParams {
   elementDuration: number;
   pixelsPerSecond: number;
   zoomLevel: number;
+  excludeElementId?: string;
 }
 
 export interface ClipboardItem {

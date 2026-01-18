@@ -12,6 +12,7 @@ import {
   AddTrackCommand,
   RemoveTrackCommand,
   ToggleTrackMuteCommand,
+  ToggleTrackVisibilityCommand,
   AddElementToTrackCommand,
   UpdateElementTrimCommand,
   UpdateElementDurationCommand,
@@ -54,20 +55,17 @@ export class TimelineManager {
   }
 
   updateElementTrim({
-    trackId,
     elementId,
     trimStart,
     trimEnd,
     pushHistory = true,
   }: {
-    trackId: string;
     elementId: string;
     trimStart: number;
     trimEnd: number;
     pushHistory?: boolean;
   }): void {
     const command = new UpdateElementTrimCommand(
-      trackId,
       elementId,
       trimStart,
       trimEnd,
@@ -118,23 +116,31 @@ export class TimelineManager {
     targetTrackId,
     elementId,
     newStartTime,
+    createTrack,
   }: {
     sourceTrackId: string;
     targetTrackId: string;
     elementId: string;
     newStartTime: number;
+    createTrack?: { type: TrackType; index: number };
   }): void {
     const command = new MoveElementCommand(
       sourceTrackId,
       targetTrackId,
       elementId,
       newStartTime,
+      createTrack,
     );
     this.editor.command.execute({ command });
   }
 
   toggleTrackMute({ trackId }: { trackId: string }): void {
     const command = new ToggleTrackMuteCommand(trackId);
+    this.editor.command.execute({ command });
+  }
+
+  toggleTrackVisibility({ trackId }: { trackId: string }): void {
+    const command = new ToggleTrackVisibilityCommand(trackId);
     this.editor.command.execute({ command });
   }
 
@@ -255,20 +261,6 @@ export class TimelineManager {
   }): void {
     const command = new ToggleElementsMutedCommand(elements);
     this.editor.command.execute({ command });
-  }
-
-  checkElementOverlap({
-    trackId,
-    startTime,
-    duration,
-    excludeElementId,
-  }: {
-    trackId: string;
-    startTime: number;
-    duration: number;
-    excludeElementId?: string;
-  }): boolean {
-    throw new Error("Not implemented");
   }
 
   getTracks(): TimelineTrack[] {

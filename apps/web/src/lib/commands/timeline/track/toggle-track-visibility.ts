@@ -1,15 +1,12 @@
 import { Command } from "@/lib/commands/base-command";
 import type { TimelineTrack } from "@/types/timeline";
 import { EditorCore } from "@/core";
+import { canTrackBeHidden } from "@/lib/timeline";
 
-export class UpdateElementTrimCommand extends Command {
+export class ToggleTrackVisibilityCommand extends Command {
   private savedState: TimelineTrack[] | null = null;
 
-  constructor(
-    private elementId: string,
-    private trimStart: number,
-    private trimEnd: number,
-  ) {
+  constructor(private trackId: string) {
     super();
   }
 
@@ -17,13 +14,18 @@ export class UpdateElementTrimCommand extends Command {
     const editor = EditorCore.getInstance();
     this.savedState = editor.timeline.getTracks();
 
+    const targetTrack = this.savedState.find(
+      (track) => track.id === this.trackId,
+    );
+    if (!targetTrack) {
+      return;
+    }
+
     const updatedTracks = this.savedState.map((track) => {
-      const newElements = track.elements.map((element) =>
-        element.id === this.elementId
-          ? { ...element, trimStart: this.trimStart, trimEnd: this.trimEnd }
-          : element,
-      );
-      return { ...track, elements: newElements } as typeof track;
+      if (track.id === this.trackId && canTrackBeHidden(track)) {
+        return { ...track, hidden: !track.hidden };
+      }
+      return track;
     });
 
     editor.timeline.updateTracks(updatedTracks);

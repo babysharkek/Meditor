@@ -20,13 +20,7 @@ export type BuildSceneParams = {
 };
 
 export function buildScene(params: BuildSceneParams) {
-  const {
-    tracks,
-    mediaAssets,
-    duration,
-    canvasSize,
-    background
-  } = params;
+  const { tracks, mediaAssets, duration, canvasSize, background } = params;
 
   const rootNode = new RootNode({ duration });
   const mediaMap = new Map(mediaAssets.map((m) => [m.id, m]));
@@ -34,8 +28,10 @@ export function buildScene(params: BuildSceneParams) {
   const elements = tracks
     .slice()
     .reverse()
-    .filter((track) => !(canTracktHaveAudio(track) && track.muted))
-    .flatMap((track): TimelineElement[] => track.elements);
+    .filter((track) => !("hidden" in track && track.hidden))
+    .flatMap((track): TimelineElement[] =>
+      track.elements.filter((element) => !("hidden" in element && element.hidden)),
+    );
 
   const contentNodes = [];
 
@@ -101,7 +97,10 @@ export function buildScene(params: BuildSceneParams) {
         contentNodes,
       }),
     );
-  } else if (background.type === "color" && background.color !== "transparent") {
+  } else if (
+    background.type === "color" &&
+    background.color !== "transparent"
+  ) {
     rootNode.add(new ColorNode({ color: background.color }));
   }
 

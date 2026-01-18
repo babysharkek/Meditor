@@ -11,6 +11,7 @@ interface TimelineRulerProps {
   rulerScrollRef: React.RefObject<HTMLDivElement>;
   handleWheel: (e: React.WheelEvent) => void;
   handleTimelineContentClick: (e: React.MouseEvent) => void;
+  handleRulerTrackingMouseDown: (e: React.MouseEvent) => void;
   handleRulerMouseDown: (e: React.MouseEvent) => void;
 }
 
@@ -21,6 +22,7 @@ export function TimelineRuler({
   rulerScrollRef,
   handleWheel,
   handleTimelineContentClick,
+  handleRulerTrackingMouseDown,
   handleRulerMouseDown,
 }: TimelineRulerProps) {
   const editor = useEditor();
@@ -50,6 +52,7 @@ export function TimelineRuler({
       className="relative h-4 flex-1 overflow-hidden"
       onWheel={handleWheel}
       onClick={handleTimelineContentClick}
+      onMouseDown={handleRulerTrackingMouseDown}
       data-ruler-area
     >
       <ScrollArea className="scrollbar-hidden w-full" ref={rulerScrollRef}>

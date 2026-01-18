@@ -12,11 +12,11 @@ import {
   VolumeX,
   ArrowUpDown,
 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useEditor } from "@/hooks/use-editor";
-import { useTimelineStore } from "@/stores/timeline-store";
 import { useAssetsPanelStore } from "@/stores/assets-panel-store";
 import AudioWaveform from "./audio-waveform";
-import { useTimelineElementResize } from "@/hooks/timeline/use-element-resize";
+import { useTimelineElementResize } from "@/hooks/timeline/element/use-element-resize";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import {
   getTrackClasses,
@@ -40,6 +40,7 @@ import type {
 import { MediaAsset } from "@/types/assets";
 import { mediaSupportsAudio } from "@/lib/media-utils";
 import { type TAction, invokeAction } from "@/lib/actions";
+import { useElementSelection } from "@/hooks/timeline/element/use-element-selection";
 
 interface TimelineElementProps {
   element: TimelineElementType;
@@ -64,7 +65,8 @@ export function TimelineElement({
   dragState,
 }: TimelineElementProps) {
   const editor = useEditor();
-  const { selectedElements } = useTimelineStore();
+  const lastDragStateRef = useRef(false);
+  const { selectedElements } = useElementSelection();
   const { requestRevealMedia } = useAssetsPanelStore();
 
   const mediaAssets = editor.media.getAssets();
@@ -77,7 +79,12 @@ export function TimelineElement({
 
   const hasAudio = mediaSupportsAudio({ media: mediaAsset });
 
-  const { handleResizeStart } = useTimelineElementResize({
+  const {
+    handleResizeStart,
+    isResizing,
+    currentStartTime,
+    currentDuration,
+  } = useTimelineElementResize({
     element,
     track,
     zoomLevel,
@@ -88,15 +95,16 @@ export function TimelineElement({
       selected.elementId === element.id && selected.trackId === track.id,
   );
 
-  const elementWidth =
-    element.duration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
-
   const isBeingDragged = dragState.elementId === element.id;
   const elementStartTime =
     isBeingDragged && dragState.isDragging
       ? dragState.currentTime
       : element.startTime;
-  const elementLeft = elementStartTime * 50 * zoomLevel;
+  const displayedStartTime = isResizing ? currentStartTime : elementStartTime;
+  const displayedDuration = isResizing ? currentDuration : element.duration;
+  const elementWidth =
+    displayedDuration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
+  const elementLeft = displayedStartTime * 50 * zoomLevel;
 
   const handleAction = ({
     action,
@@ -122,9 +130,8 @@ export function TimelineElement({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          className={`timeline-element absolute top-0 h-full select-none ${
-            isBeingDragged ? "z-50" : "z-10"
-          }`}
+          className={`timeline-element absolute top-0 h-full select-none ${isBeingDragged ? "z-30" : "z-10"
+            }`}
           style={{ left: `${elementLeft}px`, width: `${elementWidth}px` }}
           data-element-id={element.id}
           data-track-id={track.id}
@@ -166,7 +173,7 @@ export function TimelineElement({
             isMuted={isMuted}
             selectedCount={selectedElements.length}
             onClick={(event) =>
-              handleAction({ action: "toggle-mute-selected", event })
+              handleAction({ action: "toggle-elements-muted-selected", event })
             }
           />
         )}
@@ -177,7 +184,10 @@ export function TimelineElement({
             isCurrentElementSelected={isCurrentElementSelected}
             selectedCount={selectedElements.length}
             onClick={(event) =>
-              handleAction({ action: "toggle-visibility-selected", event })
+              handleAction({
+                action: "toggle-elements-visibility-selected",
+                event,
+              })
             }
           />
         )}
@@ -260,7 +270,7 @@ function ElementInner({
         {
           type: track.type,
         },
-      )} ${isBeingDragged ? "z-50" : "z-10"} ${canElementBeHidden(element) && element.hidden ? "opacity-50" : ""}`}
+      )} ${isBeingDragged ? "z-30" : "z-10"} ${canElementBeHidden(element) && element.hidden ? "opacity-50" : ""}`}
       onClick={(e) => onElementClick(e, element)}
       onMouseDown={(e) => onElementMouseDown(e, element)}
       onContextMenu={(e) => onElementMouseDown(e, element)}
