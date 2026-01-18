@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import type { MutableRefObject, RefObject } from "react";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { snapTimeToFrame } from "@/lib/time-utils";
+import { getSnappedSeekTime } from "@/lib/time-utils";
 import { useEditor } from "../use-editor";
 
 interface UseTimelineInteractionsProps {
@@ -139,7 +139,11 @@ export function useTimelineInteractions({
       );
 
       const projectFps = activeProject?.settings.fps || 30;
-      const time = snapTimeToFrame({ time: rawTime, fps: projectFps });
+      const time = getSnappedSeekTime({
+        rawTime,
+        duration,
+        fps: projectFps,
+      });
       seek(time);
     },
     [

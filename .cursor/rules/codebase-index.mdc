@@ -619,6 +619,15 @@ time-utils.ts
     time: number;
     fps: number;
   }): number
+  export function getSnappedSeekTime({
+    rawTime,
+    duration,
+    fps,
+  }: {
+    rawTime: number;
+    duration: number;
+    fps: number;
+  }): number
 
 transcription-utils.ts
   export function isTranscriptionConfigured()

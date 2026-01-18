@@ -182,3 +182,19 @@ export function snapTimeToFrame({
   const frame = timeToFrame({ time, fps });
   return frameToTime({ frame, fps });
 }
+
+export function getSnappedSeekTime({
+  rawTime,
+  duration,
+  fps,
+}: {
+  rawTime: number;
+  duration: number;
+  fps: number;
+}): number {
+  const snappedTime = snapTimeToFrame({ time: rawTime, fps });
+  const frameOffset = fps > 0 ? 1 / fps : 0;
+  const maxSeekTime =
+    frameOffset > 0 ? Math.max(0, duration - frameOffset) : duration;
+  return Math.max(0, Math.min(maxSeekTime, snappedTime));
+}
