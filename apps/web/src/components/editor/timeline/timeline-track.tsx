@@ -53,10 +53,10 @@ export function TimelineTrackContent({
 
   return (
     <div
-      className="hover:bg-muted/20 size-full"
+      className="size-full"
       onClick={clearElementSelection}
     >
-      <div className="track-elements-container relative h-full min-w-full">
+      <div className="relative h-full min-w-full">
         {track.elements.length === 0 ? (
           <div className="text-muted-foreground border-muted/30 flex size-full items-center justify-center rounded-sm border-2 border-dashed text-xs" />
         ) : (

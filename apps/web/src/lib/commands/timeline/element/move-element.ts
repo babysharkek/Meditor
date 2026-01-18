@@ -3,6 +3,7 @@ import { EditorCore } from "@/core";
 import type { TimelineTrack, TimelineElement, TrackType } from "@/types/timeline";
 import {
   buildEmptyTrack,
+  isMainTrack,
   validateElementTrackCompatibility,
 } from "@/lib/timeline/track-utils";
 
@@ -64,7 +65,7 @@ export class MoveElementCommand extends Command {
 
     const isSameTrack = this.sourceTrackId === this.targetTrackId;
 
-    const updatedTracks = tracksToUpdate.map((track) => {
+    let updatedTracks = tracksToUpdate.map((track) => {
       if (isSameTrack && track.id === this.sourceTrackId) {
         return {
           ...track,
@@ -90,6 +91,21 @@ export class MoveElementCommand extends Command {
 
       return track;
     }) as TimelineTrack[];
+
+    if (!isSameTrack) {
+      const sourceTrackAfterMove = updatedTracks.find(
+        (track) => track.id === this.sourceTrackId,
+      );
+      if (
+        sourceTrackAfterMove &&
+        sourceTrackAfterMove.elements.length === 0 &&
+        !isMainTrack(sourceTrackAfterMove)
+      ) {
+        updatedTracks = updatedTracks.filter(
+          (track) => track.id !== this.sourceTrackId,
+        );
+      }
+    }
 
     editor.timeline.updateTracks(updatedTracks);
   }

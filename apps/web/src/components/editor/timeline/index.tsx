@@ -79,6 +79,7 @@ export function Timeline() {
 
   const {
     dragState,
+    dragDropTarget,
     handleElementMouseDown,
     handleElementClick,
     lastMouseXRef,
@@ -311,6 +312,11 @@ export function Timeline() {
               dropTarget={dropTarget}
               tracks={timeline.getTracks()}
               isVisible={isDragOver}
+            />
+            <DragLine
+              dropTarget={dragDropTarget}
+              tracks={timeline.getTracks()}
+              isVisible={dragState.isDragging}
             />
 
             <ScrollArea className="h-full w-full" ref={tracksScrollRef}>

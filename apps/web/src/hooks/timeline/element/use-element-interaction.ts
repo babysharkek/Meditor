@@ -13,6 +13,7 @@ import { snapTimeToFrame } from "@/lib/time-utils";
 import { computeDropTarget } from "@/lib/timeline/drop-utils";
 import { generateUUID } from "@/lib/utils";
 import type {
+  DropTarget,
   ElementDragState,
   TimelineElement,
   TimelineTrack,
@@ -38,6 +39,7 @@ const initialDragState: ElementDragState = {
   startElementTime: 0,
   clickOffsetTime: 0,
   currentTime: 0,
+  currentMouseY: 0,
 };
 
 interface PendingDragState {
@@ -84,9 +86,60 @@ function getElementDuration({ element }: { element: TimelineElement }): number {
   return element.duration - element.trimStart - element.trimEnd;
 }
 
+function getDragDropTarget({
+  clientX,
+  clientY,
+  elementId,
+  trackId,
+  tracks,
+  tracksContainerRef,
+  tracksScrollRef,
+  zoomLevel,
+  snappedTime,
+}: {
+  clientX: number;
+  clientY: number;
+  elementId: string;
+  trackId: string;
+  tracks: TimelineTrack[];
+  tracksContainerRef: RefObject<HTMLDivElement | null>;
+  tracksScrollRef: RefObject<HTMLDivElement | null>;
+  zoomLevel: number;
+  snappedTime: number;
+}): DropTarget | null {
+  const containerRect = tracksContainerRef.current?.getBoundingClientRect();
+  const scrollContainer = tracksScrollRef.current;
+  if (!containerRect || !scrollContainer) return null;
+
+  const sourceTrack = tracks.find(({ id }) => id === trackId);
+  const movingElement = sourceTrack?.elements.find(({ id }) => id === elementId);
+  if (!movingElement) return null;
+
+  const elementDuration = getElementDuration({ element: movingElement });
+  const scrollLeft = scrollContainer.scrollLeft;
+  const scrollContainerRect = scrollContainer.getBoundingClientRect();
+  const mouseX = clientX - scrollContainerRect.left + scrollLeft;
+  const mouseY = clientY - containerRect.top;
+
+  return computeDropTarget({
+    elementType: movingElement.type,
+    mouseX,
+    mouseY,
+    tracks,
+    playheadTime: snappedTime,
+    isExternalDrop: false,
+    elementDuration,
+    pixelsPerSecond: TIMELINE_CONSTANTS.PIXELS_PER_SECOND,
+    zoomLevel,
+    startTimeOverride: snappedTime,
+    excludeElementId: movingElement.id,
+  });
+}
+
 interface StartDragParams
-  extends Omit<ElementDragState, "isDragging" | "currentTime"> {
+  extends Omit<ElementDragState, "isDragging" | "currentTime" | "currentMouseY"> {
   initialCurrentTime: number;
+  initialCurrentMouseY: number;
 }
 
 export function useElementInteraction({
@@ -106,6 +159,7 @@ export function useElementInteraction({
 
   const [dragState, setDragState] =
     useState<ElementDragState>(initialDragState);
+  const [dragDropTarget, setDragDropTarget] = useState<DropTarget | null>(null);
   const [isPendingDrag, setIsPendingDrag] = useState(false);
   const pendingDragRef = useRef<PendingDragState | null>(null);
   const lastMouseXRef = useRef(0);
@@ -120,6 +174,7 @@ export function useElementInteraction({
       startElementTime,
       clickOffsetTime,
       initialCurrentTime,
+      initialCurrentMouseY,
     }: StartDragParams) => {
       setDragState({
         isDragging: true,
@@ -130,6 +185,7 @@ export function useElementInteraction({
         startElementTime,
         clickOffsetTime,
         currentTime: initialCurrentTime,
+        currentMouseY: initialCurrentMouseY,
       });
     },
     [],
@@ -137,6 +193,7 @@ export function useElementInteraction({
 
   const endDrag = useCallback(() => {
     setDragState(initialDragState);
+    setDragDropTarget(null);
   }, []);
 
   useEffect(() => {
@@ -173,6 +230,7 @@ export function useElementInteraction({
           startDrag({
             ...pendingDragRef.current,
             initialCurrentTime: snappedTime,
+            initialCurrentMouseY: clientY,
           });
           startedDragThisEvent = true;
           pendingDragRef.current = null;
@@ -215,7 +273,23 @@ export function useElementInteraction({
       setDragState((previousDragState) => ({
         ...previousDragState,
         currentTime: snappedTime,
+        currentMouseY: clientY,
       }));
+
+      if (dragState.elementId && dragState.trackId) {
+        const dropTarget = getDragDropTarget({
+          clientX,
+          clientY,
+          elementId: dragState.elementId,
+          trackId: dragState.trackId,
+          tracks,
+          tracksContainerRef,
+          tracksScrollRef,
+          zoomLevel,
+          snappedTime,
+        });
+        setDragDropTarget(dropTarget?.isNewTrack ? dropTarget : null);
+      }
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -231,6 +305,8 @@ export function useElementInteraction({
     editor.project,
     timelineRef,
     tracksScrollRef,
+    tracksContainerRef,
+    tracks,
     isPendingDrag,
     startDrag,
   ]);
@@ -241,37 +317,6 @@ export function useElementInteraction({
     const handleMouseUp = ({ clientX, clientY }: MouseEvent) => {
       if (!dragState.elementId || !dragState.trackId) return;
 
-      const containerRect = tracksContainerRef.current?.getBoundingClientRect();
-      if (!containerRect) {
-        endDrag();
-        onSnapPointChange?.(null);
-        return;
-      }
-
-      const sourceTrack = tracks.find(({ id }) => id === dragState.trackId);
-      if (!sourceTrack) {
-        endDrag();
-        onSnapPointChange?.(null);
-        return;
-      }
-      const movingElement = sourceTrack?.elements.find(
-        ({ id }) => id === dragState.elementId,
-      );
-
-      if (!movingElement) {
-        endDrag();
-        onSnapPointChange?.(null);
-        return;
-      }
-
-      const elementDuration = getElementDuration({ element: movingElement });
-      const scrollLeft = tracksScrollRef.current?.scrollLeft ?? 0;
-      const scrollContainerRect =
-        tracksScrollRef.current?.getBoundingClientRect();
-      const mouseX = scrollContainerRect
-        ? clientX - scrollContainerRect.left + scrollLeft
-        : clientX - containerRect.left + scrollLeft;
-      const mouseY = clientY - containerRect.top;
       if (mouseDownLocationRef.current) {
         const deltaX = Math.abs(clientX - mouseDownLocationRef.current.x);
         const deltaY = Math.abs(clientY - mouseDownLocationRef.current.y);
@@ -283,23 +328,34 @@ export function useElementInteraction({
         }
       }
 
-      const dropTarget = computeDropTarget({
-        elementType: movingElement.type,
-        mouseX,
-        mouseY,
+      const dropTarget = getDragDropTarget({
+        clientX,
+        clientY,
+        elementId: dragState.elementId,
+        trackId: dragState.trackId,
         tracks,
-        playheadTime: dragState.currentTime,
-        isExternalDrop: false,
-        elementDuration,
-        pixelsPerSecond: TIMELINE_CONSTANTS.PIXELS_PER_SECOND,
+        tracksContainerRef,
+        tracksScrollRef,
         zoomLevel,
-        excludeElementId: movingElement.id,
+        snappedTime: dragState.currentTime,
       });
+      if (!dropTarget) {
+        endDrag();
+        onSnapPointChange?.(null);
+        return;
+      }
       const snappedTime = dragState.currentTime;
+
+      const sourceTrack = tracks.find(({ id }) => id === dragState.trackId);
+      if (!sourceTrack) {
+        endDrag();
+        onSnapPointChange?.(null);
+        return;
+      }
 
       if (dropTarget.isNewTrack) {
         const newTrackId = generateUUID();
-        
+
         editor.timeline.moveElement({
           sourceTrackId: dragState.trackId,
           targetTrackId: newTrackId,
@@ -453,6 +509,7 @@ export function useElementInteraction({
 
   return {
     dragState,
+    dragDropTarget,
     handleElementMouseDown,
     handleElementClick,
     lastMouseXRef,

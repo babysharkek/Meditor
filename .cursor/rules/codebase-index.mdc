@@ -16,12 +16,6 @@ When implementing new features:
 3. Understand the API surface of your codebase
 
 ```typescript
-## apps/web/src
-
-middleware.ts
-  export function middleware()
-  export const config
-
 ## apps/web/src/constants
 
 captions-constants.ts
@@ -111,215 +105,18 @@ index.ts
     renderer: RendererManager
     save: SaveManager
     static getInstance(): EditorCore
-    // ... and 2 more
+    static reset(): void
+    async export({
+      format,
+      quality,
+      includeAudio = true,
+      onProgress,
+    }: ExportOptions): Promise<{
+      success: boolean;
+      buffer?: ArrayBuffer;
+      error?: string;
+    }>
   }
-
-## apps/web/src/core/managers
-
-commands.ts
-  export class CommandManager {
-    history: Command[]
-    redoStack: Command[]
-    execute({ command }: { command: Command }): Command
-    undo(): void
-    redo(): void
-    canUndo(): boolean
-    canRedo(): boolean
-    clear(): void
-  }
-
-media-manager.ts
-  export class MediaManager {
-    assets: MediaAsset[]
-    isLoading
-    listeners
-    constructor(private editor: EditorCore)
-    async addMediaAsset({
-      projectId,
-      asset,
-    }: {
-      projectId: string;
-      asset: Omit<MediaAsset, "id">;
-    }): Promise<void>
-    async removeMediaAsset({
-      projectId,
-      id,
-    }: {
-      projectId: string;
-      id: string;
-    }): Promise<void>
-    async loadProjectMedia({ projectId }: { projectId: string }): Promise<void>
-    async clearProjectMedia({ projectId }: { projectId: string }): Promise<void>
-    clearAllAssets(): void
-    getAssets(): MediaAsset[]
-    // ... and 3 more
-  }
-
-playback-manager.ts
-  export class PlaybackManager {
-    isPlaying
-    currentTime
-    volume
-    muted
-    previousVolume
-    speed
-    listeners
-    playbackTimer: number | null
-    lastUpdate
-    constructor(private editor: EditorCore)
-    // ... and 16 more
-  }
-
-project-manager.ts
-  export interface MigrationState {
-    isMigrating: boolean
-    fromVersion: number | null
-    toVersion: number | null
-    projectName: string | null
-  }
-  export class ProjectManager {
-    active: TProject | null
-    savedProjects: TProjectMetadata[]
-    isLoading
-    isInitialized
-    invalidProjectIds
-    storageMigrationPromise: Promise<void> | null
-    listeners
-    migrationState: MigrationState
-    constructor(private editor: EditorCore)
-    async createNewProject({ name }: { name: string }): Promise<string>
-    // ... and 22 more
-  }
-
-renderer-manager.ts
-  export class RendererManager {
-    renderTree: RootNode | null
-    listeners
-    constructor(private editor: EditorCore)
-    setRenderTree({ renderTree }: { renderTree: RootNode | null }): void
-    getRenderTree(): RootNode | null
-    async exportProject({
-      options,
-    }: {
-      options: ExportOptions;
-    }): Promise<ExportResult>
-    subscribe(listener: () => void): () => void
-  }
-
-save-manager.ts
-  export class SaveManager {
-    debounceMs: number
-    isPaused
-    isSaving
-    hasPendingSave
-    saveTimer: ReturnType<typeof setTimeout> | null
-    unsubscribeHandlers: Array<() => void>
-    constructor(
-      private editor: EditorCore,
-      { debounceMs = 800 }: SaveManagerOptions = {},
-    )
-    start(): void
-    stop(): void
-    pause(): void
-    // ... and 3 more
-  }
-
-scenes-manager.ts
-  export class ScenesManager {
-    active: TScene | null
-    list: TScene[]
-    listeners
-    constructor(private editor: EditorCore)
-    async createScene({
-      name,
-      isMain = false,
-    }: {
-      name: string;
-      isMain: boolean;
-    }): Promise<string>
-    async deleteScene({ sceneId }: { sceneId: string }): Promise<void>
-    async renameScene({
-      sceneId,
-      name,
-    }: {
-      sceneId: string;
-      name: string;
-    }): Promise<void>
-    async switchToScene({ sceneId }: { sceneId: string }): Promise<void>
-    async toggleBookmark({ time }: { time: number }): Promise<void>
-    isBookmarked({ time }: { time: number }): boolean
-    // ... and 9 more
-  }
-
-timeline-manager.ts
-  export class TimelineManager {
-    listeners
-    constructor(private editor: EditorCore)
-    addTrack({ type, index }: { type: TrackType; index?: number }): string
-    removeTrack({ trackId }: { trackId: string }): void
-    addElementToTrack({
-      trackId,
-      element,
-    }: {
-      trackId: string;
-      element: CreateTimelineElement;
-    }): void
-    updateElementTrim({
-      elementId,
-      trimStart,
-      trimEnd,
-      pushHistory = true,
-    }: {
-      elementId: string;
-      trimStart: number;
-      trimEnd: number;
-      pushHistory?: boolean;
-    }): void
-    updateElementDuration({
-      trackId,
-      elementId,
-      duration,
-      pushHistory = true,
-    }: {
-      trackId: string;
-      elementId: string;
-      duration: number;
-      pushHistory?: boolean;
-    }): void
-    updateElementStartTime({
-      elements,
-      startTime,
-    }: {
-      elements: { trackId: string; elementId: string }[];
-      startTime: number;
-    }): void
-    moveElement({
-      sourceTrackId,
-      targetTrackId,
-      elementId,
-      newStartTime,
-      createTrack,
-    }: {
-      sourceTrackId: string;
-      targetTrackId: string;
-      elementId: string;
-      newStartTime: number;
-      createTrack?: { type: TrackType; index: number };
-    }): void
-    toggleTrackMute({ trackId }: { trackId: string }): void
-    // ... and 14 more
-  }
-
-## apps/web/src/data/colors
-
-pattern-craft.ts
-  export const patternCraftGradients
-
-solid.ts
-  export const colors
-
-syntax-ui.tsx
-  export const syntaxUIGradients
 
 ## apps/web/src/hooks
 
@@ -953,292 +750,6 @@ gradients.ts
     css: string;
   }): void
 
-## apps/web/src/lib/commands/media
-
-add-media-asset.ts
-  export class AddMediaAssetCommand extends Command {
-    assetId: string
-    savedAssets: MediaAsset[] | null
-    createdAsset: MediaAsset | null
-    constructor(
-      private projectId: string,
-      private asset: Omit<MediaAsset, "id">,
-    )
-    execute(): void
-    undo(): void
-    getAssetId(): string
-  }
-
-remove-media-asset.ts
-  export class RemoveMediaAssetCommand extends Command {
-    savedAssets: MediaAsset[] | null
-    savedTracks: TimelineTrack[] | null
-    removedAsset: MediaAsset | null
-    constructor(
-      private projectId: string,
-      private assetId: string,
-    )
-    execute(): void
-    undo(): void
-  }
-
-## apps/web/src/lib/commands/project
-
-update-project-settings.ts
-  export class UpdateProjectSettingsCommand extends Command {
-    savedSettings: TProjectSettings | null
-    savedUpdatedAt: Date | null
-    constructor(private updates: Partial<TProjectSettings>)
-    execute(): void
-    undo(): void
-  }
-
-## apps/web/src/lib/commands/scene
-
-create-scene.ts
-  export class CreateSceneCommand extends Command {
-    savedScenes: TScene[] | null
-    createdScene: TScene | null
-    constructor(
-      private name: string,
-      private isMain: boolean = false,
-    )
-    execute(): void
-    undo(): void
-    getSceneId(): string
-  }
-
-delete-scene.ts
-  export class DeleteSceneCommand extends Command {
-    savedScenes: TScene[] | null
-    savedActiveSceneId: string | null
-    deletedScene: TScene | null
-    constructor(private sceneId: string)
-    execute(): void
-    undo(): void
-  }
-
-remove-bookmark.ts
-  export class RemoveBookmarkCommand extends Command {
-    savedScenes: TScene[] | null
-    frameTime: number
-    constructor(private time: number)
-    execute(): void
-    undo(): void
-  }
-
-rename-scene.ts
-  export class RenameSceneCommand extends Command {
-    savedScenes: TScene[] | null
-    previousName: string | null
-    constructor(
-      private sceneId: string,
-      private newName: string,
-    )
-    execute(): void
-    undo(): void
-  }
-
-toggle-bookmark.ts
-  export class ToggleBookmarkCommand extends Command {
-    savedScenes: TScene[] | null
-    frameTime: number
-    constructor(private time: number)
-    execute(): void
-    undo(): void
-  }
-
-## apps/web/src/lib/commands/timeline/clipboard
-
-paste.ts
-  export class PasteCommand extends Command {
-    savedState: TimelineTrack[] | null
-    pastedElementIds: string[]
-    constructor(
-      private time: number,
-      private clipboardItems: ClipboardItem[],
-    )
-    execute(): void
-    undo(): void
-  }
-
-## apps/web/src/lib/commands/timeline/element
-
-add-element.ts
-  export class AddElementToTrackCommand extends Command {
-    elementId: string
-    savedState: TimelineTrack[] | null
-    constructor(
-      private trackId: string,
-      private element: CreateTimelineElement,
-    )
-    execute(): void
-    undo(): void
-    getElementId(): string
-  }
-
-delete-elements.ts
-  export class DeleteElementsCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(private elements: { trackId: string; elementId: string }[])
-    execute(): void
-    undo(): void
-  }
-
-duplicate-elements.ts
-  export class DuplicateElementsCommand extends Command {
-    duplicatedIds: string[]
-    savedState: TimelineTrack[] | null
-    elements: DuplicateElementsParams["elements"]
-    constructor({ elements }: DuplicateElementsParams)
-    execute(): void
-    undo(): void
-  }
-
-move-element.ts
-  export class MoveElementCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(
-      private sourceTrackId: string,
-      private targetTrackId: string,
-      private elementId: string,
-      private newStartTime: number,
-      private createTrack?: { type: TrackType; index: number },
-    )
-    execute(): void
-    undo(): void
-  }
-
-split-elements.ts
-  export class SplitElementsCommand extends Command {
-    savedState: TimelineTrack[] | null
-    newElementIds: string[]
-    affectedElementIds: Set<string>
-    constructor(
-      private elements: { trackId: string; elementId: string }[],
-      private splitTime: number,
-      private retainSide: "both" | "left" | "right" = "both",
-    )
-    splitElementIds(): string[]
-    execute(): void
-    undo(): void
-  }
-
-toggle-elements-muted.ts
-  export class ToggleElementsMutedCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(private elements: { trackId: string; elementId: string }[])
-    execute(): void
-    undo(): void
-  }
-
-toggle-elements-visibility.ts
-  export class ToggleElementsVisibilityCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(private elements: { trackId: string; elementId: string }[])
-    execute(): void
-    undo(): void
-  }
-
-update-element-duration.ts
-  export class UpdateElementDurationCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(
-      private trackId: string,
-      private elementId: string,
-      private duration: number,
-    )
-    execute(): void
-    undo(): void
-  }
-
-update-element-start-time.ts
-  export class UpdateElementStartTimeCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(
-      private elements: { trackId: string; elementId: string }[],
-      private startTime: number,
-    )
-    execute(): void
-    undo(): void
-  }
-
-update-element-trim.ts
-  export class UpdateElementTrimCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(
-      private elementId: string,
-      private trimStart: number,
-      private trimEnd: number,
-    )
-    execute(): void
-    undo(): void
-  }
-
-update-text-element.ts
-  export class UpdateTextElementCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(
-      private trackId: string,
-      private elementId: string,
-      private updates: Partial<
-        Pick<
-          TextElement,
-          | "content"
-          | "fontSize"
-          | "fontFamily"
-          | "color"
-          | "backgroundColor"
-          | "textAlign"
-          | "fontWeight"
-          | "fontStyle"
-          | "textDecoration"
-        >
-      >,
-    )
-    execute(): void
-    undo(): void
-  }
-
-## apps/web/src/lib/commands/timeline/track
-
-add-track.ts
-  export class AddTrackCommand extends Command {
-    trackId: string
-    savedState: TimelineTrack[] | null
-    constructor(
-      private type: TrackType,
-      private index?: number,
-    )
-    execute(): void
-    undo(): void
-    getTrackId(): string
-  }
-
-remove-track.ts
-  export class RemoveTrackCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(private trackId: string)
-    execute(): void
-    undo(): void
-  }
-
-toggle-track-mute.ts
-  export class ToggleTrackMuteCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(private trackId: string)
-    execute(): void
-    undo(): void
-  }
-
-toggle-track-visibility.ts
-  export class ToggleTrackVisibilityCommand extends Command {
-    savedState: TimelineTrack[] | null
-    constructor(private trackId: string)
-    execute(): void
-    undo(): void
-  }
-
 ## apps/web/src/lib/db
 
 index.ts
@@ -1249,17 +760,6 @@ schema.ts
   export const sessions
   export const accounts
   export const verifications
-  export const exportWaitlist
-
-## apps/web/src/lib/schemas
-
-waitlist.ts
-  export const exportWaitlistSchema
-  export const exportWaitlistResponseSchema
-  export type ExportWaitlistInput = z.infer<typeof exportWaitlistSchema>
-  export type ExportWaitlistResponse = z.infer<
-    typeof exportWaitlistResponseSchema
-  >
 
 ## apps/web/src/lib/storage
 
@@ -1311,7 +811,8 @@ types.ts
     duration?: number
     fps?: number
     ephemeral?: boolean
-    // ... and 2 more
+    thumbnailUrl?: string
+    sourceStickerIconName?: string
   }
   export type SerializedScene = Omit<TScene, "createdAt" | "updatedAt"> & {
     createdAt: string;
@@ -1383,6 +884,7 @@ drop-utils.ts
     elementDuration,
     pixelsPerSecond,
     zoomLevel,
+    startTimeOverride,
     excludeElementId,
   }: ComputeDropTargetParams): DropTarget
   export function getDropLineY({
@@ -1587,108 +1089,6 @@ scene-exporter.ts
     constructor(params: ExportParams)
     cancel()
     async export(rootNode: RootNode)
-  }
-
-## apps/web/src/services/renderer/nodes
-
-base-node.ts
-  export type BaseNodeParams = object | undefined
-  export class BaseNode {
-    params: Params
-    constructor(params?: Params)
-    children: BaseNode[]
-    add(child: BaseNode)
-    remove(child: BaseNode)
-    async render({ renderer, time }: { renderer: CanvasRenderer; time: number }): Promise<void>
-  }
-
-blur-background-node.ts
-  export type BlurBackgroundNodeParams = {
-    blurIntensity: number;
-    contentNodes: BaseNode[];
-  }
-  export class BlurBackgroundNode extends BaseNode<BlurBackgroundNodeParams> {
-    blurIntensity: number
-    contentNodes: BaseNode[]
-    constructor(params: BlurBackgroundNodeParams)
-    async render({
-      renderer,
-      time,
-    }: {
-      renderer: CanvasRenderer;
-      time: number;
-    }): Promise<void>
-  }
-
-color-node.ts
-  export type ColorNodeParams = {
-    color: string;
-  }
-  export class ColorNode extends BaseNode<ColorNodeParams> {
-    color: string
-    constructor(params: ColorNodeParams)
-    async render({ renderer }: { renderer: CanvasRenderer })
-  }
-
-image-node.ts
-  export type ImageNodeParams = ;
-  export class ImageNode extends BaseNode<ImageNodeParams> {
-    image: HTMLImageElement
-    readyPromise: Promise<void>
-    constructor(params: ImageNodeParams)
-    async render({ renderer, time }: { renderer: CanvasRenderer; time: number })
-  }
-
-root-node.ts
-  export type RootNodeParams = {
-    duration: number;
-  }
-  export class RootNode extends BaseNode<RootNodeParams> {
-    duration()
-  }
-
-sticker-node.ts
-  export type StickerNodeParams = BaseNodeParams & {
-    iconName: string;
-    duration: number;
-    timeOffset: number;
-    trimStart:...
-  export class StickerNode extends BaseNode<StickerNodeParams> {
-    image: HTMLImageElement
-    readyPromise: Promise<void>
-    constructor(params: StickerNodeParams)
-    async render({ renderer, time }: { renderer: CanvasRenderer; time: number })
-  }
-
-text-node.ts
-  export type TextNodeParams = TextElement & {
-    canvasCenter: { x: number; y: number };
-    textBaseline?: CanvasTextBaseline;
-  }
-  export class TextNode extends BaseNode<TextNodeParams> {
-    isInRange({ time }: { time: number })
-    async render({ renderer, time }: { renderer: CanvasRenderer; time: number })
-  }
-
-video-node.ts
-  export interface BaseMediaNodeParams {
-    file: File
-    duration: number
-    timeOffset: number
-    trimStart: number
-    trimEnd: number
-    x?: number
-    y?: number
-    width?: number
-    height?: number
-    opacity?: number
-  }
-  export type VideoNodeParams = ;
-  export class VideoNode extends BaseNode<VideoNodeParams> {
-    sink: VideoSampleSink
-    readyPromise: Promise<void>
-    constructor(params: VideoNodeParams)
-    async render({ renderer, time }: { renderer: CanvasRenderer; time: number })
   }
 
 ## apps/web/src/stores
@@ -1917,7 +1317,16 @@ sounds.ts
     filesize: number
     type: string
     channels: number
-    // ... and 10 more
+    bitrate: number
+    bitdepth: number
+    samplerate: number
+    username: string
+    tags: string[]
+    license: string
+    created: string
+    downloads: number
+    rating: number
+    ratingCount: number
   }
   export interface SavedSound {
     id: number
@@ -2018,7 +1427,9 @@ timeline.ts
     fontWeight: "normal" | "bold"
     fontStyle: "normal" | "italic"
     textDecoration: "none" | "underline" | "line-through"
-    // ... and 3 more
+    hidden?: boolean
+    transform: Transform
+    opacity: number
   }
   export interface StickerElement extends BaseTimelineElement {
     type: "sticker"
@@ -2056,6 +1467,7 @@ timeline.ts
     startElementTime: number
     clickOffsetTime: number
     currentTime: number
+    currentMouseY: number
   }
   export interface DropTarget {
     trackIndex: number
@@ -2073,6 +1485,7 @@ timeline.ts
     elementDuration: number
     pixelsPerSecond: number
     zoomLevel: number
+    startTimeOverride?: number
     excludeElementId?: string
   }
   export interface ClipboardItem {

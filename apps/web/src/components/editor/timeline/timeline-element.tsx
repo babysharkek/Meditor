@@ -96,6 +96,10 @@ export function TimelineElement({
   );
 
   const isBeingDragged = dragState.elementId === element.id;
+  const dragOffsetY =
+    isBeingDragged && dragState.isDragging
+      ? dragState.currentMouseY - dragState.startMouseY
+      : 0;
   const elementStartTime =
     isBeingDragged && dragState.isDragging
       ? dragState.currentTime
@@ -130,9 +134,16 @@ export function TimelineElement({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          className={`timeline-element absolute top-0 h-full select-none ${isBeingDragged ? "z-30" : "z-10"
+          className={`absolute top-0 h-full select-none ${isBeingDragged ? "z-30" : "z-10"
             }`}
-          style={{ left: `${elementLeft}px`, width: `${elementWidth}px` }}
+          style={{
+            left: `${elementLeft}px`,
+            width: `${elementWidth}px`,
+            transform:
+              isBeingDragged && dragState.isDragging
+                ? `translate3d(0, ${dragOffsetY}px, 0)`
+                : undefined,
+          }}
           data-element-id={element.id}
           data-track-id={track.id}
         >

@@ -25,6 +25,7 @@ structure:
     - ".turbo"
     - "apps/web/migrations"
     - "apps/web/src/components/ui"
+    - "apps/web/src/middleware.ts"
 
 # Codebase Indexing Configuration
 # Extracts function signatures, types, interfaces, classes, and exports
@@ -50,3 +51,7 @@ indexing:
     - "apps/web/src/components/**"
     - "apps/web/stores/**"
     - "apps/web/hooks/**"
+    - "apps/web/src/core/managers/**"
+    - "apps/web/src/lib/commands/**"
+    - "apps/web/src/data/**"
+    - "apps/web/src/services/renderer/nodes/**"

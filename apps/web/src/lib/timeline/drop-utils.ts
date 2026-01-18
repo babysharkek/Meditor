@@ -64,7 +64,7 @@ function findInsertIndex({
 }): { index: number; position: "above" | "below" } {
   const mainTrackIndex = getMainTrackIndex({ tracks });
 
-  if (elementType === "audio") {
+    if (elementType === "audio") {
     if (preferredIndex <= mainTrackIndex) {
       return { index: mainTrackIndex + 1, position: "below" };
     }
@@ -74,12 +74,14 @@ function findInsertIndex({
     };
   }
 
-  if (preferredIndex > mainTrackIndex && mainTrackIndex >= 0) {
+  const overlayInsertIndex = insertAbove ? preferredIndex : preferredIndex + 1;
+
+  if (mainTrackIndex >= 0 && overlayInsertIndex > mainTrackIndex) {
     return { index: mainTrackIndex, position: "above" };
   }
 
   return {
-    index: insertAbove ? preferredIndex : preferredIndex + 1,
+    index: overlayInsertIndex,
     position: insertAbove ? "above" : "below",
   };
 }
@@ -94,11 +96,15 @@ export function computeDropTarget({
   elementDuration,
   pixelsPerSecond,
   zoomLevel,
+  startTimeOverride,
   excludeElementId,
 }: ComputeDropTargetParams): DropTarget {
-  const xPosition = isExternalDrop
-    ? playheadTime
-    : Math.max(0, mouseX / (pixelsPerSecond * zoomLevel));
+  const xPosition =
+    typeof startTimeOverride === "number"
+      ? startTimeOverride
+      : isExternalDrop
+        ? playheadTime
+        : Math.max(0, mouseX / (pixelsPerSecond * zoomLevel));
 
   const mainTrackIndex = getMainTrackIndex({ tracks });
 

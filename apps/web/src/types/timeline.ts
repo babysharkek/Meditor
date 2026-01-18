@@ -158,6 +158,7 @@ export interface ElementDragState {
   startElementTime: number;
   clickOffsetTime: number;
   currentTime: number;
+  currentMouseY: number;
 }
 
 export interface DropTarget {
@@ -177,6 +178,7 @@ export interface ComputeDropTargetParams {
   elementDuration: number;
   pixelsPerSecond: number;
   zoomLevel: number;
+  startTimeOverride?: number;
   excludeElementId?: string;
 }
 
