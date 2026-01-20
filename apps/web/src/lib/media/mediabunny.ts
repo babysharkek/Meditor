@@ -1,7 +1,8 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { Input, ALL_FORMATS, BlobSource } from "mediabunny";
 import { collectAudioMixSources } from "@/lib/audio-utils";
-import { useEditor } from "@/hooks/use-editor";
+import type { TimelineTrack } from "@/types/timeline";
+import type { MediaAsset } from "@/types/assets";
 
 let ffmpeg: FFmpeg | null = null;
 
@@ -50,12 +51,18 @@ export async function getVideoInfo({
 
 // audio mixing for timeline - keeping ffmpeg for now due to complexity
 // TODO: Replace with Mediabunny audio processing when implementing canvas preview
-export const extractTimelineAudio = async (
-  onProgress?: (progress: number) => void,
-): Promise<Blob> => {
-  // Create fresh FFmpeg instance for this operation
+export const extractTimelineAudio = async ({
+  tracks,
+  mediaAssets,
+  totalDuration,
+  onProgress,
+}: {
+  tracks: TimelineTrack[];
+  mediaAssets: MediaAsset[];
+  totalDuration: number;
+  onProgress?: (progress: number) => void;
+}): Promise<Blob> => {
   const ffmpeg = new FFmpeg();
-  const editor = useEditor();
 
   try {
     await ffmpeg.load();
@@ -63,10 +70,6 @@ export const extractTimelineAudio = async (
     console.error("Failed to load fresh FFmpeg instance:", error);
     throw new Error("Unable to initialize audio processing. Please try again.");
   }
-
-  const tracks = editor.timeline.getTracks();
-  const mediaAssets = editor.media.getAssets();
-  const totalDuration = editor.timeline.getTotalDuration();
 
   if (totalDuration === 0) {
     const emptyAudioData = new ArrayBuffer(44);
@@ -182,11 +185,11 @@ export const extractTimelineAudio = async (
     for (const inputFile of inputFiles) {
       try {
         await ffmpeg.deleteFile(inputFile);
-      } catch (cleanupError) {}
+      } catch (cleanupError) { }
     }
     try {
       await ffmpeg.deleteFile("timeline_audio.wav");
-    } catch (cleanupError) {}
+    } catch (cleanupError) { }
   }
 };
 

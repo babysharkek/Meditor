@@ -102,7 +102,7 @@ export function useTimelineSnapping({
 
       return {
         snappedTime: closestSnapPoint
-          ? (closestSnapPoint as SnapPoint).time
+          ? closestSnapPoint.time
           : targetTime,
         snapPoint: closestSnapPoint,
         snapDistance: closestDistance,

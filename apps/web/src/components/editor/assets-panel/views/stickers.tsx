@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import type { CSSProperties } from "react";
 import { useStickersStore } from "@/stores/stickers-store";
 import {
   Loader2,
@@ -38,6 +39,10 @@ import type { StickerCategory } from "@/types/stickers";
 import { STICKER_CATEGORIES } from "@/constants/stickers-constants";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
+function isStickerCategory(value: string): value is StickerCategory {
+  return STICKER_CATEGORIES.includes(value as StickerCategory);
+}
+
 export function StickersView() {
   const { selectedCategory, setSelectedCategory } = useStickersStore();
 
@@ -45,8 +50,8 @@ export function StickersView() {
     <BaseView
       value={selectedCategory}
       onValueChange={(v) => {
-        if (STICKER_CATEGORIES.includes(v as StickerCategory)) {
-          setSelectedCategory({ category: v as StickerCategory });
+        if (isStickerCategory(v)) {
+          setSelectedCategory({ category: v });
         }
       }}
       tabs={[
@@ -91,16 +96,21 @@ function StickerGrid({
   addingSticker: string | null;
   capSize?: boolean;
 }) {
+  const gridStyle: CSSProperties & {
+    "--sticker-min": string;
+    "--sticker-max"?: string;
+  } = {
+    gridTemplateColumns: capSize
+      ? "repeat(auto-fill, minmax(var(--sticker-min, 96px), var(--sticker-max, 160px)))"
+      : "repeat(auto-fit, minmax(var(--sticker-min, 96px), 1fr))",
+    "--sticker-min": "96px",
+    ...(capSize ? { "--sticker-max": "160px" } : {}),
+  };
+
   return (
     <div
       className="grid gap-2"
-      style={{
-        gridTemplateColumns: capSize
-          ? "repeat(auto-fill, minmax(var(--sticker-min, 96px), var(--sticker-max, 160px)))"
-          : "repeat(auto-fit, minmax(var(--sticker-min, 96px), 1fr))",
-        ["--sticker-min" as any]: "96px",
-        ...(capSize ? ({ ["--sticker-max"]: "160px" } as any) : {}),
-      }}
+      style={gridStyle}
     >
       {icons.map((iconName) => (
         <StickerItem
@@ -201,17 +211,17 @@ function StickersContentView({ category }: { category: StickerCategory }) {
         const collection = collections[c.prefix];
         return collection
           ? {
-              prefix: c.prefix,
-              name: c.name,
-              total: collection.total,
-            }
+            prefix: c.prefix,
+            name: c.name,
+            total: collection.total,
+          }
           : null;
       })
       .filter(Boolean) as Array<{
-      prefix: string;
-      name: string;
-      total: number;
-    }>;
+        prefix: string;
+        name: string;
+        total: number;
+      }>;
   }, [collections, category]);
 
   const { scrollAreaRef, handleScroll } = useInfiniteScroll({
@@ -524,10 +534,10 @@ function StickerItem({
           hostIndex === 0
             ? getIconSvgUrl(iconName, { width: 64, height: 64 })
             : buildIconSvgUrl(
-                ICONIFY_HOSTS[Math.min(hostIndex, ICONIFY_HOSTS.length - 1)],
-                iconName,
-                { width: 64, height: 64 },
-              )
+              ICONIFY_HOSTS[Math.min(hostIndex, ICONIFY_HOSTS.length - 1)],
+              iconName,
+              { width: 64, height: 64 },
+            )
         }
         alt={displayName}
         width={64}
@@ -536,9 +546,9 @@ function StickerItem({
         style={
           capSize
             ? {
-                maxWidth: "var(--sticker-max, 160px)",
-                maxHeight: "var(--sticker-max, 160px)",
-              }
+              maxWidth: "var(--sticker-max, 160px)",
+              maxHeight: "var(--sticker-max, 160px)",
+            }
             : undefined
         }
         onError={() => {

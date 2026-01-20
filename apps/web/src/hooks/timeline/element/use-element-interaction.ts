@@ -539,7 +539,7 @@ export function useElementInteraction({
       const clickOffsetTime = getClickOffsetTime({
         clientX: event.clientX,
         elementRect: (
-          event.currentTarget as HTMLElement
+          event.currentTarget
         ).getBoundingClientRect(),
         zoomLevel,
       });

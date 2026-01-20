@@ -40,7 +40,7 @@ async function getContributors(): Promise<Contributor[]> {
           "User-Agent": "OpenCut-Web-App",
         },
         next: { revalidate: 600 }, // 10 minutes
-      } as RequestInit,
+      },
     );
 
     if (!response.ok) {
@@ -51,7 +51,7 @@ async function getContributors(): Promise<Contributor[]> {
     const contributors = (await response.json()) as Contributor[];
 
     const filteredContributors = contributors.filter(
-      (contributor: Contributor) => contributor.type === "User",
+      (contributor) => contributor.type === "User",
     );
 
     return filteredContributors;

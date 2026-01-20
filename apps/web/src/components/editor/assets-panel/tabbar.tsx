@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import {
-  Tab,
+  TAB_KEYS,
   tabs,
   useAssetsPanelStore,
 } from "../../../stores/assets-panel-store";
@@ -50,7 +50,7 @@ export function TabBar() {
         ref={scrollRef}
         className="scrollbar-hidden relative flex h-full w-full flex-col items-center justify-start gap-5 overflow-y-auto px-4 py-4"
       >
-        {(Object.keys(tabs) as Tab[]).map((tabKey) => {
+        {TAB_KEYS.map((tabKey) => {
           const tab = tabs[tabKey];
           return (
             <div

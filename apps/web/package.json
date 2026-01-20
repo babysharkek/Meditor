@@ -21,6 +21,7 @@
     "@ffmpeg/util": "^0.12.2",
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^3.9.1",
+    "@huggingface/transformers": "^3.8.1",
     "@opencut/env": "workspace:*",
     "@opencut/ui": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.15",

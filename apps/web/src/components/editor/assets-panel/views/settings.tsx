@@ -26,11 +26,9 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { colors } from "@/data/colors/solid";
 import { patternCraftGradients } from "@/data/colors/pattern-craft";
-import { PipetteIcon, PlusIcon } from "lucide-react";
+import { PipetteIcon } from "lucide-react";
 import { useMemo, memo, useCallback } from "react";
 import { syntaxUIGradients } from "@/data/colors/syntax-ui";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useEditor } from "@/hooks/use-editor";
 import type { TProject } from "@/types/project";
 

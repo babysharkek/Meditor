@@ -52,18 +52,15 @@ export function useKeyboardShortcutsHelp() {
     }
 
     for (const [actionId, keys] of Object.entries(actionToKeys)) {
-      if (!Object.prototype.hasOwnProperty.call(ACTIONS, actionId)) {
-        continue;
-      }
+      if (!isAction(actionId)) continue;
 
-      const action = actionId as TAction;
-      const actionDef = ACTIONS[action];
+      const actionDef = ACTIONS[actionId];
       result.push({
         id: actionId,
         keys,
         description: actionDef.description,
         category: actionDef.category,
-        action,
+        action: actionId,
       });
     }
 
@@ -78,4 +75,8 @@ export function useKeyboardShortcutsHelp() {
   return {
     shortcuts,
   };
+}
+
+function isAction(id: string): id is TAction {
+  return id in ACTIONS;
 }

@@ -11,7 +11,13 @@ import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
 import { getExportMimeType, getExportFileExtension } from "@/lib/export";
 import { Check, Copy, Download, RotateCcw, X } from "lucide-react";
-import { ExportFormat, ExportQuality, ExportResult } from "@/types/export";
+import {
+  EXPORT_FORMAT_VALUES,
+  EXPORT_QUALITY_VALUES,
+  ExportFormat,
+  ExportQuality,
+  ExportResult,
+} from "@/types/export";
 import { PropertyGroup } from "./properties-panel/property-item";
 import { useEditor } from "@/hooks/use-editor";
 import { DEFAULT_EXPORT_OPTIONS } from "@/constants/export-constants";
@@ -160,9 +166,11 @@ function ExportPopover({
                     >
                       <RadioGroup
                         value={format}
-                        onValueChange={(value) =>
-                          setFormat(value as ExportFormat)
-                        }
+                        onValueChange={(value) => {
+                          if (isExportFormat(value)) {
+                            setFormat(value);
+                          }
+                        }}
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="mp4" id="mp4" />
@@ -186,9 +194,11 @@ function ExportPopover({
                     >
                       <RadioGroup
                         value={quality}
-                        onValueChange={(value) =>
-                          setQuality(value as ExportQuality)
-                        }
+                        onValueChange={(value) => {
+                          if (isExportQuality(value)) {
+                            setQuality(value);
+                          }
+                        }}
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="low" id="low" />
@@ -265,6 +275,14 @@ function ExportPopover({
       </>
     </PopoverContent>
   );
+}
+
+function isExportFormat(value: string): value is ExportFormat {
+  return EXPORT_FORMAT_VALUES.some((formatValue) => formatValue === value);
+}
+
+function isExportQuality(value: string): value is ExportQuality {
+  return EXPORT_QUALITY_VALUES.some((qualityValue) => qualityValue === value);
 }
 
 function ExportError({

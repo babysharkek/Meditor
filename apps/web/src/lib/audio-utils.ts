@@ -23,6 +23,36 @@ export function createAudioContext(): AudioContext {
   return new AudioContextConstructor();
 }
 
+export interface DecodedAudio {
+  samples: Float32Array;
+  sampleRate: number;
+}
+
+export async function decodeAudioToFloat32({
+  audioBlob,
+}: {
+  audioBlob: Blob;
+}): Promise<DecodedAudio> {
+  const audioContext = createAudioContext();
+  const arrayBuffer = await audioBlob.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  // mix down to mono
+  const numChannels = audioBuffer.numberOfChannels;
+  const length = audioBuffer.length;
+  const samples = new Float32Array(length);
+
+  for (let i = 0; i < length; i++) {
+    let sum = 0;
+    for (let channel = 0; channel < numChannels; channel++) {
+      sum += audioBuffer.getChannelData(channel)[i];
+    }
+    samples[i] = sum / numChannels;
+  }
+
+  return { samples, sampleRate: audioBuffer.sampleRate };
+}
+
 export async function collectAudioElements({
   tracks,
   mediaAssets,

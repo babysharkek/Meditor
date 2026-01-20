@@ -13,19 +13,22 @@ import {
 } from "lucide-react";
 import { create } from "zustand";
 
-export type Tab =
-  | "media"
-  | "sounds"
-  | "text"
-  | "stickers"
-  | "effects"
-  | "transitions"
-  | "captions"
-  | "filters"
-  | "adjustment"
-  | "settings";
+export const TAB_KEYS = [
+  "media",
+  "sounds",
+  "text",
+  "stickers",
+  "effects",
+  "transitions",
+  "captions",
+  "filters",
+  "adjustment",
+  "settings",
+] as const;
 
-export const tabs: { [key in Tab]: { icon: LucideIcon; label: string } } = {
+export type Tab = (typeof TAB_KEYS)[number];
+
+export const tabs = {
   media: {
     icon: VideoIcon,
     label: "Media",
@@ -66,7 +69,7 @@ export const tabs: { [key in Tab]: { icon: LucideIcon; label: string } } = {
     icon: SettingsIcon,
     label: "Settings",
   },
-};
+} satisfies Record<Tab, { icon: LucideIcon; label: string }>;
 
 type MediaViewMode = "grid" | "list";
 

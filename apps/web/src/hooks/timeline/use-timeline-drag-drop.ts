@@ -50,7 +50,7 @@ export function useTimelineDragDrop({
       if (dragData.type === "text") return "text";
       if (dragData.type === "sticker") return "sticker";
       if (dragData.type === "media") {
-        return dragData.mediaType as ElementType;
+        return dragData.mediaType;
       }
       return null;
     },

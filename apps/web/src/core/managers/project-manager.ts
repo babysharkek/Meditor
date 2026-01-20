@@ -384,12 +384,8 @@ export class ProjectManager {
       const tracks = this.editor.timeline.getTracks();
       const mediaAssets = this.editor.media.getAssets();
 
-      const allElements: TimelineElement[] = tracks.flatMap(
-        (track) => track.elements as TimelineElement[],
-      );
-      const sortedElements = allElements.sort(
-        (a, b) => a.startTime - b.startTime,
-      );
+      const allElements = tracks.flatMap((track): TimelineElement[] => track.elements);
+      const sortedElements = allElements.sort((a, b) => a.startTime - b.startTime);
       const firstElement = sortedElements[0];
 
       if (
