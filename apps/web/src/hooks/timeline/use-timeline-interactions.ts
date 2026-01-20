@@ -89,20 +89,18 @@ export function useTimelineInteractions({
     ({ event }: { event: React.MouseEvent }) => {
       const target = event.target as HTMLElement;
       const { isMouseDown, downX, downY, downTime } = mouseTrackingRef.current;
-
-      if (!isMouseDown) return false;
-
       const deltaX = Math.abs(event.clientX - downX);
       const deltaY = Math.abs(event.clientY - downY);
       const deltaTime = event.timeStamp - downTime;
+      const isPlayhead = !!playheadRef.current?.contains(target);
+      const isTrackLabels = !!trackLabelsRef.current?.contains(target);
+      const shouldBlockForDrag = deltaX > 5 || deltaY > 5 || deltaTime > 500;
 
-      if (deltaX > 5 || deltaY > 5 || deltaTime > 500) return false;
-
+      if (!isMouseDown) return false;
+      if (shouldBlockForDrag) return false;
       if (isSelecting) return false;
-
-      if (playheadRef.current?.contains(target)) return false;
-
-      if (trackLabelsRef.current?.contains(target)) {
+      if (isPlayhead) return false;
+      if (isTrackLabels) {
         clearSelectedElements();
         return false;
       }
@@ -134,7 +132,7 @@ export function useTimelineInteractions({
         Math.min(
           duration,
           (mouseX + scrollLeft) /
-            (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel),
+          (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel),
         ),
       );
 
@@ -158,9 +156,10 @@ export function useTimelineInteractions({
 
   const handleTracksClick = useCallback(
     (event: React.MouseEvent) => {
+      const shouldProcess = shouldProcessTimelineClick({ event });
       resetMouseTracking({ mouseTrackingRef });
 
-      if (shouldProcessTimelineClick({ event })) {
+      if (shouldProcess) {
         clearSelectedElements();
         handleTimelineSeek({ event, source: "tracks" });
       }
@@ -170,9 +169,10 @@ export function useTimelineInteractions({
 
   const handleRulerClick = useCallback(
     (event: React.MouseEvent) => {
+      const shouldProcess = shouldProcessTimelineClick({ event });
       resetMouseTracking({ mouseTrackingRef });
 
-      if (shouldProcessTimelineClick({ event })) {
+      if (shouldProcess) {
         clearSelectedElements();
         handleTimelineSeek({ event, source: "ruler" });
       }

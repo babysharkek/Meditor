@@ -1,5 +1,5 @@
-import { IndexedDBAdapter } from "@/lib/storage/indexeddb-adapter";
-import { SerializedScene } from "@/lib/storage/types";
+import { IndexedDBAdapter } from "@/services/storage/indexeddb-adapter";
+import { SerializedScene } from "@/services/storage/types";
 import { buildDefaultScene } from "@/lib/scene-utils";
 import { TScene } from "@/types/timeline";
 import { StorageMigration } from "./base";

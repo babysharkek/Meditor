@@ -41,9 +41,11 @@ import { useTimelineStore } from "@/stores/timeline-store";
 
 export function TimelineToolbar({
   zoomLevel,
+  minZoom,
   setZoomLevel,
 }: {
   zoomLevel: number;
+  minZoom: number;
   setZoomLevel: ({ zoom }: { zoom: number }) => void;
 }) {
   const handleZoom = ({ direction }: { direction: "in" | "out" }) => {
@@ -54,7 +56,7 @@ export function TimelineToolbar({
           zoomLevel + TIMELINE_CONSTANTS.ZOOM_STEP,
         )
         : Math.max(
-          TIMELINE_CONSTANTS.ZOOM_MIN,
+          minZoom,
           zoomLevel - TIMELINE_CONSTANTS.ZOOM_STEP,
         );
     setZoomLevel({ zoom: newZoomLevel });
@@ -68,6 +70,7 @@ export function TimelineToolbar({
 
       <ToolbarRightSection
         zoomLevel={zoomLevel}
+        minZoom={minZoom}
         onZoomChange={(zoom) => setZoomLevel({ zoom })}
         onZoom={handleZoom}
       />
@@ -229,7 +232,6 @@ function SceneSelector() {
         <SplitButtonSeparator />
         <ScenesView>
           <SplitButtonRight
-            disabled={scenesCount === 1}
             onClick={() => { }}
             type="button"
           >
@@ -243,10 +245,12 @@ function SceneSelector() {
 
 function ToolbarRightSection({
   zoomLevel,
+  minZoom,
   onZoomChange,
   onZoom,
 }: {
   zoomLevel: number;
+  minZoom: number;
   onZoomChange: (zoom: number) => void;
   onZoom: (options: { direction: "in" | "out" }) => void;
 }) {
@@ -283,7 +287,7 @@ function ToolbarRightSection({
           className="w-24"
           value={[zoomLevel]}
           onValueChange={(values) => onZoomChange(values[0])}
-          min={TIMELINE_CONSTANTS.ZOOM_MIN}
+          min={minZoom}
           max={TIMELINE_CONSTANTS.ZOOM_MAX}
           step={TIMELINE_CONSTANTS.ZOOM_STEP}
         />

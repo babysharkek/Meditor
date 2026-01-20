@@ -4,7 +4,7 @@
  */
 
 import { create } from "zustand";
-import type { TrackType, CreateTimelineElement } from "@/types/timeline";
+import type { ClipboardItem } from "@/types/timeline";
 
 interface TimelineStore {
   selectedElements: { trackId: string; elementId: string }[];
@@ -18,11 +18,11 @@ interface TimelineStore {
   rippleEditingEnabled: boolean;
   toggleRippleEditing: () => void;
   clipboard: {
-    items: Array<{ trackType: TrackType; element: CreateTimelineElement }>;
+    items: ClipboardItem[];
   } | null;
   setClipboard: (
     clipboard: {
-      items: Array<{ trackType: TrackType; element: CreateTimelineElement }>;
+      items: ClipboardItem[];
     } | null,
   ) => void;
 }

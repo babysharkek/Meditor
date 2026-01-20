@@ -9,6 +9,8 @@ export class UpdateElementTrimCommand extends Command {
     private elementId: string,
     private trimStart: number,
     private trimEnd: number,
+    private startTime?: number,
+    private duration?: number,
   ) {
     super();
   }
@@ -18,11 +20,19 @@ export class UpdateElementTrimCommand extends Command {
     this.savedState = editor.timeline.getTracks();
 
     const updatedTracks = this.savedState.map((track) => {
-      const newElements = track.elements.map((element) =>
-        element.id === this.elementId
-          ? { ...element, trimStart: this.trimStart, trimEnd: this.trimEnd }
-          : element,
-      );
+      const newElements = track.elements.map((element) => {
+        if (element.id !== this.elementId) {
+          return element;
+        }
+
+        return {
+          ...element,
+          trimStart: this.trimStart,
+          trimEnd: this.trimEnd,
+          startTime: this.startTime ?? element.startTime,
+          duration: this.duration ?? element.duration,
+        };
+      });
       return { ...track, elements: newElements } as typeof track;
     });
 

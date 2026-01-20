@@ -68,12 +68,18 @@ export const tabs: { [key in Tab]: { icon: LucideIcon; label: string } } = {
   },
 };
 
+type MediaViewMode = "grid" | "list";
+
 interface AssetsPanelStore {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
   highlightMediaId: string | null;
   requestRevealMedia: (mediaId: string) => void;
   clearHighlight: () => void;
+
+  /* Media */
+  mediaViewMode: MediaViewMode;
+  setMediaViewMode: (mode: MediaViewMode) => void;
 }
 
 export const useAssetsPanelStore = create<AssetsPanelStore>((set) => ({
@@ -83,4 +89,6 @@ export const useAssetsPanelStore = create<AssetsPanelStore>((set) => ({
   requestRevealMedia: (mediaId) =>
     set({ activeTab: "media", highlightMediaId: mediaId }),
   clearHighlight: () => set({ highlightMediaId: null }),
+  mediaViewMode: "grid",
+  setMediaViewMode: (mode) => set({ mediaViewMode: mode }),
 }));

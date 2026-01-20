@@ -4,8 +4,9 @@ import type {
   TProjectMetadata,
   TProjectSettings,
 } from "@/types/project";
+import type { ExportOptions, ExportResult } from "@/types/export";
 import type { TimelineElement } from "@/types/timeline";
-import { storageService } from "@/lib/storage/storage-service";
+import { storageService } from "@/services/storage/storage-service";
 import { toast } from "sonner";
 import { generateUUID } from "@/lib/utils";
 import { UpdateProjectSettingsCommand } from "@/lib/commands/project";
@@ -15,12 +16,12 @@ import {
   DEFAULT_COLOR,
 } from "@/constants/project-constants";
 import { buildDefaultScene } from "@/lib/scene-utils";
-import { generateThumbnail } from "@/lib/media-processing-utils";
+import { generateThumbnail } from "@/lib/media/processing";
 import {
   CURRENT_STORAGE_VERSION,
   migrations,
   runStorageMigrations,
-} from "@/lib/migrations";
+} from "@/services/storage/migrations";
 
 export interface MigrationState {
   isMigrating: boolean;
@@ -44,7 +45,7 @@ export class ProjectManager {
     projectName: null,
   };
 
-  constructor(private editor: EditorCore) {}
+  constructor(private editor: EditorCore) { }
 
   private async ensureStorageMigrations(): Promise<void> {
     if (this.storageMigrationPromise) {
@@ -97,6 +98,7 @@ export class ProjectManager {
       settings: {
         fps: DEFAULT_FPS,
         canvasSize: DEFAULT_CANVAS_SIZE,
+        originalCanvasSize: null,
         background: {
           type: "color",
           color: DEFAULT_COLOR,
@@ -184,6 +186,10 @@ export class ProjectManager {
     } catch (error) {
       console.error("Failed to save project:", error);
     }
+  }
+
+  async export({ options }: { options: ExportOptions }): Promise<ExportResult> {
+    return this.editor.renderer.exportProject({ options });
   }
 
   async loadAllProjects(): Promise<void> {
@@ -474,6 +480,11 @@ export class ProjectManager {
     return this.active;
   }
 
+  /**
+   * for agents:
+   * in most cases, the project is guaranteed to be active, in which getActive() should be used instead.
+   * for very rare cases, this function may be used.
+   */
   getActiveOrNull(): TProject | null {
     return this.active;
   }

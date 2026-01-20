@@ -1,4 +1,4 @@
-import { IndexedDBAdapter } from "@/lib/storage/indexeddb-adapter";
+import { IndexedDBAdapter } from "@/services/storage/indexeddb-adapter";
 import { StorageMigration } from "./base";
 import { StorageVersionManager } from "./version-manager";
 

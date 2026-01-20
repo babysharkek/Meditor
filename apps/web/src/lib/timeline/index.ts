@@ -2,6 +2,7 @@ import { TimelineTrack } from "@/types/timeline";
 
 export * from "./track-utils";
 export * from "./element-utils";
+export * from "./zoom-utils";
 
 export function calculateTotalDuration({
   tracks,

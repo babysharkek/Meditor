@@ -12,6 +12,7 @@ import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { snapTimeToFrame } from "@/lib/time-utils";
 import { computeDropTarget } from "@/lib/timeline/drop-utils";
 import { generateUUID } from "@/lib/utils";
+import { useTimelineSnapping } from "@/hooks/timeline/use-timeline-snapping";
 import type {
   DropTarget,
   ElementDragState,
@@ -27,6 +28,7 @@ interface UseElementInteractionProps {
   timelineRef: RefObject<HTMLDivElement | null>;
   tracksContainerRef: RefObject<HTMLDivElement | null>;
   tracksScrollRef: RefObject<HTMLDivElement | null>;
+  snappingEnabled: boolean;
   onSnapPointChange?: (snapPoint: SnapPoint | null) => void;
 }
 
@@ -82,8 +84,16 @@ function getClickOffsetTime({
   return clickOffsetX / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel);
 }
 
-function getElementDuration({ element }: { element: TimelineElement }): number {
-  return element.duration - element.trimStart - element.trimEnd;
+function getVerticalDragDirection({
+  startMouseY,
+  currentMouseY,
+}: {
+  startMouseY: number;
+  currentMouseY: number;
+}): "up" | "down" | null {
+  if (currentMouseY < startMouseY) return "up";
+  if (currentMouseY > startMouseY) return "down";
+  return null;
 }
 
 function getDragDropTarget({
@@ -96,6 +106,7 @@ function getDragDropTarget({
   tracksScrollRef,
   zoomLevel,
   snappedTime,
+  verticalDragDirection,
 }: {
   clientX: number;
   clientY: number;
@@ -106,6 +117,7 @@ function getDragDropTarget({
   tracksScrollRef: RefObject<HTMLDivElement | null>;
   zoomLevel: number;
   snappedTime: number;
+  verticalDragDirection?: "up" | "down" | null;
 }): DropTarget | null {
   const containerRect = tracksContainerRef.current?.getBoundingClientRect();
   const scrollContainer = tracksScrollRef.current;
@@ -115,7 +127,7 @@ function getDragDropTarget({
   const movingElement = sourceTrack?.elements.find(({ id }) => id === elementId);
   if (!movingElement) return null;
 
-  const elementDuration = getElementDuration({ element: movingElement });
+  const elementDuration = movingElement.duration;
   const scrollLeft = scrollContainer.scrollLeft;
   const scrollContainerRect = scrollContainer.getBoundingClientRect();
   const mouseX = clientX - scrollContainerRect.left + scrollLeft;
@@ -133,6 +145,7 @@ function getDragDropTarget({
     zoomLevel,
     startTimeOverride: snappedTime,
     excludeElementId: movingElement.id,
+    verticalDragDirection,
   });
 }
 
@@ -147,10 +160,12 @@ export function useElementInteraction({
   timelineRef,
   tracksContainerRef,
   tracksScrollRef,
+  snappingEnabled,
   onSnapPointChange,
 }: UseElementInteractionProps) {
   const editor = useEditor();
   const tracks = editor.timeline.getTracks();
+  const { snapElementEdge } = useTimelineSnapping();
   const {
     isElementSelected,
     selectElement,
@@ -195,6 +210,55 @@ export function useElementInteraction({
     setDragState(initialDragState);
     setDragDropTarget(null);
   }, []);
+
+  const getDragSnapResult = useCallback(
+    ({
+      frameSnappedTime,
+      movingElement,
+    }: {
+      frameSnappedTime: number;
+      movingElement: TimelineElement | null | undefined;
+    }) => {
+      if (!snappingEnabled || !movingElement) {
+        return { snappedTime: frameSnappedTime, snapPoint: null };
+      }
+
+      const elementDuration = movingElement.duration;
+      const playheadTime = editor.playback.getCurrentTime();
+
+      const startSnap = snapElementEdge({
+        targetTime: frameSnappedTime,
+        elementDuration,
+        tracks,
+        playheadTime,
+        zoomLevel,
+        excludeElementId: movingElement.id,
+        snapToStart: true,
+      });
+
+      const endSnap = snapElementEdge({
+        targetTime: frameSnappedTime,
+        elementDuration,
+        tracks,
+        playheadTime,
+        zoomLevel,
+        excludeElementId: movingElement.id,
+        snapToStart: false,
+      });
+
+      const snapResult =
+        startSnap.snapDistance <= endSnap.snapDistance ? startSnap : endSnap;
+      if (!snapResult.snapPoint) {
+        return { snappedTime: frameSnappedTime, snapPoint: null };
+      }
+
+      return {
+        snappedTime: snapResult.snappedTime,
+        snapPoint: snapResult.snapPoint,
+      };
+    },
+    [snappingEnabled, editor.playback, snapElementEdge, tracks, zoomLevel],
+  );
 
   useEffect(() => {
     if (!dragState.isDragging && !isPendingDrag) return;
@@ -269,14 +333,28 @@ export function useElementInteraction({
       });
       const adjustedTime = Math.max(0, mouseTime - dragState.clickOffsetTime);
       const fps = activeProject.settings.fps;
-      const snappedTime = snapTimeToFrame({ time: adjustedTime, fps });
+      const frameSnappedTime = snapTimeToFrame({ time: adjustedTime, fps });
+
+      const sourceTrack = tracks.find(({ id }) => id === dragState.trackId);
+      const movingElement = sourceTrack?.elements.find(
+        ({ id }) => id === dragState.elementId,
+      );
+      const { snappedTime, snapPoint } = getDragSnapResult({
+        frameSnappedTime,
+        movingElement,
+      });
       setDragState((previousDragState) => ({
         ...previousDragState,
         currentTime: snappedTime,
         currentMouseY: clientY,
       }));
+      onSnapPointChange?.(snapPoint);
 
       if (dragState.elementId && dragState.trackId) {
+        const verticalDragDirection = getVerticalDragDirection({
+          startMouseY: dragState.startMouseY,
+          currentMouseY: clientY,
+        });
         const dropTarget = getDragDropTarget({
           clientX,
           clientY,
@@ -287,6 +365,7 @@ export function useElementInteraction({
           tracksScrollRef,
           zoomLevel,
           snappedTime,
+          verticalDragDirection,
         });
         setDragDropTarget(dropTarget?.isNewTrack ? dropTarget : null);
       }
@@ -303,12 +382,15 @@ export function useElementInteraction({
     isElementSelected,
     selectElement,
     editor.project,
+    editor.playback,
     timelineRef,
     tracksScrollRef,
     tracksContainerRef,
     tracks,
     isPendingDrag,
     startDrag,
+    getDragSnapResult,
+    onSnapPointChange,
   ]);
 
   useEffect(() => {
@@ -338,6 +420,10 @@ export function useElementInteraction({
         tracksScrollRef,
         zoomLevel,
         snappedTime: dragState.currentTime,
+        verticalDragDirection: getVerticalDragDirection({
+          startMouseY: dragState.startMouseY,
+          currentMouseY: clientY,
+        }),
       });
       if (!dropTarget) {
         endDrag();

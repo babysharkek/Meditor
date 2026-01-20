@@ -99,7 +99,7 @@ export function TimelinePlayhead({
       <div className="bg-foreground absolute left-0 h-full w-0.5 cursor-col-resize" />
 
       <div
-        className={`shadow-xs absolute left-1/2 top-1 h-3 w-3 -translate-x-1/2 transform rounded-full border-2 ${isSnappingToPlayhead ? "bg-foreground border-foreground" : "bg-foreground border-foreground/50"}`}
+        className={`shadow-xs absolute left-1/2 top-1 size-3 -translate-x-1/2 transform rounded-full border-2 ${isSnappingToPlayhead ? "bg-foreground border-foreground" : "bg-foreground border-foreground/50"}`}
       />
     </div>
   );

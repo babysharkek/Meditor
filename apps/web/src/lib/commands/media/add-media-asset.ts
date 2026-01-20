@@ -2,7 +2,7 @@ import { Command } from "@/lib/commands/base-command";
 import { EditorCore } from "@/core";
 import type { MediaAsset } from "@/types/assets";
 import { generateUUID } from "@/lib/utils";
-import { storageService } from "@/lib/storage/storage-service";
+import { storageService } from "@/services/storage/storage-service";
 
 export class AddMediaAssetCommand extends Command {
   private assetId: string;

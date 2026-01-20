@@ -5,7 +5,7 @@ import { updateSceneInArray } from "@/lib/scene-utils";
 import {
   getFrameTime,
   removeBookmarkFromArray,
-} from "@/lib/timeline/bookmark-utils";
+} from "@/lib/timeline/bookmarks";
 
 export class RemoveBookmarkCommand extends Command {
   private savedScenes: TScene[] | null = null;

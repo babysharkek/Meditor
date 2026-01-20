@@ -149,7 +149,10 @@ export const useStickersStore = create<StickersStore>((set, get) => ({
       }
 
       const element = buildStickerElement({ iconName, startTime: currentTime });
-      editor.timeline.addElementToTrack({ trackId, element });
+      editor.timeline.insertElement({
+        placement: { mode: "explicit", trackId },
+        element,
+      });
 
       get().addToRecentStickers({ iconName });
     } finally {

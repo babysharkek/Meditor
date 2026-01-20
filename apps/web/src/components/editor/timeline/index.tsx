@@ -29,6 +29,7 @@ import {
   canTracktHaveAudio,
   canTrackBeHidden,
   isMainTrack,
+  getTimelineZoomMin,
 } from "@/lib/timeline";
 import { TimelineToolbar } from "./timeline-toolbar";
 import { useScrollSync } from "@/hooks/timeline/use-scroll-sync";
@@ -43,7 +44,7 @@ import { useTimelinePlayhead } from "@/hooks/timeline/use-timeline-playhead";
 import { DragLine } from "./drag-line";
 
 export function Timeline() {
-  const tracksContainerHeight = { min: 200, max: 800 };
+  const tracksContainerHeight = { min: 0, max: 800 };
   const { snappingEnabled } = useTimelineStore();
   const { clearElementSelection, setElementSelection } = useElementSelection();
   const editor = useEditor();
@@ -64,6 +65,7 @@ export function Timeline() {
 
   // state
   const [isInTimeline, setIsInTimeline] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const [currentSnapPoint, setCurrentSnapPoint] = useState<SnapPoint | null>(
     null,
   );
@@ -71,10 +73,26 @@ export function Timeline() {
   const handleSnapPointChange = useCallback((snapPoint: SnapPoint | null) => {
     setCurrentSnapPoint(snapPoint);
   }, []);
+  const handleResizeStateChange = useCallback(
+    ({ isResizing: nextIsResizing }: { isResizing: boolean }) => {
+      setIsResizing(nextIsResizing);
+      if (!nextIsResizing) {
+        setCurrentSnapPoint(null);
+      }
+    },
+    [],
+  );
+
+  const timelineDuration = timeline.getTotalDuration() || 0;
+  const minZoomLevel = getTimelineZoomMin({
+    duration: timelineDuration,
+    containerWidth: timelineRef.current?.clientWidth,
+  });
 
   const { zoomLevel, setZoomLevel, handleWheel } = useTimelineZoom({
     containerRef: timelineRef,
     isInTimeline,
+    minZoom: minZoomLevel,
   });
 
   const {
@@ -88,6 +106,7 @@ export function Timeline() {
     timelineRef,
     tracksContainerRef,
     tracksScrollRef,
+    snappingEnabled,
     onSnapPointChange: handleSnapPointChange,
   });
 
@@ -118,7 +137,6 @@ export function Timeline() {
     zoomLevel,
   });
 
-  const timelineDuration = timeline.getTotalDuration() || 0;
   const paddedDuration =
     timelineDuration + TIMELINE_CONSTANTS.PLAYHEAD_LOOKAHEAD_SECONDS;
   const dynamicTimelineWidth = Math.max(
@@ -127,7 +145,9 @@ export function Timeline() {
   );
 
   const showSnapIndicator =
-    dragState.isDragging && snappingEnabled && currentSnapPoint !== null;
+    snappingEnabled &&
+    currentSnapPoint !== null &&
+    (dragState.isDragging || isResizing);
 
   const {
     handleTracksMouseDown,
@@ -164,6 +184,7 @@ export function Timeline() {
     >
       <TimelineToolbar
         zoomLevel={zoomLevel}
+        minZoom={minZoomLevel}
         setZoomLevel={({ zoom }) => setZoomLevel(zoom)}
       />
 
@@ -197,7 +218,6 @@ export function Timeline() {
             <div className="bg-panel flex h-4 w-28 shrink-0 items-center justify-between border-r px-3">
               <span className="opacity-0">.</span>
             </div>
-
             <TimelineRuler
               zoomLevel={zoomLevel}
               dynamicTimelineWidth={dynamicTimelineWidth}
@@ -210,7 +230,7 @@ export function Timeline() {
             />
           </div>
           <div className="flex">
-            <div className="bg-panel flex h-6 w-28 shrink-0 items-center justify-between border-r px-3">
+            <div className="bg-panel flex h-4 w-28 shrink-0 items-center justify-between border-r px-3">
               <span className="opacity-0">.</span>
             </div>
             <TimelineBookmarksRow
@@ -230,7 +250,7 @@ export function Timeline() {
             <div
               ref={trackLabelsRef}
               className="z-100 bg-panel w-28 shrink-0 overflow-y-auto border-r"
-              data-track-labels
+              style={{ paddingTop: TIMELINE_CONSTANTS.PADDING_TOP }}
             >
               <ScrollArea className="h-full w-full" ref={trackLabelsScrollRef}>
                 <div className="flex flex-col gap-1">
@@ -244,9 +264,9 @@ export function Timeline() {
                     >
                       <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
                         {/* Debug main track */}
-                        {isMainTrack(track) && (
+                        {/* {isMainTrack(track) && (
                           <div className="size-2 rounded-full bg-red-500" />
-                        )}
+                        )} */}
 
                         {canTracktHaveAudio(track) && (
                           <TrackToggleIcon
@@ -289,6 +309,7 @@ export function Timeline() {
 
           <div
             className="relative flex-1 overflow-hidden"
+            style={{ paddingTop: TIMELINE_CONSTANTS.PADDING_TOP }}
             onWheel={(e) => {
               if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
                 return;
@@ -319,7 +340,23 @@ export function Timeline() {
               isVisible={dragState.isDragging}
             />
 
-            <ScrollArea className="h-full w-full" ref={tracksScrollRef}>
+            <ScrollArea
+              className="h-full w-full"
+              ref={tracksScrollRef}
+              onMouseDown={(event) => {
+                const isDirectTarget = event.target === event.currentTarget;
+                if (!isDirectTarget) return;
+                event.stopPropagation();
+                handleTracksMouseDown(event);
+                handleSelectionMouseDown(event);
+              }}
+              onClick={(event) => {
+                const isDirectTarget = event.target === event.currentTarget;
+                if (!isDirectTarget) return;
+                event.stopPropagation();
+                handleTracksClick(event);
+              }}
+            >
               <div
                 className="relative flex-1"
                 style={{
@@ -357,6 +394,8 @@ export function Timeline() {
                               rulerScrollRef={rulerScrollRef}
                               tracksScrollRef={tracksScrollRef}
                               lastMouseXRef={lastMouseXRef}
+                              onSnapPointChange={handleSnapPointChange}
+                              onResizeStateChange={handleResizeStateChange}
                               onElementMouseDown={handleElementMouseDown}
                               onElementClick={handleElementClick}
                             />

@@ -1,8 +1,8 @@
 import type { EditorCore } from "@/core";
 import type { MediaAsset } from "@/types/assets";
-import { storageService } from "@/lib/storage/storage-service";
+import { storageService } from "@/services/storage/storage-service";
 import { generateUUID } from "@/lib/utils";
-import { videoCache } from "@/lib/video-cache";
+import { videoCache } from "@/services/media/video-cache";
 import { hasMediaId } from "@/lib/timeline/element-utils";
 
 export class MediaManager {
@@ -10,7 +10,7 @@ export class MediaManager {
   private isLoading = false;
   private listeners = new Set<() => void>();
 
-  constructor(private editor: EditorCore) {}
+  constructor(private editor: EditorCore) { }
 
   async addMediaAsset({
     projectId,
@@ -45,7 +45,7 @@ export class MediaManager {
   }): Promise<void> {
     const asset = this.assets.find((asset) => asset.id === id);
 
-    videoCache.clearVideo(id);
+    videoCache.clearVideo({ mediaId: id });
 
     if (asset?.url) {
       URL.revokeObjectURL(asset.url);

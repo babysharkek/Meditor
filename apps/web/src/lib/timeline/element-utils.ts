@@ -175,9 +175,9 @@ export function buildUploadAudioElement({
   name: string;
   duration: number;
   startTime: number;
-  buffer: AudioBuffer;
+  buffer?: AudioBuffer;
 }): CreateUploadAudioElement {
-  return {
+  const element: CreateUploadAudioElement = {
     type: "audio",
     sourceType: "upload",
     mediaId,
@@ -188,8 +188,11 @@ export function buildUploadAudioElement({
     trimEnd: 0,
     volume: 1,
     muted: false,
-    buffer,
   };
+  if (buffer) {
+    element.buffer = buffer;
+  }
+  return element;
 }
 
 export function buildLibraryAudioElement({
@@ -203,9 +206,9 @@ export function buildLibraryAudioElement({
   name: string;
   duration: number;
   startTime: number;
-  buffer: AudioBuffer;
+  buffer?: AudioBuffer;
 }): CreateLibraryAudioElement {
-  return {
+  const element: CreateLibraryAudioElement = {
     type: "audio",
     sourceType: "library",
     sourceUrl,
@@ -216,6 +219,9 @@ export function buildLibraryAudioElement({
     trimEnd: 0,
     volume: 1,
     muted: false,
-    buffer,
   };
+  if (buffer) {
+    element.buffer = buffer;
+  }
+  return element;
 }

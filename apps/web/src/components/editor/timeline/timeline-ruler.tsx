@@ -26,14 +26,12 @@ export function TimelineRuler({
   handleRulerMouseDown,
 }: TimelineRulerProps) {
   const editor = useEditor();
-  const activeScene = editor.scenes.getActiveScene();
   const duration = editor.timeline.getTotalDuration();
   const pixelsPerSecond = TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
   const visibleDuration = dynamicTimelineWidth / pixelsPerSecond;
   const effectiveDuration = Math.max(duration, visibleDuration);
-  const project = editor.project.getActiveOrNull();
+  const project = editor.project.getActive();
   const fps = project?.settings.fps ?? DEFAULT_FPS;
-
   const interval = getOptimalTimeInterval({ zoomLevel, fps });
   const markerCount = Math.ceil(effectiveDuration / interval) + 1;
 
@@ -53,7 +51,6 @@ export function TimelineRuler({
       onWheel={handleWheel}
       onClick={handleTimelineContentClick}
       onMouseDown={handleRulerTrackingMouseDown}
-      data-ruler-area
     >
       <ScrollArea className="scrollbar-hidden w-full" ref={rulerScrollRef}>
         <div

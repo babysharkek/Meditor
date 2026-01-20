@@ -12,7 +12,7 @@ import { mediaSupportsAudio } from "@/lib/media-utils";
 export type CollectedAudioElement = Omit<
   AudioElement,
   "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceUrl"
->;
+> & { buffer: AudioBuffer };
 
 export function createAudioContext(): AudioContext {
   const AudioContextConstructor =
@@ -32,10 +32,10 @@ export async function collectAudioElements({
   mediaAssets: MediaAsset[];
   audioContext: AudioContext;
 }): Promise<CollectedAudioElement[]> {
-  const audioElements: CollectedAudioElement[] = [];
   const mediaMap = new Map<string, MediaAsset>(
     mediaAssets.map((media) => [media.id, media]),
   );
+  const pendingElements: Array<Promise<CollectedAudioElement | null>> = [];
 
   for (const track of tracks) {
     if (canTracktHaveAudio(track) && track.muted) continue;
@@ -44,37 +44,66 @@ export async function collectAudioElements({
       if (element.type !== "audio") continue;
       if (element.duration <= 0) continue;
 
-      try {
-        let audioBuffer: AudioBuffer;
-
-        if (element.sourceType === "upload") {
-          const asset = mediaMap.get(element.mediaId);
-          if (!asset || asset.type !== "audio") continue;
-
-          const arrayBuffer = await asset.file.arrayBuffer();
-          audioBuffer = await audioContext.decodeAudioData(
-            arrayBuffer.slice(0),
-          );
-        } else {
-          // library audio - already has decoded buffer
-          audioBuffer = element.buffer;
-        }
-
-        audioElements.push({
-          buffer: audioBuffer,
-          startTime: element.startTime,
-          duration: element.duration,
-          trimStart: element.trimStart,
-          trimEnd: element.trimEnd,
-          muted: element.muted || (canTracktHaveAudio(track) && track.muted),
-        });
-      } catch (error) {
-        console.warn("Failed to decode audio:", error);
-      }
+      const isTrackMuted = canTracktHaveAudio(track) && track.muted;
+      pendingElements.push(
+        resolveAudioBufferForElement({
+          element,
+          mediaMap,
+          audioContext,
+        }).then((audioBuffer) => {
+          if (!audioBuffer) return null;
+          return {
+            buffer: audioBuffer,
+            startTime: element.startTime,
+            duration: element.duration,
+            trimStart: element.trimStart,
+            trimEnd: element.trimEnd,
+            muted: element.muted || isTrackMuted,
+          };
+        }),
+      );
     }
   }
 
+  const resolvedElements = await Promise.all(pendingElements);
+  const audioElements: CollectedAudioElement[] = [];
+  for (const element of resolvedElements) {
+    if (element) audioElements.push(element);
+  }
   return audioElements;
+}
+
+async function resolveAudioBufferForElement({
+  element,
+  mediaMap,
+  audioContext,
+}: {
+  element: AudioElement;
+  mediaMap: Map<string, MediaAsset>;
+  audioContext: AudioContext;
+}): Promise<AudioBuffer | null> {
+  try {
+    if (element.sourceType === "upload") {
+      const asset = mediaMap.get(element.mediaId);
+      if (!asset || asset.type !== "audio") return null;
+
+      const arrayBuffer = await asset.file.arrayBuffer();
+      return await audioContext.decodeAudioData(arrayBuffer.slice(0));
+    }
+
+    if (element.buffer) return element.buffer;
+
+    const response = await fetch(element.sourceUrl);
+    if (!response.ok) {
+      throw new Error(`Library audio fetch failed: ${response.status}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    return await audioContext.decodeAudioData(arrayBuffer.slice(0));
+  } catch (error) {
+    console.warn("Failed to decode audio:", error);
+    return null;
+  }
 }
 
 interface AudioMixSource {
@@ -233,10 +262,7 @@ function mixAudioChannels({
   outputLength,
   sampleRate,
 }: {
-  element: Omit<
-    AudioElement,
-    "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceUrl"
-  >;
+  element: CollectedAudioElement;
   outputBuffer: AudioBuffer;
   outputLength: number;
   sampleRate: number;

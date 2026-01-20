@@ -23,6 +23,7 @@ captions-constants.ts
 
 editor-constants.ts
   export const PLATFORM_LAYOUTS: Record<TPlatformLayout, string>
+  export const PANEL_CONFIG
 
 export-constants.ts
   export const DEFAULT_EXPORT_OPTIONS: ExportOptions
@@ -84,7 +85,7 @@ text-constants.ts
 timeline-constants.tsx
   export const TRACK_COLORS: Record<
     TrackType,
-    { solid: string; background: string; border: string }
+    { background: string; }
   >
   export const TRACK_HEIGHTS: Record<TrackType, number>
   export const TRACK_GAP
@@ -292,6 +293,7 @@ use-element-interaction.ts
     timelineRef,
     tracksContainerRef,
     tracksScrollRef,
+    snappingEnabled,
     onSnapPointChange,
   }: UseElementInteractionProps)
 
@@ -358,23 +360,24 @@ blog-query.ts
   export function processHtmlContent({ html }: { html: string }): Promise<string>
 
 drag-data.ts
-  export function setDragData({
-    dataTransfer,
-    dragData,
-  }: {
-    dataTransfer: DataTransfer;
-    dragData: TimelineDragData;
+  export function setDragData({
+    dataTransfer,
+    dragData,
+  }: {
+    dataTransfer: DataTransfer;
+    dragData: TimelineDragData;
   }): void
-  export function getDragData({
-    dataTransfer,
-  }: {
-    dataTransfer: DataTransfer;
+  export function getDragData({
+    dataTransfer,
+  }: {
+    dataTransfer: DataTransfer;
   }): TimelineDragData | null
-  export function hasDragData({
-    dataTransfer,
-  }: {
-    dataTransfer: DataTransfer;
+  export function hasDragData({
+    dataTransfer,
+  }: {
+    dataTransfer: DataTransfer;
   }): boolean
+  export function clearDragData(): void
 
 editor-utils.ts
   export function dimensionToAspectRatio({
@@ -636,6 +639,7 @@ utils.ts
   export function cn(...inputs: ClassValue[]): string
   export function formatDate({ date }: { date: Date }): string
   export function capitalizeFirstLetter({ string }: { string: string })
+  export function uppercase({ string }: { string: string })
   export function generateUUID(): string
   export function isTypableDOMElement({
     element,
@@ -893,6 +897,7 @@ drop-utils.ts
     elementDuration,
     pixelsPerSecond,
     zoomLevel,
+    verticalDragDirection,
     startTimeOverride,
     excludeElementId,
   }: ComputeDropTargetParams): DropTarget
@@ -965,7 +970,7 @@ element-utils.ts
     name: string;
     duration: number;
     startTime: number;
-    buffer: AudioBuffer;
+    buffer?: AudioBuffer;
   }): CreateUploadAudioElement
   export function buildLibraryAudioElement({
     sourceUrl,
@@ -978,7 +983,7 @@ element-utils.ts
     name: string;
     duration: number;
     startTime: number;
-    buffer: AudioBuffer;
+    buffer?: AudioBuffer;
   }): CreateLibraryAudioElement
 
 index.ts
@@ -1019,6 +1024,13 @@ track-utils.ts
     type: TrackType;
     name?: string;
   }): TimelineTrack
+  export function getDefaultInsertIndexForTrack({
+    tracks,
+    trackType,
+  }: {
+    tracks: TimelineTrack[];
+    trackType: TrackType;
+  }): number
   export function isMainTrack(track: TimelineTrack)
   export function getMainTrack({
     tracks,
@@ -1126,11 +1138,14 @@ keybindings-store.ts
   export const useKeybindingsStore
 
 panel-store.ts
-  export type PanelPreset = | "default"
-    | "media"
-    | "inspector"
-    | "vertical-preview"
-  export const PRESET_CONFIGS: Record<PanelPreset, PanelSizes>
+  export interface PanelSizes {
+    tools: number
+    preview: number
+    properties: number
+    mainContent: number
+    timeline: number
+  }
+  export type PanelId = keyof PanelSizes
   export const usePanelStore
 
 sounds-store.ts
@@ -1140,7 +1155,7 @@ stickers-store.ts
   export const useStickersStore
 
 text-properties-store.ts
-  export type TextPropertiesTab = "transform" | "style"
+  export type TextPropertiesTab = "text" | "transform"
   export interface TextPropertiesTabMeta {
     value: TextPropertiesTab
     label: string
@@ -1284,12 +1299,13 @@ keybinding.ts
 
 project.ts
   export type TBackground = | {
-        type: "color";
-        color: string;
-      }
+      type: "color";
+      color: string;
+    }
     | {
-        type: "blur";
-        blurIntensity...
+      type: "blur";
+      blurIntensity: number;
+    }
   export interface TCanvasSize {
     width: number
     height: number
@@ -1304,6 +1320,7 @@ project.ts
   export interface TProjectSettings {
     fps: number
     canvasSize: TCanvasSize
+    originalCanvasSize?: TCanvasSize | null
     background: TBackground
   }
   export interface TProject {
@@ -1494,6 +1511,7 @@ timeline.ts
     elementDuration: number
     pixelsPerSecond: number
     zoomLevel: number
+    verticalDragDirection?: "up" | "down" | null
     startTimeOverride?: number
     excludeElementId?: string
   }

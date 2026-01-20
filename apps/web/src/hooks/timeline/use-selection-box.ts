@@ -208,7 +208,7 @@ export function useSelectionBox({
   }, [selectionBox, selectElementsInBox]);
 
   useEffect(() => {
-    if (!selectionBox?.isActive) return;
+    if (!selectionBox) return;
 
     const previousBodyUserSelect = document.body.style.userSelect;
     const container = containerRef.current;
@@ -221,7 +221,7 @@ export function useSelectionBox({
       document.body.style.userSelect = previousBodyUserSelect;
       if (container) container.style.userSelect = previousContainerUserSelect;
     };
-  }, [selectionBox?.isActive, containerRef]);
+  }, [selectionBox, containerRef]);
 
   return {
     selectionBox,

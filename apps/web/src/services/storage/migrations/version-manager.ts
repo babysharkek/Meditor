@@ -1,4 +1,4 @@
-import { IndexedDBAdapter } from "@/lib/storage/indexeddb-adapter";
+import { IndexedDBAdapter } from "@/services/storage/indexeddb-adapter";
 
 type StorageVersionRecord = {
   version: number;

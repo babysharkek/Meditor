@@ -15,13 +15,11 @@ export function TextView() {
       raw: DEFAULT_TEXT_ELEMENT,
       startTime: currentTime,
     });
-    const textTrack = activeScene.tracks.find((t) => t.type === "text");
-    if (textTrack) {
-      editor.timeline.addElementToTrack({
-        trackId: textTrack.id,
-        element,
-      });
-    }
+
+    editor.timeline.insertElement({
+      element,
+      placement: { mode: "auto" },
+    });
   };
 
   return (

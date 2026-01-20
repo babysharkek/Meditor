@@ -1,8 +1,8 @@
 import { Command } from "@/lib/commands/base-command";
 import { EditorCore } from "@/core";
 import type { MediaAsset } from "@/types/assets";
-import { storageService } from "@/lib/storage/storage-service";
-import { videoCache } from "@/lib/video-cache";
+import { storageService } from "@/services/storage/storage-service";
+import { videoCache } from "@/services/media/video-cache";
 import { hasMediaId } from "@/lib/timeline/element-utils";
 import type { TimelineTrack } from "@/types/timeline";
 
@@ -33,7 +33,7 @@ export class RemoveMediaAssetCommand extends Command {
       return;
     }
 
-    videoCache.clearVideo(this.assetId);
+    videoCache.clearVideo({ mediaId: this.assetId });
 
     editor.media.setAssets({
       assets: assets.filter((media) => media.id !== this.assetId),

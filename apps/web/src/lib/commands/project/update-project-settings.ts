@@ -12,7 +12,7 @@ export class UpdateProjectSettingsCommand extends Command {
 
   execute(): void {
     const editor = EditorCore.getInstance();
-    const activeProject = editor.project.getActiveOrNull();
+    const activeProject = editor.project.getActive();
     if (!activeProject) return;
 
     this.savedSettings = activeProject.settings;
@@ -31,7 +31,7 @@ export class UpdateProjectSettingsCommand extends Command {
   undo(): void {
     if (!this.savedSettings || !this.savedUpdatedAt) return;
     const editor = EditorCore.getInstance();
-    const activeProject = editor.project.getActiveOrNull();
+    const activeProject = editor.project.getActive();
     if (!activeProject) return;
 
     const updatedProject: TProject = {

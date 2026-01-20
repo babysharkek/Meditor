@@ -11,16 +11,16 @@ import {
   Music,
   Video,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useEditor } from "@/hooks/use-editor";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useRevealItem } from "@/hooks/use-reveal-item";
-import { processMediaAssets } from "@/lib/media-processing-utils";
+import { processMediaAssets } from "@/lib/media/processing";
+import { cn } from "@/lib/utils";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { canElementGoOnTrack } from "@/lib/timeline/track-utils";
-import { wouldElementOverlap } from "@/lib/timeline/element-utils";
 import type { MediaAsset } from "@/types/assets";
-import type { CreateTimelineElement, TrackType } from "@/types/timeline";
+import type { CreateTimelineElement } from "@/types/timeline";
 import { Button } from "@/components/ui/button";
 import { MediaDragOverlay } from "@/components/editor/assets-panel/drag-overlay";
 import {
@@ -42,7 +42,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { usePanelStore } from "@/stores/panel-store";
 import { useAssetsPanelStore } from "@/stores/assets-panel-store";
 
 export function MediaView() {
@@ -50,8 +49,7 @@ export function MediaView() {
   const mediaFiles = editor.media.getAssets();
   const activeProject = editor.project.getActive();
 
-  const { mediaViewMode, setMediaViewMode } = usePanelStore();
-  const { highlightMediaId, clearHighlight } = useAssetsPanelStore();
+  const { mediaViewMode, setMediaViewMode, highlightMediaId, clearHighlight } = useAssetsPanelStore();
   const { highlightedId, registerElement } = useRevealItem(
     highlightMediaId,
     clearHighlight,
@@ -129,39 +127,9 @@ export function MediaView() {
     startTime: number;
   }): boolean => {
     const element = createElementFromMedia({ asset, startTime });
-    const trackType = getTrackTypeForMedia({ mediaType: asset.type });
-    const tracks = editor.timeline.getTracks();
-    const duration =
-      asset.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
-
-    const existingTrack = tracks.find((track) => {
-      if (
-        !canElementGoOnTrack({
-          elementType: element.type,
-          trackType: track.type,
-        })
-      ) {
-        return false;
-      }
-      return !wouldElementOverlap({
-        elements: track.elements,
-        startTime,
-        endTime: startTime + duration,
-      });
-    });
-
-    if (existingTrack) {
-      editor.timeline.addElementToTrack({
-        trackId: existingTrack.id,
-        element,
-      });
-      return true;
-    }
-
-    const newTrackId = editor.timeline.addTrack({ type: trackType });
-    editor.timeline.addElementToTrack({
-      trackId: newTrackId,
+    editor.timeline.insertElement({
       element,
+      placement: { mode: "auto" },
     });
     return true;
   };
@@ -531,12 +499,58 @@ function ListView({
   );
 }
 
+const formatDuration = ({ duration }: { duration: number }) => {
+  const min = Math.floor(duration / 60);
+  const sec = Math.floor(duration % 60);
+  return `${min}:${sec.toString().padStart(2, "0")}`;
+};
+
+function MediaDurationBadge({ duration }: { duration?: number }) {
+  if (!duration) return null;
+
+  return (
+    <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 text-xs text-white">
+      {formatDuration({ duration })}
+    </div>
+  );
+}
+
+function MediaDurationLabel({ duration }: { duration?: number }) {
+  if (!duration) return null;
+
+  return (
+    <span className="text-xs opacity-70">{formatDuration({ duration })}</span>
+  );
+}
+
+function MediaTypePlaceholder({
+  icon: Icon,
+  label,
+  duration,
+  variant,
+}: {
+  icon: LucideIcon;
+  label: string;
+  duration?: number;
+  variant: "muted" | "bordered";
+}) {
+  const iconClassName = cn("size-6", variant === "bordered" && "mb-1");
+
+  return (
+    <div
+      className={cn(
+        "text-muted-foreground flex size-full flex-col items-center justify-center rounded",
+        variant === "muted" ? "bg-muted/30" : "border",
+      )}
+    >
+      <Icon className={iconClassName} aria-hidden="true" />
+      <span className="text-xs">{label}</span>
+      <MediaDurationLabel duration={duration} />
+    </div>
+  );
+}
+
 function MediaPreview({ item }: { item: MediaAsset }) {
-  const formatDuration = (duration: number) => {
-    const min = Math.floor(duration / 60);
-    const sec = Math.floor(duration % 60);
-    return `${min}:${sec.toString().padStart(2, "0")}`;
-  };
 
   if (item.type === "image") {
     return (
@@ -564,47 +578,38 @@ function MediaPreview({ item }: { item: MediaAsset }) {
           <div className="absolute inset-0 flex items-center justify-center rounded bg-black/20">
             <Video className="size-6 text-white drop-shadow-md" />
           </div>
-          {item.duration && (
-            <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 text-xs text-white">
-              {formatDuration(item.duration)}
-            </div>
-          )}
+          <MediaDurationBadge duration={item.duration} />
         </div>
       );
     }
 
     return (
-      <div className="bg-muted/30 text-muted-foreground flex size-full flex-col items-center justify-center rounded">
-        <Video className="mb-1 size-6" />
-        <span className="text-xs">Video</span>
-        {item.duration && (
-          <span className="text-xs opacity-70">
-            {formatDuration(item.duration)}
-          </span>
-        )}
-      </div>
+      <MediaTypePlaceholder
+        icon={Video}
+        label="Video"
+        duration={item.duration}
+        variant="muted"
+      />
     );
   }
 
   if (item.type === "audio") {
     return (
-      <div className="bg-linear-to-br text-muted-foreground flex size-full flex-col items-center justify-center rounded border border-green-500/20 from-green-500/20 to-emerald-500/20">
-        <Music className="mb-1 size-6" />
-        <span className="text-xs">Audio</span>
-        {item.duration && (
-          <span className="text-xs opacity-70">
-            {formatDuration(item.duration)}
-          </span>
-        )}
-      </div>
+      <MediaTypePlaceholder
+        icon={Music}
+        label="Audio"
+        duration={item.duration}
+        variant="bordered"
+      />
     );
   }
 
   return (
-    <div className="bg-muted/30 text-muted-foreground flex size-full flex-col items-center justify-center rounded">
-      <Image className="size-6" />
-      <span className="mt-1 text-xs">Unknown</span>
-    </div>
+    <MediaTypePlaceholder
+      icon={Image}
+      label="Unknown"
+      variant="muted"
+    />
   );
 }
 
@@ -629,22 +634,6 @@ function SortMenuItem({
       {label} {arrow}
     </DropdownMenuItem>
   );
-}
-
-function getTrackTypeForMedia({
-  mediaType,
-}: {
-  mediaType: MediaAsset["type"];
-}): TrackType {
-  switch (mediaType) {
-    case "video":
-    case "image":
-      return "video";
-    case "audio":
-      return "audio";
-    default:
-      return "video";
-  }
 }
 
 function createElementFromMedia({
@@ -697,7 +686,6 @@ function createElementFromMedia({
         trimEnd: 0,
         volume: 1,
         muted: false,
-        buffer: new AudioBuffer({ length: 1, sampleRate: 44100 }),
       };
     default:
       throw new Error(`Unsupported media type: ${asset.type}`);

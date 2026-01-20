@@ -5,7 +5,7 @@ import { updateSceneInArray } from "@/lib/scene-utils";
 import {
   getFrameTime,
   toggleBookmarkInArray,
-} from "@/lib/timeline/bookmark-utils";
+} from "@/lib/timeline/bookmarks";
 
 export class ToggleBookmarkCommand extends Command {
   private savedScenes: TScene[] | null = null;

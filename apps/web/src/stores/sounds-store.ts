@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { SoundEffect, SavedSound } from "@/types/sounds";
-import { storageService } from "@/lib/storage/storage-service";
+import { storageService } from "@/services/storage/storage-service";
 import { toast } from "sonner";
 import { EditorCore } from "@/core";
 import { buildLibraryAudioElement } from "@/lib/timeline/element-utils";
@@ -234,7 +234,10 @@ export const useSoundsStore = create<SoundsStore>((set, get) => ({
         buffer,
       });
 
-      editor.timeline.addElementToTrack({ trackId, element });
+      editor.timeline.insertElement({
+        placement: { mode: "explicit", trackId },
+        element,
+      });
       return true;
     } catch (error) {
       console.error("Failed to add sound to timeline:", error);

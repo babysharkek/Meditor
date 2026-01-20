@@ -53,25 +53,25 @@ export function StickersView() {
         {
           value: "all",
           label: "All",
-          icon: <Grid3X3 className="h-3 w-3" />,
+          icon: <Grid3X3 className="size-3" />,
           content: <StickersContentView category="all" />,
         },
         {
           value: "general",
           label: "Icons",
-          icon: <Sparkles className="h-3 w-3" />,
+          icon: <Sparkles className="size-3" />,
           content: <StickersContentView category="general" />,
         },
         {
           value: "brands",
           label: "Brands",
-          icon: <Hash className="h-3 w-3" />,
+          icon: <Hash className="size-3" />,
           content: <StickersContentView category="brands" />,
         },
         {
           value: "emoji",
           label: "Emoji",
-          icon: <Smile className="h-3 w-3" />,
+          icon: <Smile className="size-3" />,
           content: <StickersContentView category="emoji" />,
         },
       ]}
@@ -328,7 +328,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
             {recentStickers.length > 0 && viewMode === "browse" && (
               <div className="h-full">
                 <div className="mb-2 flex items-center gap-2">
-                  <Clock className="text-muted-foreground h-4 w-4" />
+                  <Clock className="text-muted-foreground size-4" />
                   <span className="text-sm font-medium">Recent</span>
                   <TooltipProvider>
                     <Tooltip>
@@ -337,7 +337,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
                           onClick={clearRecentStickers}
                           className="hover:bg-accent ml-auto flex h-5 w-5 items-center justify-center rounded p-0"
                         >
-                          <X className="text-muted-foreground h-3 w-3" />
+                          <X className="text-muted-foreground size-3" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -359,7 +359,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
               <div className="h-full">
                 {isLoadingCollection ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+                    <Loader2 className="text-muted-foreground size-6 animate-spin" />
                   </div>
                 ) : showCollectionItems ? (
                   <StickerGrid
@@ -379,7 +379,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
               <div className="h-full">
                 {isSearching ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+                    <Loader2 className="text-muted-foreground size-6 animate-spin" />
                   </div>
                 ) : searchResults?.icons.length ? (
                   <>
@@ -426,7 +426,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
               <div className="h-full space-y-4">
                 {isLoadingCollections ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+                    <Loader2 className="text-muted-foreground size-6 animate-spin" />
                   </div>
                 ) : (
                   <>
@@ -482,7 +482,7 @@ function CollectionItem({ title, subtitle, onClick }: CollectionItemProps) {
         <p className="font-medium">{title}</p>
         <p className="text-muted-foreground text-xs">{subtitle}</p>
       </div>
-      <ArrowRight className="h-4 w-4" />
+      <ArrowRight className="size-4" />
     </Button>
   );
 }
@@ -583,7 +583,7 @@ function StickerItem({
           />
           {isAdding && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-black/60">
-              <Loader2 className="h-6 w-6 animate-spin text-white" />
+              <Loader2 className="size-6 animate-spin text-white" />
             </div>
           )}
         </div>

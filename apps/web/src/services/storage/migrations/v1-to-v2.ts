@@ -4,7 +4,7 @@ import {
   DEFAULT_COLOR,
   DEFAULT_FPS,
 } from "@/constants/project-constants";
-import { IndexedDBAdapter } from "@/lib/storage/indexeddb-adapter";
+import { IndexedDBAdapter } from "@/services/storage/indexeddb-adapter";
 import { StorageMigration } from "./base";
 
 type ProjectRecord = Record<string, unknown>;
@@ -54,19 +54,19 @@ function migrateProject({
 
   const metadata = isRecord(metadataValue)
     ? {
-        id: getStringValue({ value: metadataValue.id, fallback: projectId }),
-        name: getStringValue({ value: metadataValue.name, fallback: "" }),
-        thumbnail: getStringValue({ value: metadataValue.thumbnail }),
-        createdAt: normalizeDateString({ value: metadataValue.createdAt }),
-        updatedAt: normalizeDateString({ value: metadataValue.updatedAt }),
-      }
+      id: getStringValue({ value: metadataValue.id, fallback: projectId }),
+      name: getStringValue({ value: metadataValue.name, fallback: "" }),
+      thumbnail: getStringValue({ value: metadataValue.thumbnail }),
+      createdAt: normalizeDateString({ value: metadataValue.createdAt }),
+      updatedAt: normalizeDateString({ value: metadataValue.updatedAt }),
+    }
     : {
-        id: projectId,
-        name: getStringValue({ value: project.name, fallback: "" }),
-        thumbnail: getStringValue({ value: project.thumbnail }),
-        createdAt,
-        updatedAt,
-      };
+      id: projectId,
+      name: getStringValue({ value: project.name, fallback: "" }),
+      thumbnail: getStringValue({ value: project.thumbnail }),
+      createdAt,
+      updatedAt,
+    };
 
   const scenesValue = project.scenes;
   const scenes = Array.isArray(scenesValue) ? scenesValue : [];
@@ -81,31 +81,31 @@ function migrateProject({
   const settingsValue = project.settings;
   const settings = isRecord(settingsValue)
     ? {
-        fps: getNumberValue({
-          value: settingsValue.fps,
-          fallback: DEFAULT_FPS,
-        }),
-        canvasSize: getCanvasSizeValue({
-          value: settingsValue.canvasSize,
-          fallback: DEFAULT_CANVAS_SIZE,
-        }),
-        background: getBackgroundValue({
-          value: settingsValue.background,
-        }),
-      }
+      fps: getNumberValue({
+        value: settingsValue.fps,
+        fallback: DEFAULT_FPS,
+      }),
+      canvasSize: getCanvasSizeValue({
+        value: settingsValue.canvasSize,
+        fallback: DEFAULT_CANVAS_SIZE,
+      }),
+      background: getBackgroundValue({
+        value: settingsValue.background,
+      }),
+    }
     : {
-        fps: getNumberValue({ value: project.fps, fallback: DEFAULT_FPS }),
-        canvasSize: getCanvasSizeValue({
-          value: project.canvasSize,
-          fallback: DEFAULT_CANVAS_SIZE,
-        }),
-        background: getBackgroundValue({
-          value: project.background,
-          backgroundType: project.backgroundType,
-          backgroundColor: project.backgroundColor,
-          blurIntensity: project.blurIntensity,
-        }),
-      };
+      fps: getNumberValue({ value: project.fps, fallback: DEFAULT_FPS }),
+      canvasSize: getCanvasSizeValue({
+        value: project.canvasSize,
+        fallback: DEFAULT_CANVAS_SIZE,
+      }),
+      background: getBackgroundValue({
+        value: project.background,
+        backgroundType: project.backgroundType,
+        backgroundColor: project.backgroundColor,
+        blurIntensity: project.blurIntensity,
+      }),
+    };
 
   const currentSceneId = getCurrentSceneId({
     value: project.currentSceneId,

@@ -3,8 +3,6 @@
 import { useTimelineStore } from "@/stores/timeline-store";
 import { useActionHandler } from "@/hooks/actions/use-action-handler";
 import { useEditor } from "../use-editor";
-import { PasteCommand } from "@/lib/commands/timeline/clipboard/paste";
-import { toast } from "sonner";
 import { useElementSelection } from "../timeline/element/use-element-selection";
 
 export function useEditorActions() {
@@ -126,14 +124,10 @@ export function useEditorActions() {
   useActionHandler(
     "split-selected",
     () => {
-      const splitElementIds = editor.timeline.splitElements({
+      editor.timeline.splitElements({
         elements: selectedElements,
         splitTime: editor.playback.getCurrentTime(),
       });
-
-      if (splitElementIds.length === 0) {
-        toast.error("Playhead must be positioned over the selected element(s)");
-      }
     },
     undefined,
   );
@@ -141,15 +135,11 @@ export function useEditorActions() {
   useActionHandler(
     "split-selected-left",
     () => {
-      const splitElementIds = editor.timeline.splitElements({
+      editor.timeline.splitElements({
         elements: selectedElements,
         splitTime: editor.playback.getCurrentTime(),
         retainSide: "left",
       });
-
-      if (splitElementIds.length === 0) {
-        toast.error("Playhead must be positioned over the selected element(s)");
-      }
     },
     undefined,
   );
@@ -157,15 +147,11 @@ export function useEditorActions() {
   useActionHandler(
     "split-selected-right",
     () => {
-      const splitElementIds = editor.timeline.splitElements({
+      editor.timeline.splitElements({
         elements: selectedElements,
         splitTime: editor.playback.getCurrentTime(),
         retainSide: "right",
       });
-
-      if (splitElementIds.length === 0) {
-        toast.error("Playhead must be positioned over the selected element(s)");
-      }
     },
     undefined,
   );
@@ -240,6 +226,7 @@ export function useEditorActions() {
       const items = results.map(({ track, element }) => {
         const { id, ...elementWithoutId } = element;
         return {
+          trackId: track.id,
           trackType: track.type,
           element: elementWithoutId,
         };
@@ -255,9 +242,9 @@ export function useEditorActions() {
     () => {
       if (!clipboard?.items.length) return;
 
-      const currentTime = editor.playback.getCurrentTime();
-      editor.command.execute({
-        command: new PasteCommand(currentTime, clipboard.items),
+      editor.timeline.pasteAtTime({
+        time: editor.playback.getCurrentTime(),
+        clipboardItems: clipboard.items,
       });
     },
     undefined,

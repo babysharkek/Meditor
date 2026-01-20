@@ -1,6 +1,6 @@
 import type { EditorCore } from "@/core";
 import type { TimelineTrack, TScene } from "@/types/timeline";
-import { storageService } from "@/lib/storage/storage-service";
+import { storageService } from "@/services/storage/storage-service";
 import {
   getMainScene,
   ensureMainScene,
@@ -10,7 +10,7 @@ import {
 import {
   getFrameTime,
   isBookmarkAtTime,
-} from "@/lib/timeline/bookmark-utils";
+} from "@/lib/timeline/bookmarks";
 import { ensureMainTrack } from "@/lib/timeline/track-utils";
 import {
   CreateSceneCommand,
@@ -25,7 +25,7 @@ export class ScenesManager {
   private list: TScene[] = [];
   private listeners = new Set<() => void>();
 
-  constructor(private editor: EditorCore) {}
+  constructor(private editor: EditorCore) { }
 
   async createScene({
     name,

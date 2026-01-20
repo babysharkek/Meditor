@@ -883,7 +883,7 @@ function FullscreenToolbar({
           className="text-foreground h-auto p-0"
           title="Skip backward 1s"
         >
-          <SkipBack className="h-3 w-3" />
+          <SkipBack className="size-3" />
         </Button>
         <Button
           variant="text"

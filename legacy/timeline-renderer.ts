@@ -111,11 +111,11 @@ export async function renderTimelineFrame({
       try {
         if (mediaItem.type === "video") {
           const localTime = time - element.startTime + element.trimStart;
-          const frame = await videoCache.getFrameAt(
-            mediaItem.id,
-            mediaItem.file,
-            Math.max(0, localTime)
-          );
+          const frame = await videoCache.getFrameAt({
+            mediaId: mediaItem.id,
+            file: mediaItem.file,
+            time: Math.max(0, localTime),
+          });
           if (frame) {
             const mediaW = Math.max(1, mediaItem.width || canvasWidth);
             const mediaH = Math.max(1, mediaItem.height || canvasHeight);
@@ -167,11 +167,11 @@ export async function renderTimelineFrame({
         try {
           const localTime = time - element.startTime + element.trimStart;
 
-          const frame = await videoCache.getFrameAt(
-            mediaItem.id,
-            mediaItem.file,
-            localTime
-          );
+          const frame = await videoCache.getFrameAt({
+            mediaId: mediaItem.id,
+            file: mediaItem.file,
+            time: localTime,
+          });
           if (!frame) continue;
 
           const mediaW = Math.max(1, mediaItem.width || canvasWidth);

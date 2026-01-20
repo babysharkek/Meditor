@@ -129,7 +129,7 @@ export function KeyboardShortcutsHelp() {
                 <h3 className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
                   {category}
                 </h3>
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   {shortcuts
                     .filter((shortcut) => shortcut.category === category)
                     .map((shortcut) => (
@@ -147,12 +147,13 @@ export function KeyboardShortcutsHelp() {
             ))}
           </div>
         </div>
-        <DialogFooter className="flex-shrink-0 p-6 pt-4">
+        <DialogFooter className="p-4 pt-0">
           <Button size="sm" variant="destructive" onClick={resetToDefaults}>
-            Reset to Default
+            Reset to default
           </Button>
         </DialogFooter>
       </DialogContent>
+      
     </Dialog>
   );
 }
@@ -185,10 +186,10 @@ function ShortcutItem({
         )}
         <span className="text-sm">{shortcut.description}</span>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         {displayKeys.map((key: string, index: number) => (
-          <div key={key} className="flex items-center gap-1">
-            <div className="flex items-center">
+          <div key={key} className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {key.split("+").map((keyPart: string, partIndex: number) => {
                 const keyId = `${shortcut.id}-${index}-${partIndex}`;
                 return (
@@ -231,9 +232,6 @@ function EditableShortcutKey({
     <Button
       variant="outline"
       size="sm"
-      className={`font-sans px-2 min-w-6 min-h-6 leading-none mr-1 hover:bg-opacity-80 ${
-        isRecording ? "border-primary bg-primary/10" : "border bg-accent/50"
-      }`}
       onClick={handleClick}
       title={
         isRecording ? "Press any key combination..." : "Click to edit shortcut"

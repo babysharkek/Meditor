@@ -2,7 +2,10 @@ import { Command } from "@/lib/commands/base-command";
 import type { TrackType, TimelineTrack } from "@/types/timeline";
 import { generateUUID } from "@/lib/utils";
 import { EditorCore } from "@/core";
-import { buildEmptyTrack } from "@/lib/timeline/track-utils";
+import {
+  buildEmptyTrack,
+  getDefaultInsertIndexForTrack,
+} from "@/lib/timeline/track-utils";
 
 export class AddTrackCommand extends Command {
   private trackId: string;
@@ -25,13 +28,14 @@ export class AddTrackCommand extends Command {
       type: this.type,
     });
 
-    let updatedTracks: TimelineTrack[];
-    if (this.index !== undefined) {
-      updatedTracks = [...(this.savedState || [])];
-      updatedTracks.splice(this.index, 0, newTrack);
-    } else {
-      updatedTracks = [...(this.savedState || []), newTrack];
-    }
+    const updatedTracks = [...(this.savedState || [])];
+    const insertIndex =
+      this.index ??
+      getDefaultInsertIndexForTrack({
+        tracks: updatedTracks,
+        trackType: this.type,
+      });
+    updatedTracks.splice(insertIndex, 0, newTrack);
 
     editor.timeline.updateTracks(updatedTracks);
   }

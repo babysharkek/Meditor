@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { webEnv } from "@opencut/env/web";
 
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
@@ -15,6 +16,10 @@ export function formatDate({ date }: { date: Date }): string {
 
 export function capitalizeFirstLetter({ string }: { string: string }) {
   return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+export function uppercase({ string }: { string: string }) {
+  return string.toUpperCase();
 }
 
 export function generateUUID(): string {

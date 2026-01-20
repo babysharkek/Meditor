@@ -18,7 +18,7 @@ import {
   PropertyItemValue,
 } from "./property-item";
 import { ColorPicker } from "@/components/ui/color-picker";
-import { cn, capitalizeFirstLetter, clamp } from "@/lib/utils";
+import { cn, capitalizeFirstLetter, clamp, uppercase } from "@/lib/utils";
 import { Grid2x2 } from "lucide-react";
 import {
   Tooltip,
@@ -296,7 +296,7 @@ export function TextProperties({
                 <PropertyItemLabel>Color</PropertyItemLabel>
                 <PropertyItemValue>
                   <ColorPicker
-                    value={capitalizeFirstLetter({ string: 
+                    value={uppercase({ string: 
                       (element.color || "FFFFFF").replace("#", "")
                     })}
                     onChange={(color) => {

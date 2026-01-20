@@ -1,4 +1,4 @@
-export { AddElementToTrackCommand } from "./add-element";
+export { InsertElementCommand } from "./insert-element";
 export { DeleteElementsCommand } from "./delete-elements";
 export { DuplicateElementsCommand } from "./duplicate-elements";
 export { UpdateElementTrimCommand } from "./update-element-trim";
@@ -8,4 +8,4 @@ export { SplitElementsCommand } from "./split-elements";
 export { UpdateTextElementCommand } from "./update-text-element";
 export { ToggleElementsVisibilityCommand } from "./toggle-elements-visibility";
 export { ToggleElementsMutedCommand } from "./toggle-elements-muted";
-export { MoveElementCommand } from "./move-element";
+export { MoveElementCommand } from "./move-elements";

@@ -9,7 +9,8 @@ import type {
   SerializedScene,
 } from "./types";
 import { SavedSoundsData, SavedSound, SoundEffect } from "@/types/sounds";
-import { migrations, runStorageMigrations } from "@/lib/migrations";
+import { migrations, runStorageMigrations } from "@/services/storage/migrations";
+import { TimelineTrack } from "@/types/timeline";
 
 class StorageService {
   private projectsAdapter: IndexedDBAdapter<SerializedProject>;
@@ -62,12 +63,29 @@ class StorageService {
     return { mediaMetadataAdapter, mediaAssetsAdapter };
   }
 
+  private stripAudioBuffers({
+    tracks,
+  }: {
+    tracks: TimelineTrack[];
+  }): TimelineTrack[] {
+    return tracks.map((track) => {
+      if (track.type !== "audio") return track;
+      return {
+        ...track,
+        elements: track.elements.map((element) => {
+          const { buffer: _buffer, ...rest } = element;
+          return rest;
+        }),
+      };
+    });
+  }
+
   async saveProject({ project }: { project: TProject }): Promise<void> {
     const serializedScenes: SerializedScene[] = project.scenes.map((scene) => ({
       id: scene.id,
       name: scene.name,
       isMain: scene.isMain,
-      tracks: scene.tracks,
+      tracks: this.stripAudioBuffers({ tracks: scene.tracks }),
       bookmarks: scene.bookmarks,
       createdAt: scene.createdAt.toISOString(),
       updatedAt: scene.updatedAt.toISOString(),

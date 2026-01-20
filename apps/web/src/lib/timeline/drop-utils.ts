@@ -7,9 +7,11 @@ import { isMainTrack } from "./track-utils";
 function getTrackAtY({
   mouseY,
   tracks,
+  verticalDragDirection,
 }: {
   mouseY: number;
   tracks: TimelineTrack[];
+  verticalDragDirection?: "up" | "down" | null;
 }): { trackIndex: number; relativeY: number } | null {
   let cumulativeHeight = 0;
 
@@ -23,6 +25,18 @@ function getTrackAtY({
         trackIndex: i,
         relativeY: mouseY - trackTop,
       };
+    }
+
+    if (i < tracks.length - 1 && verticalDragDirection) {
+      const gapTop = trackBottom;
+      const gapBottom = gapTop + TRACK_GAP;
+      if (mouseY >= gapTop && mouseY < gapBottom) {
+        const isDraggingUp = verticalDragDirection === "up";
+        return {
+          trackIndex: isDraggingUp ? i : i + 1,
+          relativeY: isDraggingUp ? trackHeight - 1 : 0,
+        };
+      }
     }
 
     cumulativeHeight += trackHeight + TRACK_GAP;
@@ -64,7 +78,7 @@ function findInsertIndex({
 }): { index: number; position: "above" | "below" } {
   const mainTrackIndex = getMainTrackIndex({ tracks });
 
-    if (elementType === "audio") {
+  if (elementType === "audio") {
     if (preferredIndex <= mainTrackIndex) {
       return { index: mainTrackIndex + 1, position: "below" };
     }
@@ -96,6 +110,7 @@ export function computeDropTarget({
   elementDuration,
   pixelsPerSecond,
   zoomLevel,
+  verticalDragDirection,
   startTimeOverride,
   excludeElementId,
 }: ComputeDropTargetParams): DropTarget {
@@ -120,7 +135,7 @@ export function computeDropTarget({
     return { trackIndex: 0, isNewTrack: true, insertPosition: null, xPosition };
   }
 
-  const trackAtMouse = getTrackAtY({ mouseY, tracks });
+  const trackAtMouse = getTrackAtY({ mouseY, tracks, verticalDragDirection });
 
   if (!trackAtMouse) {
     const isAboveAllTracks = mouseY < 0;
@@ -178,11 +193,16 @@ export function computeDropTarget({
     };
   }
 
+  let insertAbove = isInUpperHalf;
+  if (!isTrackCompatible && verticalDragDirection) {
+    insertAbove = verticalDragDirection === "up";
+  }
+
   const { index, position } = findInsertIndex({
     elementType,
     tracks,
     preferredIndex: trackIndex,
-    insertAbove: isInUpperHalf,
+    insertAbove,
   });
 
   return {
@@ -200,23 +220,14 @@ export function getDropLineY({
   dropTarget: DropTarget;
   tracks: TimelineTrack[];
 }): number {
+  const safeTrackIndex = Math.min(
+    Math.max(dropTarget.trackIndex, 0),
+    tracks.length,
+  );
   let y = 0;
 
-  for (let i = 0; i < dropTarget.trackIndex && i < tracks.length; i++) {
+  for (let i = 0; i < safeTrackIndex; i++) {
     y += TRACK_HEIGHTS[tracks[i].type] + TRACK_GAP;
-  }
-
-  if (!dropTarget.isNewTrack && dropTarget.trackIndex < tracks.length) {
-    return y;
-  }
-
-  if (
-    dropTarget.insertPosition === "below" &&
-    dropTarget.trackIndex <= tracks.length
-  ) {
-    if (dropTarget.trackIndex > 0 && dropTarget.trackIndex <= tracks.length) {
-      y += TRACK_HEIGHTS[tracks[dropTarget.trackIndex - 1]?.type ?? "video"];
-    }
   }
 
   return y;

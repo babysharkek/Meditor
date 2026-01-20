@@ -1,7 +1,11 @@
 import { Command } from "@/lib/commands/base-command";
-import type { TimelineTrack } from "@/types/timeline";
+import type { TimelineElement, TimelineTrack } from "@/types/timeline";
 import { generateUUID } from "@/lib/utils";
 import { EditorCore } from "@/core";
+import {
+  buildEmptyTrack,
+  getHighestInsertIndexForTrack,
+} from "@/lib/timeline/track-utils";
 
 interface DuplicateElementsParams {
   elements: { trackId: string; elementId: string }[];
@@ -22,40 +26,51 @@ export class DuplicateElementsCommand extends Command {
     this.savedState = editor.timeline.getTracks();
     this.duplicatedIds = [];
 
-    const updatedTracks = this.savedState.map((track) => {
+    const updatedTracks = [...this.savedState];
+
+    for (const track of this.savedState) {
       const elementsToDuplicate = this.elements.filter(
         (el) => el.trackId === track.id,
       );
 
       if (elementsToDuplicate.length === 0) {
-        return track;
+        continue;
       }
 
-      const newElements = track.elements.flatMap((element) => {
-        const shouldDuplicate = elementsToDuplicate.some(
-          (el) => el.elementId === element.id,
-        );
+      const elementIdsToDuplicate = new Set(
+        elementsToDuplicate.map((element) => element.elementId),
+      );
+      const newTrackElements: TimelineElement[] = [];
 
-        if (!shouldDuplicate) {
-          return [element];
+      for (const element of track.elements) {
+        if (!elementIdsToDuplicate.has(element.id)) {
+          continue;
         }
 
         const newId = generateUUID();
         this.duplicatedIds.push(newId);
-
-        return [
-          element,
-          {
-            ...element,
+        newTrackElements.push(
+          buildDuplicateElement({
+            element,
             id: newId,
-            name: `${element.name} (copy)`,
-            startTime: element.startTime + element.duration + 0.1,
-          },
-        ];
-      });
+            startTime: element.startTime,
+          }),
+        );
+      }
 
-      return { ...track, elements: newElements } as typeof track;
-    });
+      const newTrackId = generateUUID();
+      const newTrackBase = buildEmptyTrack({ id: newTrackId, type: track.type });
+      const newTrack = {
+        ...newTrackBase,
+        elements: newTrackElements,
+      } as TimelineTrack;
+
+      const insertIndex = getHighestInsertIndexForTrack({
+        tracks: updatedTracks,
+        trackType: track.type,
+      });
+      updatedTracks.splice(insertIndex, 0, newTrack);
+    }
 
     editor.timeline.updateTracks(updatedTracks);
   }
@@ -66,4 +81,16 @@ export class DuplicateElementsCommand extends Command {
       editor.timeline.updateTracks(this.savedState);
     }
   }
+}
+
+function buildDuplicateElement({
+  element,
+  id,
+  startTime,
+}: {
+  element: TimelineElement;
+  id: string;
+  startTime: number;
+}): TimelineElement {
+  return { ...element, id, name: `${element.name} (copy)`, startTime };
 }

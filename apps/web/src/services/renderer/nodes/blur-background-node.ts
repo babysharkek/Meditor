@@ -32,7 +32,7 @@ export class BlurBackgroundNode extends BaseNode<BlurBackgroundNodeParams> {
       offscreen = new OffscreenCanvas(renderer.width, renderer.height);
       const ctx = offscreen.getContext("2d");
       if (!ctx) {
-        throw new Error("Failed to get offscreen canvas context");
+        throw new Error("failed to get offscreen canvas context");
       }
       offscreenCtx = ctx;
     } catch {
@@ -41,7 +41,7 @@ export class BlurBackgroundNode extends BaseNode<BlurBackgroundNodeParams> {
       offscreen.height = renderer.height;
       const ctx = offscreen.getContext("2d");
       if (!ctx) {
-        throw new Error("Failed to get canvas context");
+        throw new Error("failed to get canvas context");
       }
       offscreenCtx = ctx;
     }
@@ -55,30 +55,21 @@ export class BlurBackgroundNode extends BaseNode<BlurBackgroundNodeParams> {
 
     renderer.context = originalContext;
 
+    const zoomScale = 1.4;
+    const scaledWidth = renderer.width * zoomScale;
+    const scaledHeight = renderer.height * zoomScale;
+    const offsetX = (renderer.width - scaledWidth) / 2;
+    const offsetY = (renderer.height - scaledHeight) / 2;
+
     renderer.context.save();
     renderer.context.filter = `blur(${this.blurIntensity}px)`;
-
-    const scale = Math.max(
-      renderer.width / offscreen.width,
-      renderer.height / offscreen.height,
+    renderer.context.drawImage(
+      offscreen as CanvasImageSource,
+      offsetX,
+      offsetY,
+      scaledWidth,
+      scaledHeight,
     );
-    const scaledWidth = offscreen.width * scale;
-    const scaledHeight = offscreen.height * scale;
-    const x = (renderer.width - scaledWidth) / 2;
-    const y = (renderer.height - scaledHeight) / 2;
-
-    if (offscreen instanceof OffscreenCanvas) {
-      renderer.context.drawImage(
-        offscreen as unknown as CanvasImageSource,
-        x,
-        y,
-        scaledWidth,
-        scaledHeight,
-      );
-    } else {
-      renderer.context.drawImage(offscreen, x, y, scaledWidth, scaledHeight);
-    }
-
     renderer.context.restore();
   }
 }

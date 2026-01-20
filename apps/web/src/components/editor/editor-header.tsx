@@ -22,7 +22,6 @@ import { RenameProjectDialog } from "../rename-project-dialog";
 import { DeleteProjectDialog } from "../delete-project-dialog";
 import { useRouter } from "next/navigation";
 import { FaDiscord } from "react-icons/fa6";
-import { PanelPresetSelector } from "./panel-preset-selector";
 import { ExportButton } from "./export-button";
 import { ThemeToggle } from "../theme-toggle";
 import { SOCIAL_LINKS } from "@/constants/site-constants";
@@ -36,7 +35,6 @@ export function EditorHeader() {
         <ProjectDropdown />
       </div>
       <nav className="flex items-center gap-2">
-        <PanelPresetSelector />
         <KeyboardShortcutsHelp />
         <ExportButton />
         <ThemeToggle />
@@ -51,7 +49,7 @@ function ProjectDropdown() {
   const [isExiting, setIsExiting] = useState(false);
   const router = useRouter();
   const editor = useEditor();
-  const activeProject = editor.project.getActiveOrNull();
+  const activeProject = editor.project.getActive();
 
   const handleExit = async () => {
     if (isExiting) return;

@@ -12,11 +12,11 @@ import {
   VolumeX,
   ArrowUpDown,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
 import { useEditor } from "@/hooks/use-editor";
 import { useAssetsPanelStore } from "@/stores/assets-panel-store";
 import AudioWaveform from "./audio-waveform";
 import { useTimelineElementResize } from "@/hooks/timeline/element/use-element-resize";
+import type { SnapPoint } from "@/hooks/timeline/use-timeline-snapping";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import {
   getTrackClasses,
@@ -47,6 +47,8 @@ interface TimelineElementProps {
   track: TimelineTrack;
   zoomLevel: number;
   isSelected: boolean;
+  onSnapPointChange?: (snapPoint: SnapPoint | null) => void;
+  onResizeStateChange?: (params: { isResizing: boolean }) => void;
   onElementMouseDown: (
     e: React.MouseEvent,
     element: TimelineElementType,
@@ -60,12 +62,13 @@ export function TimelineElement({
   track,
   zoomLevel,
   isSelected,
+  onSnapPointChange,
+  onResizeStateChange,
   onElementMouseDown,
   onElementClick,
   dragState,
 }: TimelineElementProps) {
   const editor = useEditor();
-  const lastDragStateRef = useRef(false);
   const { selectedElements } = useElementSelection();
   const { requestRevealMedia } = useAssetsPanelStore();
 
@@ -88,6 +91,8 @@ export function TimelineElement({
     element,
     track,
     zoomLevel,
+    onSnapPointChange,
+    onResizeStateChange,
   });
 
   const isCurrentElementSelected = selectedElements.some(
@@ -144,8 +149,6 @@ export function TimelineElement({
                 ? `translate3d(0, ${dragOffsetY}px, 0)`
                 : undefined,
           }}
-          data-element-id={element.id}
-          data-track-id={track.id}
         >
           <ElementInner
             element={element}
@@ -307,24 +310,42 @@ function ElementInner({
 
       {isSelected && (
         <>
-          <div
-            className="bg-primary absolute bottom-0 left-0 top-0 z-50 flex w-[0.6rem] cursor-w-resize items-center justify-center"
-            onMouseDown={(e) =>
-              handleResizeStart({ e, elementId: element.id, side: "left" })
-            }
-          >
-            <div className="bg-foreground/75 h-[1.5rem] w-[0.2rem] rounded-full" />
-          </div>
-          <div
-            className="bg-primary absolute bottom-0 right-0 top-0 z-50 flex w-[0.6rem] cursor-e-resize items-center justify-center"
-            onMouseDown={(e) =>
-              handleResizeStart({ e, elementId: element.id, side: "right" })
-            }
-          >
-            <div className="bg-foreground/75 h-[1.5rem] w-[0.2rem] rounded-full" />
-          </div>
+          <ResizeHandle
+            side="left"
+            elementId={element.id}
+            handleResizeStart={handleResizeStart}
+          />
+          <ResizeHandle
+            side="right"
+            elementId={element.id}
+            handleResizeStart={handleResizeStart}
+          />
         </>
       )}
+    </div>
+  );
+}
+
+function ResizeHandle({
+  side,
+  elementId,
+  handleResizeStart,
+}: {
+  side: "left" | "right";
+  elementId: string;
+  handleResizeStart: (params: {
+    e: React.MouseEvent;
+    elementId: string;
+    side: "left" | "right";
+  }) => void;
+}) {
+  const isLeft = side === "left";
+  return (
+    <div
+      className={`bg-primary absolute bottom-0 top-0 z-50 flex w-[0.6rem] items-center justify-center ${isLeft ? "left-0 cursor-w-resize" : "right-0 cursor-e-resize"}`}
+      onMouseDown={(e) => handleResizeStart({ e, elementId, side })}
+    >
+      <div className="bg-foreground h-[1.5rem] w-[0.2rem] rounded-full" />
     </div>
   );
 }
@@ -362,13 +383,12 @@ function ElementContent({
   }
 
   if (element.type === "audio") {
-    const audioBuffer =
-      element.sourceType === "library" ? element.buffer : undefined;
+    const audioBuffer = element.sourceType === "library" ? element.buffer : undefined;
 
     const audioUrl =
-      element.sourceType === "upload"
-        ? mediaAssets.find((asset) => asset.id === element.mediaId)?.url
-        : undefined;
+      element.sourceType === "library"
+        ? element.sourceUrl
+        : mediaAssets.find((asset) => asset.id === element.mediaId)?.url;
 
     if (audioBuffer || audioUrl) {
       return (

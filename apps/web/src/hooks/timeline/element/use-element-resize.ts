@@ -2,6 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { TimelineElement, TimelineTrack } from "@/types/timeline";
 import { snapTimeToFrame } from "@/lib/time-utils";
 import { EditorCore } from "@/core";
+import {
+  useTimelineSnapping,
+  type SnapPoint,
+} from "@/hooks/timeline/use-timeline-snapping";
+import { useTimelineStore } from "@/stores/timeline-store";
 
 export interface ResizeState {
   elementId: string;
@@ -17,15 +22,21 @@ interface UseTimelineElementResizeProps {
   element: TimelineElement;
   track: TimelineTrack;
   zoomLevel: number;
+  onSnapPointChange?: (snapPoint: SnapPoint | null) => void;
+  onResizeStateChange?: (params: { isResizing: boolean }) => void;
 }
 
 export function useTimelineElementResize({
   element,
   track,
   zoomLevel,
+  onSnapPointChange,
+  onResizeStateChange,
 }: UseTimelineElementResizeProps) {
   const editor = EditorCore.getInstance();
   const activeProject = editor.project.getActive();
+  const snappingEnabled = useTimelineStore((state) => state.snappingEnabled);
+  const { findSnapPoints, snapToNearestPoint } = useTimelineSnapping();
 
   const [resizing, setResizing] = useState<ResizeState | null>(null);
   const [currentTrimStart, setCurrentTrimStart] = useState(element.trimStart);
@@ -87,6 +98,7 @@ export function useTimelineElementResize({
     currentTrimEndRef.current = element.trimEnd;
     currentStartTimeRef.current = element.startTime;
     currentDurationRef.current = element.duration;
+    onResizeStateChange?.({ isResizing: true });
   };
 
   const canExtendElementDuration = () => {
@@ -101,16 +113,55 @@ export function useTimelineElementResize({
     if (!resizing) return;
 
     const deltaX = clientX - resizing.startX;
-    const deltaTime = deltaX / (50 * zoomLevel);
+    let deltaTime = deltaX / (50 * zoomLevel);
+    let resizeSnapPoint: SnapPoint | null = null;
 
     const projectFps = activeProject.settings.fps;
+    const minDurationSeconds = 1 / projectFps;
+    const canSnap = snappingEnabled;
+    if (canSnap) {
+      const tracks = editor.timeline.getTracks();
+      const playheadTime = editor.playback.getCurrentTime();
+      const snapPoints = findSnapPoints({
+        tracks,
+        playheadTime,
+        excludeElementId: element.id,
+      });
+      if (resizing.side === "left") {
+        const targetStartTime = resizing.initialStartTime + deltaTime;
+        const snapResult = snapToNearestPoint({
+          targetTime: targetStartTime,
+          snapPoints,
+          zoomLevel,
+        });
+        resizeSnapPoint = snapResult.snapPoint;
+        if (snapResult.snapPoint) {
+          deltaTime = snapResult.snappedTime - resizing.initialStartTime;
+        }
+      } else {
+        const baseEndTime =
+          resizing.initialStartTime + resizing.initialDuration;
+        const targetEndTime = baseEndTime + deltaTime;
+        const snapResult = snapToNearestPoint({
+          targetTime: targetEndTime,
+          snapPoints,
+          zoomLevel,
+        });
+        resizeSnapPoint = snapResult.snapPoint;
+        if (snapResult.snapPoint) {
+          deltaTime = snapResult.snappedTime - baseEndTime;
+        }
+      }
+    }
+    onSnapPointChange?.(resizeSnapPoint);
 
     if (resizing.side === "left") {
       const sourceDuration =
         resizing.initialTrimStart +
         resizing.initialDuration +
         resizing.initialTrimEnd;
-      const maxAllowed = sourceDuration - resizing.initialTrimEnd - 0.1;
+      const maxAllowed =
+        sourceDuration - resizing.initialTrimEnd - minDurationSeconds;
       const calculated = resizing.initialTrimStart + deltaTime;
 
       if (calculated >= 0 && calculated <= maxAllowed) {
@@ -183,8 +234,9 @@ export function useTimelineElementResize({
       if (newTrimEnd < 0) {
         if (canExtendElementDuration()) {
           const extensionNeeded = Math.abs(newTrimEnd);
+          const baseDuration = resizing.initialDuration + resizing.initialTrimEnd;
           const newDuration = snapTimeToFrame({
-            time: resizing.initialDuration + extensionNeeded,
+            time: baseDuration + extensionNeeded,
             fps: projectFps,
           });
 
@@ -205,7 +257,8 @@ export function useTimelineElementResize({
           currentTrimEndRef.current = 0;
         }
       } else {
-        const maxTrimEnd = sourceDuration - resizing.initialTrimStart - 0.1;
+        const maxTrimEnd =
+          sourceDuration - resizing.initialTrimStart - minDurationSeconds;
         const clampedTrimEnd = Math.min(maxTrimEnd, Math.max(0, newTrimEnd));
         const finalTrimEnd = snapTimeToFrame({
           time: clampedTrimEnd,
@@ -261,6 +314,8 @@ export function useTimelineElementResize({
     }
 
     setResizing(null);
+    onResizeStateChange?.({ isResizing: false });
+    onSnapPointChange?.(null);
   };
 
   return {

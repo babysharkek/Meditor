@@ -4,10 +4,12 @@ import { useElementSelection } from "@/hooks/timeline/element/use-element-select
 import { TimelineElement } from "./timeline-element";
 import { TimelineTrack } from "@/types/timeline";
 import type { TimelineElement as TimelineElementType } from "@/types/timeline";
+import type { SnapPoint } from "@/hooks/timeline/use-timeline-snapping";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { useEdgeAutoScroll } from "@/hooks/timeline/use-edge-auto-scroll";
 import { ElementDragState } from "@/types/timeline";
 import { useEditor } from "@/hooks/use-editor";
+import { cn } from "@/lib/utils";
 
 interface TimelineTrackContentProps {
   track: TimelineTrack;
@@ -16,6 +18,8 @@ interface TimelineTrackContentProps {
   rulerScrollRef: React.RefObject<HTMLDivElement>;
   tracksScrollRef: React.RefObject<HTMLDivElement>;
   lastMouseXRef: React.RefObject<number>;
+  onSnapPointChange?: (snapPoint: SnapPoint | null) => void;
+  onResizeStateChange?: (params: { isResizing: boolean }) => void;
   onElementMouseDown: (params: {
     event: React.MouseEvent;
     element: TimelineElementType;
@@ -35,6 +39,8 @@ export function TimelineTrackContent({
   rulerScrollRef,
   tracksScrollRef,
   lastMouseXRef,
+  onSnapPointChange,
+  onResizeStateChange,
   onElementMouseDown,
   onElementClick,
 }: TimelineTrackContentProps) {
@@ -51,9 +57,13 @@ export function TimelineTrackContent({
     contentWidth: duration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel,
   });
 
+  const hasSelectedElements = track.elements.some((element) =>
+    isElementSelected({ trackId: track.id, elementId: element.id })
+  );
+
   return (
     <div
-      className="size-full"
+      className={cn("size-full", hasSelectedElements && "bg-panel-accent/35")}
       onClick={clearElementSelection}
     >
       <div className="relative h-full min-w-full">
@@ -74,6 +84,8 @@ export function TimelineTrackContent({
                   track={track}
                   zoomLevel={zoomLevel}
                   isSelected={isSelected}
+                  onSnapPointChange={onSnapPointChange}
+                  onResizeStateChange={onResizeStateChange}
                   onElementMouseDown={(event, element) =>
                     onElementMouseDown({ event, element, track })
                   }

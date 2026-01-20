@@ -27,11 +27,10 @@ export function TimelineBookmarksRow({
 
   return (
     <div
-      className="relative mt-0.5 h-4 flex-1 overflow-hidden"
+      className="relative h-4 flex-1 overflow-hidden"
       onWheel={handleWheel}
       onClick={handleTimelineContentClick}
       onMouseDown={handleRulerTrackingMouseDown}
-      data-bookmarks-area
     >
       <ScrollArea className="scrollbar-hidden w-full" ref={bookmarksScrollRef}>
         <div

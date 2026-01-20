@@ -1,3 +1,4 @@
+import { drawCssBackground } from "@/lib/gradients";
 import { CanvasRenderer } from "../canvas-renderer";
 import { BaseNode } from "./base-node";
 
@@ -14,6 +15,16 @@ export class ColorNode extends BaseNode<ColorNodeParams> {
   }
 
   async render({ renderer }: { renderer: CanvasRenderer }) {
+    if (/gradient\(/i.test(this.color)) {
+      drawCssBackground({
+        ctx: renderer.context,
+        width: renderer.width,
+        height: renderer.height,
+        css: this.color,
+      });
+      return;
+    }
+
     renderer.context.fillStyle = this.color;
     renderer.context.fillRect(0, 0, renderer.width, renderer.height);
   }

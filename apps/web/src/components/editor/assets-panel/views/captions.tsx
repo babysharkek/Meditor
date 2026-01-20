@@ -3,8 +3,7 @@ import { PropertyGroup } from "../../properties-panel/property-item";
 import { PanelBaseView as BaseView } from "@/components/editor/panel-base-view";
 import { LanguageSelect } from "@/components/language-select";
 import { useState, useRef, useEffect } from "react";
-import { extractTimelineAudio } from "@/lib/mediabunny-utils";
-import { encryptWithRandomKey, arrayBufferToBase64 } from "@/lib/zk-encryption";
+import { extractTimelineAudio } from "@/lib/media/mediabunny";
 import { useEditor } from "@/hooks/use-editor";
 import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
 import { LANGUAGES } from "@/constants/captions-constants";
@@ -136,8 +135,8 @@ export function Captions() {
       });
 
       shortCaptions.forEach((caption, index) => {
-        editor.timeline.addElementToTrack({
-          trackId: captionTrackId,
+        editor.timeline.insertElement({
+          placement: { mode: "explicit", trackId: captionTrackId },
           element: {
             ...DEFAULT_TEXT_ELEMENT,
             name: `Caption ${index + 1}`,

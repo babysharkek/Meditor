@@ -13,7 +13,7 @@ import {
   RemoveTrackCommand,
   ToggleTrackMuteCommand,
   ToggleTrackVisibilityCommand,
-  AddElementToTrackCommand,
+  InsertElementCommand,
   UpdateElementTrimCommand,
   UpdateElementDurationCommand,
   DeleteElementsCommand,
@@ -26,11 +26,12 @@ import {
   UpdateElementStartTimeCommand,
   MoveElementCommand,
 } from "@/lib/commands/timeline";
+import { InsertElementParams } from "@/lib/commands/timeline/element/insert-element";
 
 export class TimelineManager {
   private listeners = new Set<() => void>();
 
-  constructor(private editor: EditorCore) {}
+  constructor(private editor: EditorCore) { }
 
   addTrack({ type, index }: { type: TrackType; index?: number }): string {
     const command = new AddTrackCommand(type, index);
@@ -43,14 +44,11 @@ export class TimelineManager {
     this.editor.command.execute({ command });
   }
 
-  addElementToTrack({
-    trackId,
+  insertElement({
     element,
-  }: {
-    trackId: string;
-    element: CreateTimelineElement;
-  }): void {
-    const command = new AddElementToTrackCommand(trackId, element);
+    placement,
+  }: InsertElementParams): void {
+    const command = new InsertElementCommand({ element, placement });
     this.editor.command.execute({ command });
   }
 

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type TextPropertiesTab = "transform" | "style";
+export type TextPropertiesTab = "text" | "transform";
 
 export interface TextPropertiesTabMeta {
   value: TextPropertiesTab;
@@ -9,8 +9,8 @@ export interface TextPropertiesTabMeta {
 }
 
 export const TEXT_PROPERTIES_TABS: ReadonlyArray<TextPropertiesTabMeta> = [
+  { value: "text", label: "Text" },
   { value: "transform", label: "Transform" },
-  { value: "style", label: "Style" },
 ] as const;
 
 export function isTextPropertiesTab(value: string): value is TextPropertiesTab {
@@ -25,7 +25,7 @@ interface TextPropertiesState {
 export const useTextPropertiesStore = create<TextPropertiesState>()(
   persist(
     (set) => ({
-      activeTab: "transform",
+      activeTab: "text",
       setActiveTab: (tab) => set({ activeTab: tab }),
     }),
     { name: "text-properties" }

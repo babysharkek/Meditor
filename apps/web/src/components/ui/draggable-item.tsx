@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEditor } from "@/hooks/use-editor";
-import { setDragData } from "@/lib/drag-data";
+import { clearDragData, setDragData } from "@/lib/drag-data";
 import type { TimelineDragData } from "@/types/drag";
 
 export interface DraggableItemProps {
@@ -90,6 +90,7 @@ export function DraggableItem({
 
   const handleDragEnd = () => {
     setIsDragging(false);
+    clearDragData();
   };
 
   return (

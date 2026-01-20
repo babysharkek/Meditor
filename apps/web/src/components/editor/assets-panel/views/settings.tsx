@@ -124,14 +124,23 @@ function ProjectInfoView() {
 
   const currentCanvasSize = getCurrentCanvasSize({ activeProject });
   const currentAspectRatio = dimensionToAspectRatio(currentCanvasSize);
+  const originalCanvasSize = activeProject.settings.originalCanvasSize ?? null;
   const presetIndex = findPresetIndexByAspectRatio({
     presets: canvasPresets,
     targetAspectRatio: currentAspectRatio,
   });
-  const selectedPresetIndex =
-    presetIndex !== -1 ? presetIndex.toString() : undefined;
+  const originalPresetValue = "original";
+  const selectedPresetValue =
+    presetIndex !== -1 ? presetIndex.toString() : originalPresetValue;
 
   const handleAspectRatioChange = ({ value }: { value: string }) => {
+    if (value === originalPresetValue) {
+      const canvasSize = originalCanvasSize ?? currentCanvasSize;
+      editor.project.updateSettings({
+        settings: { canvasSize },
+      });
+      return;
+    }
     const index = parseInt(value, 10);
     const preset = canvasPresets[index];
     if (preset) {
@@ -157,13 +166,14 @@ function ProjectInfoView() {
         <PropertyItemLabel>Aspect ratio</PropertyItemLabel>
         <PropertyItemValue>
           <Select
-            value={selectedPresetIndex}
+            value={selectedPresetValue}
             onValueChange={(value) => handleAspectRatioChange({ value })}
           >
             <SelectTrigger className="bg-panel-accent">
               <SelectValue placeholder="Select an aspect ratio" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value={originalPresetValue}>Original</SelectItem>
               {canvasPresets.map((preset, index) => {
                 const label = dimensionToAspectRatio({
                   width: preset.width,
@@ -262,18 +272,18 @@ const BackgroundPreviews = memo(
             className={cn(
               "border-foreground/15 hover:border-primary aspect-square w-full cursor-pointer rounded-sm border",
               isColorBackground &&
-                bg === currentBackgroundColor &&
-                "border-primary border-2",
+              bg === currentBackgroundColor &&
+              "border-primary border-2",
             )}
             style={
               useBackgroundColor
                 ? { backgroundColor: bg }
                 : {
-                    background: bg,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                  }
+                  background: bg,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }
             }
             onClick={() => handleColorSelect({ bg })}
           />

@@ -9,11 +9,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Progress } from "../ui/progress";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
-import {
-  exportProject,
-  getExportMimeType,
-  getExportFileExtension,
-} from "@/lib/export-utils";
+import { getExportMimeType, getExportFileExtension } from "@/lib/export";
 import { Check, Copy, Download, RotateCcw, X } from "lucide-react";
 import { ExportFormat, ExportQuality, ExportResult } from "@/types/export";
 import { PropertyGroup } from "./properties-panel/property-item";
@@ -91,13 +87,15 @@ function ExportPopover({
     setProgress(0);
     setExportResult(null);
 
-    const result = await exportProject({
-      format,
-      quality,
-      fps: activeProject.settings.fps,
-      includeAudio,
-      onProgress: ({ progress }) => setProgress(progress),
-      onCancel: () => false, // TODO: add cancel functionality
+    const result = await editor.project.export({
+      options: {
+        format,
+        quality,
+        fps: activeProject.settings.fps,
+        includeAudio,
+        onProgress: ({ progress }) => setProgress(progress),
+        onCancel: () => false, // TODO: add cancel functionality
+      },
     });
 
     setIsExporting(false);
@@ -255,7 +253,7 @@ function ExportPopover({
                   <Button
                     variant="outline"
                     className="w-full rounded-md"
-                    onClick={() => {}}
+                    onClick={() => { }}
                   >
                     Cancel
                   </Button>

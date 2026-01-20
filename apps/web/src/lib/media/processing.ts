@@ -1,10 +1,10 @@
 import { toast } from "sonner";
 import { MediaAsset } from "@/types/assets";
 import { getMediaTypeFromFile } from "@/lib/media-utils";
-import { getVideoInfo } from "./mediabunny-utils";
+import { getVideoInfo } from "./mediabunny";
 import { Input, ALL_FORMATS, BlobSource, VideoSampleSink } from "mediabunny";
 
-export interface ProcessedMediaAsset extends Omit<MediaAsset, "id"> {}
+export interface ProcessedMediaAsset extends Omit<MediaAsset, "id"> { }
 
 export async function generateThumbnail({
   videoFile,

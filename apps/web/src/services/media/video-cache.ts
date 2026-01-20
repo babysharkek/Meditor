@@ -16,19 +16,23 @@ export class VideoCache {
   private sinks = new Map<string, VideoSinkData>();
   private initPromises = new Map<string, Promise<void>>();
 
-  async getFrameAt(
-    mediaId: string,
-    file: File,
-    time: number
-  ): Promise<WrappedCanvas | null> {
-    await this.ensureSink(mediaId, file);
+  async getFrameAt({
+    mediaId,
+    file,
+    time,
+  }: {
+    mediaId: string;
+    file: File;
+    time: number;
+  }): Promise<WrappedCanvas | null> {
+    await this.ensureSink({ mediaId, file });
 
     const sinkData = this.sinks.get(mediaId);
     if (!sinkData) return null;
 
     if (
       sinkData.currentFrame &&
-      this.isFrameValid(sinkData.currentFrame, time)
+      this.isFrameValid({ frame: sinkData.currentFrame, time })
     ) {
       return sinkData.currentFrame;
     }
@@ -39,20 +43,29 @@ export class VideoCache {
       time >= sinkData.lastTime &&
       time < sinkData.lastTime + 2.0
     ) {
-      const frame = await this.iterateToTime(sinkData, time);
+      const frame = await this.iterateToTime({ sinkData, targetTime: time });
       if (frame) return frame;
     }
 
-    return await this.seekToTime(sinkData, time);
+    return await this.seekToTime({ sinkData, time });
   }
 
-  private isFrameValid(frame: WrappedCanvas, time: number): boolean {
+  private isFrameValid({
+    frame,
+    time,
+  }: {
+    frame: WrappedCanvas;
+    time: number;
+  }): boolean {
     return time >= frame.timestamp && time < frame.timestamp + frame.duration;
   }
-  private async iterateToTime(
-    sinkData: VideoSinkData,
-    targetTime: number
-  ): Promise<WrappedCanvas | null> {
+  private async iterateToTime({
+    sinkData,
+    targetTime,
+  }: {
+    sinkData: VideoSinkData;
+    targetTime: number;
+  }): Promise<WrappedCanvas | null> {
     if (!sinkData.iterator) return null;
 
     try {
@@ -64,7 +77,7 @@ export class VideoCache {
         sinkData.currentFrame = frame;
         sinkData.lastTime = frame.timestamp;
 
-        if (this.isFrameValid(frame, targetTime)) {
+        if (this.isFrameValid({ frame, time: targetTime })) {
           return frame;
         }
 
@@ -77,10 +90,13 @@ export class VideoCache {
 
     return null;
   }
-  private async seekToTime(
-    sinkData: VideoSinkData,
-    time: number
-  ): Promise<WrappedCanvas | null> {
+  private async seekToTime({
+    sinkData,
+    time,
+  }: {
+    sinkData: VideoSinkData;
+    time: number;
+  }): Promise<WrappedCanvas | null> {
     try {
       if (sinkData.iterator) {
         await sinkData.iterator.return();
@@ -102,7 +118,13 @@ export class VideoCache {
 
     return null;
   }
-  private async ensureSink(mediaId: string, file: File): Promise<void> {
+  private async ensureSink({
+    mediaId,
+    file,
+  }: {
+    mediaId: string;
+    file: File;
+  }): Promise<void> {
     if (this.sinks.has(mediaId)) return;
 
     if (this.initPromises.has(mediaId)) {
@@ -110,7 +132,7 @@ export class VideoCache {
       return;
     }
 
-    const initPromise = this.initializeSink(mediaId, file);
+    const initPromise = this.initializeSink({ mediaId, file });
     this.initPromises.set(mediaId, initPromise);
 
     try {
@@ -119,7 +141,13 @@ export class VideoCache {
       this.initPromises.delete(mediaId);
     }
   }
-  private async initializeSink(mediaId: string, file: File): Promise<void> {
+  private async initializeSink({
+    mediaId,
+    file,
+  }: {
+    mediaId: string;
+    file: File;
+  }): Promise<void> {
     try {
       const input = new Input({
         source: new BlobSource(file),
@@ -153,7 +181,7 @@ export class VideoCache {
     }
   }
 
-  clearVideo(mediaId: string): void {
+  clearVideo({ mediaId }: { mediaId: string }): void {
     const sinkData = this.sinks.get(mediaId);
     if (sinkData) {
       if (sinkData.iterator) {
@@ -168,7 +196,7 @@ export class VideoCache {
 
   clearAll(): void {
     for (const [mediaId] of this.sinks) {
-      this.clearVideo(mediaId);
+      this.clearVideo({ mediaId });
     }
   }
 

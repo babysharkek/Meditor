@@ -10,6 +10,7 @@ import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 interface UseTimelineZoomProps {
   containerRef: RefObject<HTMLDivElement>;
   isInTimeline?: boolean;
+  minZoom?: number;
 }
 
 interface UseTimelineZoomReturn {
@@ -21,6 +22,7 @@ interface UseTimelineZoomReturn {
 export function useTimelineZoom({
   containerRef,
   isInTimeline = false,
+  minZoom = TIMELINE_CONSTANTS.ZOOM_MIN,
 }: UseTimelineZoomProps): UseTimelineZoomReturn {
   const [zoomLevel, setZoomLevel] = useState(1);
 
@@ -38,7 +40,7 @@ export function useTimelineZoom({
       const zoomMultiplier = event.deltaY > 0 ? 1 / 1.1 : 1.1;
       setZoomLevel((prev) => {
         const nextZoom = Math.max(
-          TIMELINE_CONSTANTS.ZOOM_MIN,
+          minZoom,
           Math.min(TIMELINE_CONSTANTS.ZOOM_MAX, prev * zoomMultiplier),
         );
         return nextZoom;
@@ -47,7 +49,11 @@ export function useTimelineZoom({
       // let the event bubble up to allow ScrollArea to handle it
       return;
     }
-  }, []);
+  }, [minZoom]);
+
+  useEffect(() => {
+    setZoomLevel((prev) => (prev < minZoom ? minZoom : prev));
+  }, [minZoom]);
 
   // prevent browser zoom in the timeline
   useEffect(() => {

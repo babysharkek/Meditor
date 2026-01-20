@@ -56,7 +56,7 @@ interface BaseAudioElement extends BaseTimelineElement {
   type: "audio";
   volume: number;
   muted?: boolean;
-  buffer: AudioBuffer;
+  buffer?: AudioBuffer;
 }
 
 export interface UploadAudioElement extends BaseAudioElement {
@@ -178,11 +178,13 @@ export interface ComputeDropTargetParams {
   elementDuration: number;
   pixelsPerSecond: number;
   zoomLevel: number;
+  verticalDragDirection?: "up" | "down" | null;
   startTimeOverride?: number;
   excludeElementId?: string;
 }
 
 export interface ClipboardItem {
+  trackId: string;
   trackType: TrackType;
   element: CreateTimelineElement;
 }
