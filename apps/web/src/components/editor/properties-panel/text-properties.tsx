@@ -19,7 +19,7 @@ import {
 } from "./property-item";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { cn } from "@/utils/ui";
-import { capitalizeFirstLetter, uppercase } from "@/utils/string-utils";
+import { capitalizeFirstLetter, uppercase } from "@/utils/strings";
 import { clamp } from "@/utils/math";
 import { Grid2x2 } from "lucide-react";
 import {
@@ -390,7 +390,7 @@ export function TextProperties({
                             className={cn(
                               "text-foreground",
                               element.backgroundColor === "transparent" &&
-                                "text-primary",
+                              "text-primary",
                             )}
                           />
                         </Button>

@@ -1632,7 +1632,7 @@ platform.ts
   export function getPlatformAlternateKey(): string
   export function isAppleDevice(): boolean
 
-string-utils.ts
+strings.ts
   export function capitalizeFirstLetter({ string }: { string: string })
   export function uppercase({ string }: { string: string })
 

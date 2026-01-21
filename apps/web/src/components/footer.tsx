@@ -3,7 +3,7 @@ import { RiDiscordFill, RiTwitterXLine } from "react-icons/ri";
 import { FaGithub } from "react-icons/fa6";
 import Image from "next/image";
 import { DEFAULT_LOGO_URL, SOCIAL_LINKS } from "@/constants/site-constants";
-import { capitalizeFirstLetter } from "@/utils/string-utils";
+import { capitalizeFirstLetter } from "@/utils/strings";
 
 type Category = "resources" | "company";
 

@@ -4,6 +4,11 @@
 
 Privacy-first video editor, with a focus on simplicity and ease of use.
 
+## Lib vs Utils
+
+- `lib/` - domain logic (specific to this app)
+- `utils/` - small helper utils (generic, could be copy-pasted into any other app)
+
 ## Core Editor System
 
 The editor uses a **singleton EditorCore** that manages all editor state through specialized managers.
