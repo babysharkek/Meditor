@@ -7,7 +7,7 @@ import type {
 import type { MediaAsset } from "@/types/assets";
 import { canElementHaveAudio } from "@/lib/timeline/element-utils";
 import { canTracktHaveAudio } from "@/lib/timeline";
-import { mediaSupportsAudio } from "@/lib/media-utils";
+import { mediaSupportsAudio } from "@/lib/media/media-utils";
 
 export type CollectedAudioElement = Omit<
   AudioElement,

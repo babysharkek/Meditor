@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Check, ListCheck, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { useState } from "react";
 import {
   Dialog,
@@ -21,7 +21,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { canDeleteScene, getMainScene } from "@/lib/scene-utils";
+import { canDeleteScene, getMainScene } from "@/lib/scenes";
 import { toast } from "sonner";
 import { useEditor } from "@/hooks/use-editor";
 
@@ -147,11 +147,11 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "w-full justify-between font-normal",
                     currentScene?.id === scene.id &&
-                      !isSelectMode &&
-                      "border-primary !text-primary",
+                    !isSelectMode &&
+                    "border-primary !text-primary",
                     isSelectMode &&
-                      selectedScenes.has(scene.id) &&
-                      "bg-accent border-foreground/30",
+                    selectedScenes.has(scene.id) &&
+                    "bg-accent border-foreground/30",
                   )}
                   onClick={() => handleSceneSwitch(scene.id)}
                 >
@@ -159,8 +159,8 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
                   <div className="flex items-center gap-2">
                     {((isSelectMode && selectedScenes.has(scene.id)) ||
                       (!isSelectMode && currentScene?.id === scene.id)) && (
-                      <Check className="h-4 w-4" />
-                    )}
+                        <Check className="h-4 w-4" />
+                      )}
                   </div>
                 </Button>
               ))}

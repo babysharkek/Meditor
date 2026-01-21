@@ -3,7 +3,7 @@
 import { Button } from "./ui/button";
 import { Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 
 interface ThemeToggleProps {
   className?: string;

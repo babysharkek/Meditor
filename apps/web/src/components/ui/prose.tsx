@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import type React from "react";
 
 type ProseProps = React.HTMLAttributes<HTMLElement> & {

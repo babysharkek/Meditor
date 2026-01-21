@@ -7,7 +7,7 @@ import type {
   TrackType,
   ElementType,
 } from "@/types/timeline";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID } from "@/utils/id";
 import {
   requiresMediaId,
   wouldElementOverlap,

@@ -1,4 +1,4 @@
-import { roundToFrame } from "@/lib/time-utils";
+import { roundToFrame } from "@/lib/time";
 
 export function findBookmarkIndex({
   bookmarks,

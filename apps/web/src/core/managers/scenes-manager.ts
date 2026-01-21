@@ -6,7 +6,7 @@ import {
   ensureMainScene,
   canDeleteScene,
   findCurrentScene,
-} from "@/lib/scene-utils";
+} from "@/lib/scenes";
 import {
   getFrameTime,
   isBookmarkAtTime,

@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import { MediaAsset } from "@/types/assets";
-import { getMediaTypeFromFile } from "@/lib/media-utils";
+import { getMediaTypeFromFile } from "@/lib/media/media-utils";
 import { getVideoInfo } from "./mediabunny";
 import { Input, ALL_FORMATS, BlobSource, VideoSampleSink } from "mediabunny";
 

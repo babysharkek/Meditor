@@ -8,7 +8,7 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "./theme-toggle";
 import { GithubIcon, MenuIcon } from "@opencut/ui/icons";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { DEFAULT_LOGO_URL, SOCIAL_LINKS } from "@/constants/site-constants";
 
 export function Header() {

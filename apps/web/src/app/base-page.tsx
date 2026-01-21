@@ -1,6 +1,6 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 
 interface BasePageProps {
   children: React.ReactNode;

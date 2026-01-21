@@ -319,106 +319,26 @@ use-element-selection.ts
 
 ## apps/web/src/lib
 
-audio-utils.ts
-  export type CollectedAudioElement = Omit<
-    AudioElement,
-    "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceU...
-  export function createAudioContext(): AudioContext
-  export interface DecodedAudio {
-    samples: Float32Array
-    sampleRate: number
-  }
-  export function decodeAudioToFloat32({
-    audioBlob,
+browser-utils.ts
+  export function isTypableDOMElement({
+      element,
   }: {
-    audioBlob: Blob;
-  }): Promise<DecodedAudio>
-  export function collectAudioElements({
-    tracks,
-    mediaAssets,
-    audioContext,
-  }: {
-    tracks: TimelineTrack[];
-    mediaAssets: MediaAsset[];
-    audioContext: AudioContext;
-  }): Promise<CollectedAudioElement[]>
-  export function collectAudioMixSources({
-    tracks,
-    mediaAssets,
-  }: {
-    tracks: TimelineTrack[];
-    mediaAssets: MediaAsset[];
-  }): Promise<AudioMixSource[]>
-  export function createTimelineAudioBuffer({
-    tracks,
-    mediaAssets,
-    duration,
-    sampleRate = 44100,
-  }: {
-    tracks: TimelineTrack[];
-    mediaAssets: MediaAsset[];
-    duration: number;
-    sampleRate?: number;
-  }): Promise<AudioBuffer | null>
-
-blog-query.ts
-  export function getPosts()
-  export function getTags()
-  export function getSinglePost({ slug }: { slug: string })
-  export function getCategories()
-  export function getAuthors()
-  export function processHtmlContent({ html }: { html: string }): Promise<string>
-
-caption-utils.ts
-  export function buildCaptionChunks({
-      segments,
-      wordsPerChunk = DEFAULT_WORDS_PER_CAPTION,
-      minDuration = MIN_CAPTION_DURATION_SECONDS,
-  }: {
-      segments: TranscriptionSegment[];
-      wordsPerChunk?: number;
-      minDuration?: number;
-  }): CaptionChunk[]
-
-drag-data.ts
-  export function setDragData({
-    dataTransfer,
-    dragData,
-  }: {
-    dataTransfer: DataTransfer;
-    dragData: TimelineDragData;
-  }): void
-  export function getDragData({
-    dataTransfer,
-  }: {
-    dataTransfer: DataTransfer;
-  }): TimelineDragData | null
-  export function hasDragData({
-    dataTransfer,
-  }: {
-    dataTransfer: DataTransfer;
+      element: HTMLElement;
   }): boolean
-  export function clearDragData(): void
 
-editor-utils.ts
-  export function dimensionToAspectRatio({
-    width,
-    height,
-  }: {
-    width: number;
-    height: number;
-  }): string
+date-utils.ts
+  export function formatDate({ date }: { date: Date }): string
 
 export.ts
   export function getExportMimeType({
     format,
   }: {
-    format: "mp4" | "webm";
+    format: ExportFormat;
   }): string
   export function getExportFileExtension({
     format,
   }: {
-    format: "mp4" | "webm";
+    format: ExportFormat;
   }): string
 
 iconify-api.ts
@@ -493,22 +413,21 @@ iconify-api.ts
     collections: Record<string, IconSet>
   ): string[]
 
-keyboard-utils.ts
+math-utils.ts
+  export function clamp({
+      value,
+      min,
+      max,
+  }: {
+      value: number;
+      min: number;
+      max: number;
+  }): number
+
+platform-utils.ts
   export function getPlatformSpecialKey(): string
   export function getPlatformAlternateKey(): string
-
-media-utils.ts
-  export const SUPPORTS_AUDIO: readonly MediaType[]
-  export function mediaSupportsAudio({
-    media,
-  }: {
-    media: MediaAsset | null | undefined;
-  }): boolean
-  export const getMediaTypeFromFile = ({ file }: { file: File }): MediaType | null => ...
-
-rate-limit.ts
-  export const baseRateLimit
-  export function checkRateLimit({ request }: { request: Request })
+  export function isAppleDevice(): boolean
 
 scene-utils.ts
   export function getMainScene({ scenes }: { scenes: TScene[] }): TScene | null
@@ -549,6 +468,10 @@ scene-utils.ts
     sceneId: string;
     updates: Partial<TScene>;
   }): TScene[]
+
+string-utils.ts
+  export function capitalizeFirstLetter({ string }: { string: string })
+  export function uppercase({ string }: { string: string })
 
 time-utils.ts
   export function roundToFrame({
@@ -610,28 +533,6 @@ time-utils.ts
     rawTime: number;
     duration: number;
     fps: number;
-  }): number
-
-utils.ts
-  export function cn(...inputs: ClassValue[]): string
-  export function formatDate({ date }: { date: Date }): string
-  export function capitalizeFirstLetter({ string }: { string: string })
-  export function uppercase({ string }: { string: string })
-  export function generateUUID(): string
-  export function isTypableDOMElement({
-    element,
-  }: {
-    element: HTMLElement;
-  }): boolean
-  export function isAppleDevice(): boolean
-  export function clamp({
-    value,
-    min,
-    max,
-  }: {
-    value: number;
-    min: number;
-    max: number;
   }): number
 
 ## apps/web/src/lib/actions
@@ -698,6 +599,16 @@ server.ts
   export const auth
   export type Auth = typeof auth
 
+## apps/web/src/lib/blog
+
+query.ts
+  export function getPosts()
+  export function getTags()
+  export function getSinglePost({ slug }: { slug: string })
+  export function getCategories()
+  export function getAuthors()
+  export function processHtmlContent({ html }: { html: string }): Promise<string>
+
 ## apps/web/src/lib/db
 
 index.ts
@@ -738,6 +649,15 @@ parser.ts
   export const GradientParser
 
 ## apps/web/src/lib/media
+
+media-utils.ts
+  export const SUPPORTS_AUDIO: readonly MediaType[]
+  export function mediaSupportsAudio({
+    media,
+  }: {
+    media: MediaAsset | null | undefined;
+  }): boolean
+  export const getMediaTypeFromFile = ({ file }: { file: File }): MediaType | null => ...
 
 mediabunny.ts
   export const initFFmpeg = (): Promise<FFmpeg> => ...
@@ -1005,6 +925,161 @@ zoom-utils.ts
       duration: number;
       containerWidth: number | null | undefined;
   }): number
+
+## apps/web/src/lib/utils
+
+audio.ts
+  export type CollectedAudioElement = Omit<
+    AudioElement,
+    "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceU...
+  export function createAudioContext(): AudioContext
+  export interface DecodedAudio {
+    samples: Float32Array
+    sampleRate: number
+  }
+  export function decodeAudioToFloat32({
+    audioBlob,
+  }: {
+    audioBlob: Blob;
+  }): Promise<DecodedAudio>
+  export function collectAudioElements({
+    tracks,
+    mediaAssets,
+    audioContext,
+  }: {
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+    audioContext: AudioContext;
+  }): Promise<CollectedAudioElement[]>
+  export function collectAudioMixSources({
+    tracks,
+    mediaAssets,
+  }: {
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+  }): Promise<AudioMixSource[]>
+  export function createTimelineAudioBuffer({
+    tracks,
+    mediaAssets,
+    duration,
+    sampleRate = 44100,
+  }: {
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+    duration: number;
+    sampleRate?: number;
+  }): Promise<AudioBuffer | null>
+
+blog-query.ts
+  export function getPosts()
+  export function getTags()
+  export function getSinglePost({ slug }: { slug: string })
+  export function getCategories()
+  export function getAuthors()
+  export function processHtmlContent({ html }: { html: string }): Promise<string>
+
+browser.ts
+  export function isTypableDOMElement({
+      element,
+  }: {
+      element: HTMLElement;
+  }): boolean
+
+date.ts
+  export function formatDate({ date }: { date: Date }): string
+
+editor.ts
+  export function dimensionToAspectRatio({
+    width,
+    height,
+  }: {
+    width: number;
+    height: number;
+  }): string
+
+id.ts
+  export function generateUUID(): string
+
+math.ts
+  export function clamp({
+      value,
+      min,
+      max,
+  }: {
+      value: number;
+      min: number;
+      max: number;
+  }): number
+
+platform.ts
+  export function getPlatformSpecialKey(): string
+  export function getPlatformAlternateKey(): string
+  export function isAppleDevice(): boolean
+
+time.ts
+  export function roundToFrame({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
+  }): number
+  export function formatTimeCode({
+    timeInSeconds,
+    format = "HH:MM:SS:CS",
+    fps,
+  }: {
+    timeInSeconds: number;
+    format?: TTimeCode;
+    fps?: number;
+  }): string
+  export function parseTimeCode({
+    timeCode,
+    format = "HH:MM:SS:CS",
+    fps,
+  }: {
+    timeCode: string;
+    format?: TTimeCode;
+    fps: number;
+  }): number | null
+  export function guessTimeCodeFormat({
+    timeCode,
+  }: {
+    timeCode: string;
+  }): TTimeCode | null
+  export function timeToFrame({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
+  }): number
+  export function frameToTime({
+    frame,
+    fps,
+  }: {
+    frame: number;
+    fps: number;
+  }): number
+  export function snapTimeToFrame({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
+  }): number
+  export function getSnappedSeekTime({
+    rawTime,
+    duration,
+    fps,
+  }: {
+    rawTime: number;
+    duration: number;
+    fps: number;
+  }): number
+
+ui.ts
+  export function cn(...inputs: ClassValue[]): string
 
 ## apps/web/src/services/media
 
@@ -1584,20 +1659,19 @@ transcription.ts
     segments: TranscriptionSegment[]
     language: string
   }
-  export type TranscriptionStatus = | "idle"
-      | "loading-model"
-      | "ready"
-      | "transcribing"
-      | "complete"
-      | "er...
+  export type TranscriptionStatus = | "idle"
+      | "loading-model"
+      | "transcribing"
+      | "complete"
+      | "error"
   export interface TranscriptionProgress {
     status: TranscriptionStatus
     progress: number
     message?: string
   }
-  export type TranscriptionModelId = | "whisper-tiny"
-      | "whisper-small"
-      | "whisper-medium"
+  export type TranscriptionModelId = | "whisper-tiny"
+      | "whisper-small"
+      | "whisper-medium"
       | "whisper-large-v3-turbo"
   export interface TranscriptionModel {
     id: TranscriptionModelId
@@ -1610,6 +1684,36 @@ transcription.ts
     startTime: number
     duration: number
   }
+
+## apps/web/src/utils
+
+geometry.ts
+  export function dimensionToAspectRatio({
+      width,
+      height,
+  }: {
+      width: number;
+      height: number;
+  }): string
+
+math.ts
+  export function clamp({
+      value,
+      min,
+      max,
+  }: {
+      value: number;
+      min: number;
+      max: number;
+  }): number
+
+platform.ts
+  export function getPlatformSpecialKey(): string
+  export function getPlatformAlternateKey(): string
+  export function isAppleDevice(): boolean
+
+ui.ts
+  export function cn(...inputs: ClassValue[]): string
 
 ## packages/ui/src/icons
 

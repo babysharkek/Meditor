@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { Tooltip as TooltipPrimitive } from 'radix-ui';
 import * as React from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/ui';
 
 const TooltipProvider = TooltipPrimitive.Provider;
 
@@ -15,7 +15,7 @@ const tooltipVariants = cva(
   {
     variants: {
       variant: {
-      default: 'bg-popover text-popover-foreground border px-3 py-1.5',
+        default: 'bg-popover text-popover-foreground border px-3 py-1.5',
         destructive:
           'bg-destructive/10 text-destructive dark:bg-destructive/20 border-destructive [border-width:0.5px]',
         outline: 'border-border',
@@ -40,7 +40,7 @@ const tooltipVariants = cva(
 
 interface TooltipContentProps
   extends React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>,
-    VariantProps<typeof tooltipVariants> {}
+  VariantProps<typeof tooltipVariants> { }
 
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,

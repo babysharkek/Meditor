@@ -3,7 +3,7 @@ import { useEditor } from "@/hooks/use-editor";
 import { processMediaAssets } from "@/lib/media/processing";
 import { toast } from "sonner";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { snapTimeToFrame } from "@/lib/time-utils";
+import { snapTimeToFrame } from "@/lib/time";
 import {
   buildTextElement,
   buildStickerElement,

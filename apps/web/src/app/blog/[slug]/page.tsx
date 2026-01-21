@@ -1,7 +1,7 @@
 import { BasePage } from "@/app/base-page";
 import Prose from "@/components/ui/prose";
 import { Separator } from "@/components/ui/separator";
-import { getPosts, getSinglePost, processHtmlContent } from "@/lib/blog-query";
+import { getPosts, getSinglePost, processHtmlContent } from "@/lib/blog/query";
 import { Post, Author } from "@/types/blog";
 import { Metadata } from "next";
 import Image from "next/image";

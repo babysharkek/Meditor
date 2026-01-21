@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import type { MutableRefObject, RefObject } from "react";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { getSnappedSeekTime } from "@/lib/time-utils";
+import { getSnappedSeekTime } from "@/lib/time";
 import { useEditor } from "../use-editor";
 
 interface UseTimelineInteractionsProps {

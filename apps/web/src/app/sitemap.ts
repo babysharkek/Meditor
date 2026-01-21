@@ -1,5 +1,5 @@
 import { SITE_URL } from "@/constants/site-constants";
-import { getPosts } from "@/lib/blog-query";
+import { getPosts } from "@/lib/blog/query";
 import type { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

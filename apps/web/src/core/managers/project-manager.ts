@@ -8,14 +8,14 @@ import type { ExportOptions, ExportResult } from "@/types/export";
 import type { TimelineElement } from "@/types/timeline";
 import { storageService } from "@/services/storage/storage-service";
 import { toast } from "sonner";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID } from "@/utils/id";
 import { UpdateProjectSettingsCommand } from "@/lib/commands/project";
 import {
   DEFAULT_FPS,
   DEFAULT_CANVAS_SIZE,
   DEFAULT_COLOR,
 } from "@/constants/project-constants";
-import { buildDefaultScene } from "@/lib/scene-utils";
+import { buildDefaultScene } from "@/lib/scenes";
 import { generateThumbnail } from "@/lib/media/processing";
 import {
   CURRENT_STORAGE_VERSION,

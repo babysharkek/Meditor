@@ -10,8 +10,8 @@ import { LANGUAGES } from "@/constants/captions-constants";
 import { Loader2 } from "lucide-react";
 import type { TranscriptionProgress } from "@/types/transcription";
 import { transcriptionService } from "@/services/transcription";
-import { decodeAudioToFloat32 } from "@/lib/audio-utils";
-import { buildCaptionChunks } from "@/lib/caption-utils";
+import { decodeAudioToFloat32 } from "@/lib/media/audio";
+import { buildCaptionChunks } from "@/lib/utils/caption-utils";
 
 export function Captions() {
   const [selectedLanguage, setSelectedLanguage] = useState("auto");

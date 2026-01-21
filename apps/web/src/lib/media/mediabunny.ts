@@ -1,6 +1,6 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { Input, ALL_FORMATS, BlobSource } from "mediabunny";
-import { collectAudioMixSources } from "@/lib/audio-utils";
+import { collectAudioMixSources } from "@/lib/media/audio";
 import type { TimelineTrack } from "@/types/timeline";
 import type { MediaAsset } from "@/types/assets";
 

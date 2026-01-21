@@ -1,6 +1,6 @@
 import { Command } from "@/lib/commands/base-command";
 import type { TimelineTrack } from "@/types/timeline";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID } from "@/utils/id";
 import { EditorCore } from "@/core";
 
 export class SplitElementsCommand extends Command {

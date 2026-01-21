@@ -1,7 +1,7 @@
 import { Command } from "@/lib/commands/base-command";
 import { EditorCore } from "@/core";
 import type { TScene } from "@/types/timeline";
-import { updateSceneInArray } from "@/lib/scene-utils";
+import { updateSceneInArray } from "@/lib/scenes";
 
 export class RenameSceneCommand extends Command {
   private savedScenes: TScene[] | null = null;

@@ -93,14 +93,14 @@ function buildSortParameter({ query, sort }: { query?: string; sort: string }) {
   return sort === "score" ? "score" : `${sort}_desc`;
 }
 
-function applyEffectsFilters({ 
-  params, 
-  min_rating, 
-  commercial_only 
-}: { 
-  params: URLSearchParams; 
-  min_rating: number; 
-  commercial_only: boolean; 
+function applyEffectsFilters({
+  params,
+  min_rating,
+  commercial_only
+}: {
+  params: URLSearchParams;
+  min_rating: number;
+  commercial_only: boolean;
 }) {
   params.append("filter", "duration:[* TO 30.0]");
   params.append("filter", `avg_rating:[${min_rating} TO *]`);

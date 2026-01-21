@@ -3,13 +3,13 @@ import type { RootNode } from "@/services/renderer/nodes/root-node";
 import type { ExportOptions, ExportResult } from "@/types/export";
 import { SceneExporter } from "@/services/renderer/scene-exporter";
 import { buildScene } from "@/services/renderer/scene-builder";
-import { createTimelineAudioBuffer } from "@/lib/audio-utils";
+import { createTimelineAudioBuffer } from "@/lib/media/audio";
 
 export class RendererManager {
   private renderTree: RootNode | null = null;
   private listeners = new Set<() => void>();
 
-  constructor(private editor: EditorCore) {}
+  constructor(private editor: EditorCore) { }
 
   setRenderTree({ renderTree }: { renderTree: RootNode | null }): void {
     this.renderTree = renderTree;

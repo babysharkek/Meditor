@@ -17,7 +17,7 @@ import { useEditor } from "@/hooks/use-editor";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useRevealItem } from "@/hooks/use-reveal-item";
 import { processMediaAssets } from "@/lib/media/processing";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import type { MediaAsset } from "@/types/assets";
 import type { CreateTimelineElement } from "@/types/timeline";

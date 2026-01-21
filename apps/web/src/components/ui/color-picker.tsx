@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { cn } from "../../lib/utils";
+import { cn } from "@/utils/ui";
 import { Input } from "./input";
 
 interface ColorPickerProps {
@@ -321,9 +321,8 @@ const ColorCircle = ({
   color: string;
 }) => (
   <div
-    className={`absolute border-3 border-white rounded-full shadow-lg pointer-events-none ${
-      size === "sm" ? "size-3" : "size-4"
-    }`}
+    className={`absolute border-3 border-white rounded-full shadow-lg pointer-events-none ${size === "sm" ? "size-3" : "size-4"
+      }`}
     style={{
       left: position.left,
       top: position.top,

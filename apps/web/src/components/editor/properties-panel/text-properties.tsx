@@ -18,7 +18,9 @@ import {
   PropertyItemValue,
 } from "./property-item";
 import { ColorPicker } from "@/components/ui/color-picker";
-import { cn, capitalizeFirstLetter, clamp, uppercase } from "@/lib/utils";
+import { cn } from "@/utils/ui";
+import { capitalizeFirstLetter, uppercase } from "@/utils/string-utils";
+import { clamp } from "@/utils/math";
 import { Grid2x2 } from "lucide-react";
 import {
   Tooltip,
@@ -296,8 +298,9 @@ export function TextProperties({
                 <PropertyItemLabel>Color</PropertyItemLabel>
                 <PropertyItemValue>
                   <ColorPicker
-                    value={uppercase({ string: 
-                      (element.color || "FFFFFF").replace("#", "")
+                    value={uppercase({
+                      string:
+                        (element.color || "FFFFFF").replace("#", "")
                     })}
                     onChange={(color) => {
                       editor.timeline.updateTextElement({
@@ -351,9 +354,9 @@ export function TextProperties({
                           element.backgroundColor === "transparent"
                             ? lastSelectedColor.current.replace("#", "")
                             : (element.backgroundColor).replace(
-                                "#",
-                                "",
-                              ),
+                              "#",
+                              "",
+                            ),
                       })}
                       onChange={(color) => handleColorChange({ color: `#${color}` })}
                       containerRef={containerRef}
@@ -380,7 +383,7 @@ export function TextProperties({
                             className={cn(
                               "text-foreground",
                               element.backgroundColor === "transparent" &&
-                                "text-primary",
+                              "text-primary",
                             )}
                           />
                         </Button>

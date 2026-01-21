@@ -1,4 +1,4 @@
-import { getSnappedSeekTime } from "@/lib/time-utils";
+import { getSnappedSeekTime } from "@/lib/time";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useEdgeAutoScroll } from "@/hooks/timeline/use-edge-auto-scroll";
 import { useEditor } from "../use-editor";

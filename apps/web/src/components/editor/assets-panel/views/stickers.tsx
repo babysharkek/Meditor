@@ -31,7 +31,7 @@ import {
   ICONIFY_HOSTS,
   POPULAR_COLLECTIONS,
 } from "@/lib/iconify-api";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import Image from "next/image";
 import { DraggableItem } from "@/components/ui/draggable-item";
 import { InputWithBack } from "@/components/ui/input-with-back";

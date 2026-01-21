@@ -4,7 +4,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TActionWithOptionalArgs } from "@/lib/actions";
 import { getDefaultShortcuts } from "@/lib/actions";
-import { isAppleDevice, isTypableDOMElement } from "@/lib/utils";
+import { isTypableDOMElement } from "@/utils/browser";
+import { isAppleDevice } from "@/utils/platform";
 import { KeybindingConfig, ShortcutKey } from "@/types/keybinding";
 
 export const defaultKeybindings: KeybindingConfig = getDefaultShortcuts();

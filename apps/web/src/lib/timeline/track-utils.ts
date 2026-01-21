@@ -12,7 +12,7 @@ import {
   TRACK_HEIGHTS,
   TRACK_GAP,
 } from "@/constants/timeline-constants";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID } from "@/utils/id";
 
 export function canTracktHaveAudio(
   track: TimelineTrack,

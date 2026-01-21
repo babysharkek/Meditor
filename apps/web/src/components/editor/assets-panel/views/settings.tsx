@@ -21,9 +21,9 @@ import {
   DEFAULT_COLOR,
 } from "@/constants/project-constants";
 import { useEditorStore } from "@/stores/editor-store";
-import { dimensionToAspectRatio } from "@/lib/editor-utils";
+import { dimensionToAspectRatio } from "@/utils/geometry";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { colors } from "@/data/colors/solid";
 import { patternCraftGradients } from "@/data/colors/pattern-craft";
 import { PipetteIcon } from "lucide-react";

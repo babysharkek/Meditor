@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { TTimeCode } from "@/types/time";
-import { formatTimeCode, parseTimeCode } from "@/lib/time-utils";
+import { formatTimeCode, parseTimeCode } from "@/lib/time";
 
 interface EditableTimecodeProps {
   time: number;

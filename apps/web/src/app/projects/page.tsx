@@ -40,7 +40,7 @@ import { MigrationDialog } from "@/components/editor/migration-dialog";
 import type { TProjectMetadata } from "@/types/project";
 import { toast } from "sonner";
 import { useEditor } from "@/hooks/use-editor";
-import { formatDate } from "@/lib/utils";
+import { formatDate } from "@/utils/date";
 
 export default function ProjectsPage() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -419,14 +419,12 @@ function ProjectCard({
 
   const cardContent = (
     <Card
-      className={`bg-background overflow-hidden border-none p-0 transition-all ${
-        isSelectionMode && isSelected ? "ring-primary ring-2" : ""
-      }`}
+      className={`bg-background overflow-hidden border-none p-0 transition-all ${isSelectionMode && isSelected ? "ring-primary ring-2" : ""
+        }`}
     >
       <div
-        className={`bg-muted relative aspect-square transition-opacity ${
-          isDropdownOpen ? "opacity-65" : "opacity-100 group-hover:opacity-65"
-        }`}
+        className={`bg-muted relative aspect-square transition-opacity ${isDropdownOpen ? "opacity-65" : "opacity-100 group-hover:opacity-65"
+          }`}
       >
         {isSelectionMode && (
           <div className="absolute left-3 top-3 z-10">
@@ -477,11 +475,10 @@ function ProjectCard({
                   aria-label="project options"
                   variant="text"
                   size="sm"
-                  className={`ml-2 size-6 shrink-0 p-0 transition-all ${
-                    isDropdownOpen
-                      ? "opacity-100"
-                      : "opacity-0 group-hover:opacity-100"
-                  }`}
+                  className={`ml-2 size-6 shrink-0 p-0 transition-all ${isDropdownOpen
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100"
+                    }`}
                   onClick={(event) => event.preventDefault()}
                 >
                   <MoreHorizontal aria-hidden="true" />

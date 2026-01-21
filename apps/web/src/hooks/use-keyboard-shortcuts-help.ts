@@ -6,7 +6,7 @@ import { ACTIONS, type TAction } from "@/lib/actions";
 import {
   getPlatformAlternateKey,
   getPlatformSpecialKey,
-} from "@/lib/keyboard-utils";
+} from "@/utils/platform";
 
 export interface KeyboardShortcut {
   id: string;

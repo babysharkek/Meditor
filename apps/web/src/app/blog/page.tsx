@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { BasePage } from "@/app/base-page";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
-import { getPosts } from "@/lib/blog-query";
+import { getPosts } from "@/lib/blog/query";
 import { Post, Author } from "@/types/blog";
 import { Separator } from "@/components/ui/separator";
 

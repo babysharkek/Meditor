@@ -1,5 +1,5 @@
 import { Feed } from "feed";
-import { getPosts } from "@/lib/blog-query";
+import { getPosts } from "@/lib/blog/query";
 import { SITE_INFO, SITE_URL } from "@/constants/site-constants";
 
 export async function GET() {
@@ -14,9 +14,8 @@ export async function GET() {
       language: "en",
       image: `${SITE_INFO.openGraphImage}`,
       favicon: `${SITE_INFO.favicon}`,
-      copyright: `All rights reserved ${new Date().getFullYear()}, ${
-        SITE_INFO.title
-      }`,
+      copyright: `All rights reserved ${new Date().getFullYear()}, ${SITE_INFO.title
+        }`,
     });
 
     for (const post of posts) {

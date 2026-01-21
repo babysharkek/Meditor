@@ -1,5 +1,5 @@
 import { TScene } from "@/types/timeline";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID } from "@/utils/id";
 import { ensureMainTrack } from "@/lib/timeline/track-utils";
 
 export function getMainScene({ scenes }: { scenes: TScene[] }): TScene | null {

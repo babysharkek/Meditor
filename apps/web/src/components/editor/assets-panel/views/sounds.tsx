@@ -31,7 +31,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 export function SoundsView() {
@@ -547,11 +547,10 @@ function AudioItem({
         <Button
           variant="text"
           size="icon"
-          className={`hover:text-foreground !opacity-100 w-auto ${
-            isSaved
-              ? "text-red-500 hover:text-red-600"
-              : "text-muted-foreground"
-          }`}
+          className={`hover:text-foreground !opacity-100 w-auto ${isSaved
+            ? "text-red-500 hover:text-red-600"
+            : "text-muted-foreground"
+            }`}
           onClick={handleSaveClick}
           title={isSaved ? "Remove from saved" : "Save sound"}
         >

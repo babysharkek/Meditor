@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { ReactMarkdownWrapper } from "@/components/ui/react-markdown-wrapper";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { BasePage } from "@/app/base-page";
 import { GitHubContributeSection } from "@/components/gitHub-contribute-section";
 

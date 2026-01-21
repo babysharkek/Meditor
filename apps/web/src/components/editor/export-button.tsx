@@ -8,8 +8,8 @@ import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Progress } from "../ui/progress";
 import { Checkbox } from "../ui/checkbox";
-import { cn } from "@/lib/utils";
-import { getExportMimeType, getExportFileExtension } from "@/lib/export";
+import { cn } from "@/utils/ui";
+import { getExportMimeType, getExportFileExtension } from "@/utils/export";
 import { Check, Copy, Download, RotateCcw, X } from "lucide-react";
 import {
   EXPORT_FORMAT_VALUES,

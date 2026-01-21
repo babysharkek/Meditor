@@ -38,7 +38,7 @@ import type {
   ElementDragState,
 } from "@/types/timeline";
 import { MediaAsset } from "@/types/assets";
-import { mediaSupportsAudio } from "@/lib/media-utils";
+import { mediaSupportsAudio } from "@/lib/media/media-utils";
 import { type TAction, invokeAction } from "@/lib/actions";
 import { useElementSelection } from "@/hooks/timeline/element/use-element-selection";
 

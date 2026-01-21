@@ -9,7 +9,7 @@ import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { useEdgeAutoScroll } from "@/hooks/timeline/use-edge-auto-scroll";
 import { ElementDragState } from "@/types/timeline";
 import { useEditor } from "@/hooks/use-editor";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 
 interface TimelineTrackContentProps {
   track: TimelineTrack;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { TimelineElement, TimelineTrack } from "@/types/timeline";
-import { snapTimeToFrame } from "@/lib/time-utils";
+import { snapTimeToFrame } from "@/lib/time";
 import { EditorCore } from "@/core";
 import {
   useTimelineSnapping,

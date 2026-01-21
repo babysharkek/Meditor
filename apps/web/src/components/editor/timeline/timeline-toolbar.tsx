@@ -31,12 +31,12 @@ import {
   SplitButtonSeparator,
 } from "@/components/ui/split-button";
 import { Slider } from "@/components/ui/slider";
-import { formatTimeCode } from "@/lib/time-utils";
+import { formatTimeCode } from "@/lib/time";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { EditableTimecode } from "@/components/ui/editable-timecode";
 import { ScenesView } from "../scenes-view";
 import { type TAction, invokeAction } from "@/lib/actions";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { useTimelineStore } from "@/stores/timeline-store";
 
 export function TimelineToolbar({

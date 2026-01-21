@@ -9,9 +9,9 @@ import {
 import { useEditor } from "@/hooks/use-editor";
 import { useElementSelection } from "@/hooks/timeline/element/use-element-selection";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { snapTimeToFrame } from "@/lib/time-utils";
+import { snapTimeToFrame } from "@/lib/time";
 import { computeDropTarget } from "@/lib/timeline/drop-utils";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID } from "@/utils/id";
 import { useTimelineSnapping } from "@/hooks/timeline/use-timeline-snapping";
 import type {
   DropTarget,

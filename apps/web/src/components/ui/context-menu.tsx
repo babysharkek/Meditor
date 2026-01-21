@@ -5,7 +5,7 @@ import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
 import { Check, ChevronRight, Circle } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "../../lib/utils";
+import { cn } from "@/utils/ui";
 
 const ContextMenu = ContextMenuPrimitive.Root;
 

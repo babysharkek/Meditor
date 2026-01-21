@@ -10,7 +10,7 @@ import {
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { useEditor } from "@/hooks/use-editor";
 import { clearDragData, setDragData } from "@/lib/drag-data";
 import type { TimelineDragData } from "@/types/drag";
