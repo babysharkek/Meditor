@@ -4,7 +4,7 @@ import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { getSnappedSeekTime } from "@/lib/time";
 import { useEditor } from "../use-editor";
 
-interface UseTimelineInteractionsProps {
+interface UseTimelineSeekProps {
   playheadRef: RefObject<HTMLDivElement>;
   trackLabelsRef: RefObject<HTMLDivElement>;
   rulerScrollRef: RefObject<HTMLDivElement>;
@@ -54,7 +54,7 @@ function setMouseTracking({
   };
 }
 
-export function useTimelineInteractions({
+export function useTimelineSeek({
   playheadRef,
   trackLabelsRef,
   rulerScrollRef,
@@ -64,7 +64,7 @@ export function useTimelineInteractions({
   isSelecting,
   clearSelectedElements,
   seek,
-}: UseTimelineInteractionsProps) {
+}: UseTimelineSeekProps) {
   const editor = useEditor();
   const activeProject = editor.project.getActive();
 

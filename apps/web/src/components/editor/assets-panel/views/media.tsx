@@ -35,7 +35,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DraggableItem } from "@/components/ui/draggable-item";
+import { DraggableItem } from "@/components/editor/draggable-item";
 import {
   Tooltip,
   TooltipContent,

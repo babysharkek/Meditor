@@ -27,6 +27,7 @@ editor-constants.ts
 
 export-constants.ts
   export const DEFAULT_EXPORT_OPTIONS
+  export const EXPORT_MIME_TYPES
 
 font-constants.ts
   export interface FontOption {
@@ -74,19 +75,16 @@ site-constants.ts
 
 stickers-constants.ts
   export const STICKER_CATEGORIES
-  export const STICKER_CATEGORY_CONFIG: Record<
-    (typeof STICKER_CATEGORIES)[number],
-    string | undefined
+  export const STICKER_CATEGORY_CONFIG: Record<
+    (typeof STICKER_CATEGORIES)[number],
+    string | undefined
   >
 
 text-constants.ts
   export const DEFAULT_TEXT_ELEMENT: Omit<TextElement, "id">
 
 timeline-constants.tsx
-  export const TRACK_COLORS: Record<
-    TrackType,
-    { background: string; }
-  >
+  export const TRACK_COLORS: Record<TrackType, { background: string }>
   export const TRACK_HEIGHTS: Record<TrackType, number>
   export const TRACK_GAP
   export const TIMELINE_CONSTANTS
@@ -130,12 +128,12 @@ use-file-upload.ts
   }: UseFileUploadOptions = {})
 
 use-infinite-scroll.ts
-  export function useInfiniteScroll({
-    onLoadMore,
-    hasMore,
-    isLoading,
-    threshold = 200,
-    enabled = true,
+  export function useInfiniteScroll({
+    onLoadMore,
+    hasMore,
+    isLoading,
+    threshold = 200,
+    enabled = true,
   }: UseInfiniteScrollOptions)
 
 use-keybindings.ts
@@ -165,21 +163,21 @@ use-reveal-item.ts
   )
 
 use-sound-search.ts
-  export function useSoundSearch({
-    query,
-    commercialOnly,
-  }: {
-    query: string;
-    commercialOnly: boolean;
+  export function useSoundSearch({
+    query,
+    commercialOnly,
+  }: {
+    query: string;
+    commercialOnly: boolean;
   })
 
 ## apps/web/src/hooks/actions
 
 use-action-handler.ts
-  export function useActionHandler(
-    action: A,
-    handler: TActionFunc<A>,
-    isActive: TActionHandlerOptions,
+  export function useActionHandler(
+    action: A,
+    handler: TActionFunc<A>,
+    isActive: TActionHandlerOptions,
   )
 
 use-editor-actions.ts
@@ -188,22 +186,22 @@ use-editor-actions.ts
 ## apps/web/src/hooks/timeline
 
 use-edge-auto-scroll.ts
-  export function useEdgeAutoScroll({
-    isActive,
-    getMouseClientX,
-    rulerScrollRef,
-    tracksScrollRef,
-    contentWidth,
-    edgeThreshold = 100,
-    maxScrollSpeed = 15,
+  export function useEdgeAutoScroll({
+    isActive,
+    getMouseClientX,
+    rulerScrollRef,
+    tracksScrollRef,
+    contentWidth,
+    edgeThreshold = 100,
+    maxScrollSpeed = 15,
   }: UseEdgeAutoScrollParams): void
 
 use-scroll-sync.ts
-  export function useScrollSync({
-    rulerScrollRef,
-    tracksScrollRef,
-    trackLabelsScrollRef,
-    bookmarksScrollRef,
+  export function useScrollSync({
+    rulerScrollRef,
+    tracksScrollRef,
+    trackLabelsScrollRef,
+    bookmarksScrollRef,
   }: UseScrollSyncProps)
 
 use-selection-box.ts
@@ -216,13 +214,13 @@ use-selection-box.ts
   }: UseSelectionBoxProps)
 
 use-snap-indicator-position.ts
-  export function useSnapIndicatorPosition({
-    snapPoint,
-    zoomLevel,
-    tracks,
-    timelineRef,
-    trackLabelsRef,
-    tracksScrollRef,
+  export function useSnapIndicatorPosition({
+    snapPoint,
+    zoomLevel,
+    tracks,
+    timelineRef,
+    trackLabelsRef,
+    tracksScrollRef,
   }: UseSnapIndicatorPositionParams): SnapIndicatorPosition
 
 use-timeline-drag-drop.ts
@@ -232,8 +230,17 @@ use-timeline-drag-drop.ts
     isSnappingEnabled = true,
   }: UseTimelineDragDropProps)
 
-use-timeline-interactions.ts
-  export function useTimelineInteractions({
+use-timeline-playhead.ts
+  export function useTimelinePlayhead({
+    zoomLevel,
+    rulerRef,
+    rulerScrollRef,
+    tracksScrollRef,
+    playheadRef,
+  }: UseTimelinePlayheadProps)
+
+use-timeline-seek.ts
+  export function useTimelineSeek({
     playheadRef,
     trackLabelsRef,
     rulerScrollRef,
@@ -243,16 +250,7 @@ use-timeline-interactions.ts
     isSelecting,
     clearSelectedElements,
     seek,
-  }: UseTimelineInteractionsProps)
-
-use-timeline-playhead.ts
-  export function useTimelinePlayhead({
-    zoomLevel,
-    rulerRef,
-    rulerScrollRef,
-    tracksScrollRef,
-    playheadRef,
-  }: UseTimelinePlayheadProps)
+  }: UseTimelineSeekProps)
 
 use-timeline-snapping.ts
   export interface SnapPoint {
@@ -278,10 +276,10 @@ use-timeline-snapping.ts
   }: UseTimelineSnappingOptions = {})
 
 use-timeline-zoom.ts
-  export function useTimelineZoom({
-    containerRef,
-    isInTimeline = false,
-    minZoom = TIMELINE_CONSTANTS.ZOOM_MIN,
+  export function useTimelineZoom({
+    containerRef,
+    isInTimeline = false,
+    minZoom = TIMELINE_CONSTANTS.ZOOM_MIN,
   }: UseTimelineZoomProps): UseTimelineZoomReturn
 
 ## apps/web/src/hooks/timeline/element
@@ -319,15 +317,25 @@ use-element-selection.ts
 
 ## apps/web/src/lib
 
-browser-utils.ts
-  export function isTypableDOMElement({
-      element,
-  }: {
-      element: HTMLElement;
+drag-data.ts
+  export function setDragData({
+    dataTransfer,
+    dragData,
+  }: {
+    dataTransfer: DataTransfer;
+    dragData: TimelineDragData;
+  }): void
+  export function getDragData({
+    dataTransfer,
+  }: {
+    dataTransfer: DataTransfer;
+  }): TimelineDragData | null
+  export function hasDragData({
+    dataTransfer,
+  }: {
+    dataTransfer: DataTransfer;
   }): boolean
-
-date-utils.ts
-  export function formatDate({ date }: { date: Date }): string
+  export function clearDragData(): void
 
 export.ts
   export function getExportMimeType({
@@ -347,14 +355,14 @@ iconify-api.ts
     prefix: string
     name: string
     total: number
-    author?: {
-      name: string;
-      url?: string;
+    author?: {
+      name: string;
+      url?: string;
     }
-    license?: {
-      title: string;
-      spdx?: string;
-      url?: string;
+    license?: {
+      title: string;
+      spdx?: string;
+      url?: string;
     }
     samples?: string[]
     category?: string
@@ -376,175 +384,159 @@ iconify-api.ts
     hidden?: string[]
     aliases?: Record<string, string>
   }
-  export function getCollections(
-    category?: string
+  export function getCollections(
+    category?: string,
   ): Promise<Record<string, IconSet>>
-  export function getCollection(
-    prefix: string
+  export function getCollection(
+    prefix: string,
   ): Promise<CollectionInfo | null>
-  export function searchIcons(
-    query: string,
-    limit: number = 64,
-    prefixes?: string[],
-    category?: string
+  export function searchIcons(
+    query: string,
+    limit: number = 64,
+    prefixes?: string[],
+    category?: string,
   ): Promise<IconSearchResult>
-  export function buildIconSvgUrl(
-    host: string,
-    iconName: string,
-    params?: {
-      color?: string;
-      width?: number;
-      height?: number;
-      flip?: "horizontal" | "vertical" | "horizontal,vertical";
-      rotate?: number | string;
-    }
+  export function buildIconSvgUrl(
+    host: string,
+    iconName: string,
+    params?: {
+      color?: string;
+      width?: number;
+      height?: number;
+      flip?: "horizontal" | "vertical" | "horizontal,vertical";
+      rotate?: number | string;
+    },
   ): string
-  export function getIconSvgUrl(
-    iconName: string,
-    params?: Parameters<typeof buildIconSvgUrl>[2]
+  export function getIconSvgUrl(
+    iconName: string,
+    params?: Parameters<typeof buildIconSvgUrl>[2],
   ): string
-  export function downloadSvgAsText(
-    iconName: string,
-    params?: Parameters<typeof getIconSvgUrl>[1]
+  export function downloadSvgAsText(
+    iconName: string,
+    params?: Parameters<typeof getIconSvgUrl>[1],
   ): Promise<string>
   export function svgToFile(svgText: string, fileName: string): File
   export const POPULAR_COLLECTIONS
-  export function getCategoriesFromCollections(
-    collections: Record<string, IconSet>
+  export function getCategoriesFromCollections(
+    collections: Record<string, IconSet>,
   ): string[]
 
-math-utils.ts
-  export function clamp({
-      value,
-      min,
-      max,
-  }: {
-      value: number;
-      min: number;
-      max: number;
-  }): number
+rate-limit.ts
+  export const baseRateLimit
+  export function checkRateLimit({ request }: { request: Request })
 
-platform-utils.ts
-  export function getPlatformSpecialKey(): string
-  export function getPlatformAlternateKey(): string
-  export function isAppleDevice(): boolean
-
-scene-utils.ts
+scenes.ts
   export function getMainScene({ scenes }: { scenes: TScene[] }): TScene | null
   export function ensureMainScene({ scenes }: { scenes: TScene[] }): TScene[]
-  export function buildDefaultScene({
-    name,
-    isMain,
-  }: {
-    name: string;
-    isMain: boolean;
+  export function buildDefaultScene({
+    name,
+    isMain,
+  }: {
+    name: string;
+    isMain: boolean;
   }): TScene
-  export function canDeleteScene({ scene }: { scene: TScene }): {
-    canDelete: boolean;
-    reason?: string;
+  export function canDeleteScene({ scene }: { scene: TScene }): {
+    canDelete: boolean;
+    reason?: string;
   }
-  export function getFallbackSceneAfterDelete({
-    scenes,
-    deletedSceneId,
-    currentSceneId,
-  }: {
-    scenes: TScene[];
-    deletedSceneId: string;
-    currentSceneId: string | null;
+  export function getFallbackSceneAfterDelete({
+    scenes,
+    deletedSceneId,
+    currentSceneId,
+  }: {
+    scenes: TScene[];
+    deletedSceneId: string;
+    currentSceneId: string | null;
   }): TScene | null
-  export function findCurrentScene({
-    scenes,
-    currentSceneId,
-  }: {
-    scenes: TScene[];
-    currentSceneId: string;
+  export function findCurrentScene({
+    scenes,
+    currentSceneId,
+  }: {
+    scenes: TScene[];
+    currentSceneId: string;
   }): TScene | null
-  export function updateSceneInArray({
-    scenes,
-    sceneId,
-    updates,
-  }: {
-    scenes: TScene[];
-    sceneId: string;
-    updates: Partial<TScene>;
+  export function updateSceneInArray({
+    scenes,
+    sceneId,
+    updates,
+  }: {
+    scenes: TScene[];
+    sceneId: string;
+    updates: Partial<TScene>;
   }): TScene[]
 
-string-utils.ts
-  export function capitalizeFirstLetter({ string }: { string: string })
-  export function uppercase({ string }: { string: string })
-
-time-utils.ts
-  export function roundToFrame({
-    time,
-    fps,
-  }: {
-    time: number;
-    fps: number;
+time.ts
+  export function roundToFrame({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
   }): number
-  export function formatTimeCode({
-    timeInSeconds,
-    format = "HH:MM:SS:CS",
-    fps,
-  }: {
-    timeInSeconds: number;
-    format?: TTimeCode;
-    fps?: number;
+  export function formatTimeCode({
+    timeInSeconds,
+    format = "HH:MM:SS:CS",
+    fps,
+  }: {
+    timeInSeconds: number;
+    format?: TTimeCode;
+    fps?: number;
   }): string
-  export function parseTimeCode({
-    timeCode,
-    format = "HH:MM:SS:CS",
-    fps,
-  }: {
-    timeCode: string;
-    format?: TTimeCode;
-    fps: number;
+  export function parseTimeCode({
+    timeCode,
+    format = "HH:MM:SS:CS",
+    fps,
+  }: {
+    timeCode: string;
+    format?: TTimeCode;
+    fps: number;
   }): number | null
-  export function guessTimeCodeFormat({
-    timeCode,
-  }: {
-    timeCode: string;
+  export function guessTimeCodeFormat({
+    timeCode,
+  }: {
+    timeCode: string;
   }): TTimeCode | null
-  export function timeToFrame({
-    time,
-    fps,
-  }: {
-    time: number;
-    fps: number;
+  export function timeToFrame({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
   }): number
-  export function frameToTime({
-    frame,
-    fps,
-  }: {
-    frame: number;
-    fps: number;
+  export function frameToTime({
+    frame,
+    fps,
+  }: {
+    frame: number;
+    fps: number;
   }): number
-  export function snapTimeToFrame({
-    time,
-    fps,
-  }: {
-    time: number;
-    fps: number;
+  export function snapTimeToFrame({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
   }): number
-  export function getSnappedSeekTime({
-    rawTime,
-    duration,
-    fps,
-  }: {
-    rawTime: number;
-    duration: number;
-    fps: number;
+  export function getSnappedSeekTime({
+    rawTime,
+    duration,
+    fps,
+  }: {
+    rawTime: number;
+    duration: number;
+    fps: number;
   }): number
 
 ## apps/web/src/lib/actions
 
 definitions.ts
-  export type TActionCategory = | "playback"
-    | "navigation"
-    | "editing"
-    | "selection"
-    | "history"
-    | "timeline"
-    ...
+  export type TActionCategory = | "playback"
+    | "navigation"
+    | "editing"
+    | "selection"
+    | "history"
+    | "timeline"
+    | "con...
   export interface TActionDefinition {
     description: string
     category: TActionCategory
@@ -557,40 +549,40 @@ definitions.ts
   export function getDefaultShortcuts(): Record<ShortcutKey, TAction>
 
 registry.ts
-  export function bindAction(
-    action: A,
-    handler: TActionFunc<A>,
+  export function bindAction(
+    action: A,
+    handler: TActionFunc<A>,
   )
-  export function unbindAction(
-    action: A,
-    handler: TActionFunc<A>,
+  export function unbindAction(
+    action: A,
+    handler: TActionFunc<A>,
   )
-  export const invokeAction = (
-    action: A,
-    args?: TArgOfAction<A>,
-    trigger?: TInvocationTrigger,
+  export const invokeAction = (
+    action: A,
+    args?: TArgOfAction<A>,
+    trigger?: TInvocationTrigger,
   ) => ...
 
 types.ts
-  export type TActionArgsMap = {
-    "seek-forward": { seconds: number } | undefined;
-    "seek-backward": { seconds: number } | u...
+  export type TActionArgsMap = {
+    "seek-forward": { seconds: number } | undefined;
+    "seek-backward": { seconds: number } | und...
   export type TActionWithArgs = keyof TActionArgsMap
-  export type TActionWithOptionalArgs = | TActionWithNoArgs
+  export type TActionWithOptionalArgs = | TActionWithNoArgs
     | TKeysWithValueUndefined<TActionArgsMap>
   export type TActionWithNoArgs = Exclude<TAction, TActionWithArgs>
-  export type TArgOfAction<A extends TAction> = A extends TActionWithArgs
-    ? TActionArgsMap[A]
+  export type TArgOfAction<A extends TAction> = A extends TActionWithArgs
+    ? TActionArgsMap[A]
     : undefined
-  export type TActionFunc<A extends TAction> = A extends TActionWithArgs
-    ? (arg: TArgOfAction<A>, trigger?: TInvocationTrigger) => void
-    : ...
+  export type TActionFunc<A extends TAction> = A extends TActionWithArgs
+    ? (arg: TArgOfAction<A>, trigger?: TInvocationTrigger) => void
+    : (_...
   export type TInvocationTrigger = "keypress" | "mouseclick"
-  export type TBoundActionList = {
-    [A in TAction]?: Array<TActionFunc<A>>;
+  export type TBoundActionList = {
+    [A in TAction]?: Array<TActionFunc<A>>;
   }
-  export type TActionHandlerOptions = | MutableRefObject<boolean>
-    | boolean
+  export type TActionHandlerOptions = | MutableRefObject<boolean>
+    | boolean
     | undefined
 
 ## apps/web/src/lib/auth
@@ -607,7 +599,11 @@ query.ts
   export function getSinglePost({ slug }: { slug: string })
   export function getCategories()
   export function getAuthors()
-  export function processHtmlContent({ html }: { html: string }): Promise<string>
+  export function processHtmlContent({
+    html,
+  }: {
+    html: string;
+  }): Promise<string>
 
 ## apps/web/src/lib/db
 
@@ -624,43 +620,92 @@ schema.ts
 
 canvas.ts
   export function drawCssBackground({
-      ctx,
-      width,
-      height,
-      css,
+    ctx,
+    width,
+    height,
+    css,
   }: {
-      ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
-      width: number;
-      height: number;
-      css: string;
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+    width: number;
+    height: number;
+    css: string;
   }): void
 
 parser.ts
   export type GradientOrientation = LinearOrientation | Array<RadialOrientation>
-  export type Color = | { type: "hex"; value: string }
-      | { type: "literal"; value: string }
-      | { type: "rgb"; ...
+  export type Color = | { type: "hex"; value: string }
+    | { type: "literal"; value: string }
+    | { type: "rgb"; value:...
   export type ColorStop = Color & { length?: Distance }
-  export type GradientAst = {
-      type: GradientType;
-      orientation: GradientOrientation | undefined;
-      colorStops: Ar...
-  export const parseGradient = ({ code }: { code: string }): Array<GradientAst> => ...
+  export type GradientAst = {
+    type: GradientType;
+    orientation: GradientOrientation | undefined;
+    colorStops: Array<Color...
+  export const parseGradient = ({
+    code,
+  }: {
+    code: string;
+  }): Array<GradientAst> => ...
   export const GradientParser
 
 ## apps/web/src/lib/media
 
+audio.ts
+  export type CollectedAudioElement = Omit<
+    AudioElement,
+    "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceUrl...
+  export function createAudioContext(): AudioContext
+  export interface DecodedAudio {
+    samples: Float32Array
+    sampleRate: number
+  }
+  export function decodeAudioToFloat32({
+    audioBlob,
+  }: {
+    audioBlob: Blob;
+  }): Promise<DecodedAudio>
+  export function collectAudioElements({
+    tracks,
+    mediaAssets,
+    audioContext,
+  }: {
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+    audioContext: AudioContext;
+  }): Promise<CollectedAudioElement[]>
+  export function collectAudioMixSources({
+    tracks,
+    mediaAssets,
+  }: {
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+  }): Promise<AudioMixSource[]>
+  export function createTimelineAudioBuffer({
+    tracks,
+    mediaAssets,
+    duration,
+    sampleRate = 44100,
+  }: {
+    tracks: TimelineTrack[];
+    mediaAssets: MediaAsset[];
+    duration: number;
+    sampleRate?: number;
+  }): Promise<AudioBuffer | null>
+
 media-utils.ts
   export const SUPPORTS_AUDIO: readonly MediaType[]
-  export function mediaSupportsAudio({
-    media,
-  }: {
-    media: MediaAsset | null | undefined;
+  export function mediaSupportsAudio({
+    media,
+  }: {
+    media: MediaAsset | null | undefined;
   }): boolean
-  export const getMediaTypeFromFile = ({ file }: { file: File }): MediaType | null => ...
+  export const getMediaTypeFromFile = ({
+    file,
+  }: {
+    file: File;
+  }): MediaType | null => ...
 
 mediabunny.ts
-  export const initFFmpeg = (): Promise<FFmpeg> => ...
   export function getVideoInfo({
     videoFile,
   }: {
@@ -703,40 +748,40 @@ processing.ts
 ## apps/web/src/lib/timeline
 
 bookmarks.ts
-  export function findBookmarkIndex({
-    bookmarks,
-    frameTime,
-  }: {
-    bookmarks: number[];
-    frameTime: number;
+  export function findBookmarkIndex({
+    bookmarks,
+    frameTime,
+  }: {
+    bookmarks: number[];
+    frameTime: number;
   }): number
-  export function isBookmarkAtTime({
-    bookmarks,
-    frameTime,
-  }: {
-    bookmarks: number[];
-    frameTime: number;
+  export function isBookmarkAtTime({
+    bookmarks,
+    frameTime,
+  }: {
+    bookmarks: number[];
+    frameTime: number;
   }): boolean
-  export function toggleBookmarkInArray({
-    bookmarks,
-    frameTime,
-  }: {
-    bookmarks: number[];
-    frameTime: number;
+  export function toggleBookmarkInArray({
+    bookmarks,
+    frameTime,
+  }: {
+    bookmarks: number[];
+    frameTime: number;
   }): number[]
-  export function removeBookmarkFromArray({
-    bookmarks,
-    frameTime,
-  }: {
-    bookmarks: number[];
-    frameTime: number;
+  export function removeBookmarkFromArray({
+    bookmarks,
+    frameTime,
+  }: {
+    bookmarks: number[];
+    frameTime: number;
   }): number[]
-  export function getFrameTime({
-    time,
-    fps,
-  }: {
-    time: number;
-    fps: number;
+  export function getFrameTime({
+    time,
+    fps,
+  }: {
+    time: number;
+    fps: number;
   }): number
 
 drop-utils.ts
@@ -840,10 +885,10 @@ element-utils.ts
   }): CreateLibraryAudioElement
 
 index.ts
-  export function calculateTotalDuration({
-    tracks,
-  }: {
-    tracks: TimelineTrack[];
+  export function calculateTotalDuration({
+    tracks,
+  }: {
+    tracks: TimelineTrack[];
   }): number
 
 track-utils.ts
@@ -918,168 +963,26 @@ track-utils.ts
   }): { isValid: boolean; errorMessage?: string }
 
 zoom-utils.ts
-  export function getTimelineZoomMin({
-      duration,
-      containerWidth,
-  }: {
-      duration: number;
-      containerWidth: number | null | undefined;
-  }): number
-
-## apps/web/src/lib/utils
-
-audio.ts
-  export type CollectedAudioElement = Omit<
-    AudioElement,
-    "type" | "mediaId" | "volume" | "id" | "name" | "sourceType" | "sourceU...
-  export function createAudioContext(): AudioContext
-  export interface DecodedAudio {
-    samples: Float32Array
-    sampleRate: number
-  }
-  export function decodeAudioToFloat32({
-    audioBlob,
-  }: {
-    audioBlob: Blob;
-  }): Promise<DecodedAudio>
-  export function collectAudioElements({
-    tracks,
-    mediaAssets,
-    audioContext,
-  }: {
-    tracks: TimelineTrack[];
-    mediaAssets: MediaAsset[];
-    audioContext: AudioContext;
-  }): Promise<CollectedAudioElement[]>
-  export function collectAudioMixSources({
-    tracks,
-    mediaAssets,
-  }: {
-    tracks: TimelineTrack[];
-    mediaAssets: MediaAsset[];
-  }): Promise<AudioMixSource[]>
-  export function createTimelineAudioBuffer({
-    tracks,
-    mediaAssets,
-    duration,
-    sampleRate = 44100,
-  }: {
-    tracks: TimelineTrack[];
-    mediaAssets: MediaAsset[];
-    duration: number;
-    sampleRate?: number;
-  }): Promise<AudioBuffer | null>
-
-blog-query.ts
-  export function getPosts()
-  export function getTags()
-  export function getSinglePost({ slug }: { slug: string })
-  export function getCategories()
-  export function getAuthors()
-  export function processHtmlContent({ html }: { html: string }): Promise<string>
-
-browser.ts
-  export function isTypableDOMElement({
-      element,
-  }: {
-      element: HTMLElement;
-  }): boolean
-
-date.ts
-  export function formatDate({ date }: { date: Date }): string
-
-editor.ts
-  export function dimensionToAspectRatio({
-    width,
-    height,
+  export function getTimelineZoomMin({
+    duration,
+    containerWidth,
   }: {
-    width: number;
-    height: number;
-  }): string
-
-id.ts
-  export function generateUUID(): string
-
-math.ts
-  export function clamp({
-      value,
-      min,
-      max,
-  }: {
-      value: number;
-      min: number;
-      max: number;
+    duration: number;
+    containerWidth: number | null | undefined;
   }): number
 
-platform.ts
-  export function getPlatformSpecialKey(): string
-  export function getPlatformAlternateKey(): string
-  export function isAppleDevice(): boolean
+## apps/web/src/lib/transcription
 
-time.ts
-  export function roundToFrame({
-    time,
-    fps,
-  }: {
-    time: number;
-    fps: number;
-  }): number
-  export function formatTimeCode({
-    timeInSeconds,
-    format = "HH:MM:SS:CS",
-    fps,
-  }: {
-    timeInSeconds: number;
-    format?: TTimeCode;
-    fps?: number;
-  }): string
-  export function parseTimeCode({
-    timeCode,
-    format = "HH:MM:SS:CS",
-    fps,
-  }: {
-    timeCode: string;
-    format?: TTimeCode;
-    fps: number;
-  }): number | null
-  export function guessTimeCodeFormat({
-    timeCode,
-  }: {
-    timeCode: string;
-  }): TTimeCode | null
-  export function timeToFrame({
-    time,
-    fps,
-  }: {
-    time: number;
-    fps: number;
-  }): number
-  export function frameToTime({
-    frame,
-    fps,
-  }: {
-    frame: number;
-    fps: number;
-  }): number
-  export function snapTimeToFrame({
-    time,
-    fps,
-  }: {
-    time: number;
-    fps: number;
-  }): number
-  export function getSnappedSeekTime({
-    rawTime,
-    duration,
-    fps,
-  }: {
-    rawTime: number;
-    duration: number;
-    fps: number;
-  }): number
-
-ui.ts
-  export function cn(...inputs: ClassValue[]): string
+caption.ts
+  export function buildCaptionChunks({
+    segments,
+    wordsPerChunk = DEFAULT_WORDS_PER_CAPTION,
+    minDuration = MIN_CAPTION_DURATION_SECONDS,
+  }: {
+    segments: TranscriptionSegment[];
+    wordsPerChunk?: number;
+    minDuration?: number;
+  }): CaptionChunk[]
 
 ## apps/web/src/services/media
 
@@ -1087,14 +990,14 @@ video-cache.ts
   export class VideoCache {
     sinks
     initPromises
-    async getFrameAt({
-      mediaId,
-      file,
-      time,
-    }: {
-      mediaId: string;
-      file: File;
-      time: number;
+    async getFrameAt({
+      mediaId,
+      file,
+      time,
+    }: {
+      mediaId: string;
+      file: File;
+      time: number;
     }): Promise<WrappedCanvas | null>
     clearVideo({ mediaId }: { mediaId: string }): void
     clearAll(): void
@@ -1105,10 +1008,10 @@ video-cache.ts
 ## apps/web/src/services/renderer
 
 canvas-renderer.ts
-  export type CanvasRendererParams = {
-    width: number;
-    height: number;
-    fps: number;
+  export type CanvasRendererParams = {
+    width: number;
+    height: number;
+    fps: number;
   }
   export class CanvasRenderer {
     canvas: OffscreenCanvas | HTMLCanvasElement
@@ -1119,14 +1022,14 @@ canvas-renderer.ts
     constructor({ width, height, fps }: CanvasRendererParams)
     setSize({ width, height }: { width: number; height: number })
     async render({ node, time }: { node: BaseNode; time: number })
-    async renderToCanvas({
-      node,
-      time,
-      targetCanvas,
-    }: {
-      node: BaseNode;
-      time: number;
-      targetCanvas: HTMLCanvasElement;
+    async renderToCanvas({
+      node,
+      time,
+      targetCanvas,
+    }: {
+      node: BaseNode;
+      time: number;
+      targetCanvas: HTMLCanvasElement;
     })
   }
 
@@ -1141,10 +1044,11 @@ scene-builder.ts
 scene-exporter.ts
   export type ExportFormat = "mp4" | "webm"
   export type ExportQuality = "low" | "medium" | "high" | "very_high"
-  export type SceneExporterEvents = {
-    progress: [progress: number];
-    complete: [buffer: ArrayBuffer];
-    error: [error: Error];...
+  export type SceneExporterEvents = {
+    progress: [progress: number];
+    complete: [buffer: ArrayBuffer];
+    error: [error: Error];
+    c...
   export class SceneExporter extends EventEmitter<SceneExporterEvents> {
     renderer: CanvasRenderer
     format: ExportFormat
@@ -1210,19 +1114,19 @@ types.ts
     thumbnailUrl?: string
     sourceStickerIconName?: string
   }
-  export type SerializedScene = Omit<TScene, "createdAt" | "updatedAt"> & {
-    createdAt: string;
-    updatedAt: string;
+  export type SerializedScene = Omit<TScene, "createdAt" | "updatedAt"> & {
+    createdAt: string;
+    updatedAt: string;
   }
-  export type SerializedProjectMetadata = Omit<
-    TProjectMetadata,
-    "createdAt" | "updatedAt"
-  > & {
-    createdAt: string;
-    updatedAt...
-  export type SerializedProject = Omit<TProject, "metadata" | "scenes"> & {
-    metadata: SerializedProjectMetadata;
-    scenes: Seri...
+  export type SerializedProjectMetadata = Omit<
+    TProjectMetadata,
+    "createdAt" | "updatedAt"
+  > & {
+    createdAt: string;
+    updatedAt: str...
+  export type SerializedProject = Omit<TProject, "metadata" | "scenes"> & {
+    metadata: SerializedProjectMetadata;
+    scenes: Serial...
   export interface StorageConfig {
     projectsDb: string
     mediaDb: string
@@ -1237,10 +1141,10 @@ index.ts
 
 worker.ts
   export type WorkerMessage = | { type: "init"; modelId: string }
-      | { type: "transcribe"; audio: Float32Array; language: st...
+    | { type: "transcribe"; audio: Float32Array; language: stri...
   export type WorkerResponse = | { type: "init-progress"; progress: number }
-      | { type: "init-complete" }
-      | { type: "init...
+    | { type: "init-complete" }
+    | { type: "init-err...
 
 ## apps/web/src/stores
 
@@ -1296,66 +1200,70 @@ timeline-store.ts
 
 assets.ts
   export type MediaType = "image" | "video" | "audio"
-  export interface MediaAsset extends Omit<MediaAssetData, "size" | "lastModified"> {
+  export interface MediaAsset extends Omit<
+    MediaAssetData,
+    "size" | "lastModified"
+  > {
     file: File
     url?: string
   }
 
 blog.ts
-  export type Post = {
-    id: string;
-    slug: string;
-    title: string;
-    content: string;
-    description: string;
-  ...
-  export type Pagination = {
-    limit: number;
-    currpage: number;
-    nextPage: number | null;
-    prevPage: number | null;...
-  export type MarblePostList = {
-    posts: Post[];
-    pagination: Pagination;
+  export type Post = {
+    id: string;
+    slug: string;
+    title: string;
+    content: string;
+    description: string;
+    cove...
+  export type Pagination = {
+    limit: number;
+    currpage: number;
+    nextPage: number | null;
+    prevPage: number | null;
+    to...
+  export type MarblePostList = {
+    posts: Post[];
+    pagination: Pagination;
   }
-  export type MarblePost = {
-    post: Post;
+  export type MarblePost = {
+    post: Post;
   }
-  export type Tag = {
-    id: string;
-    name: string;
-    slug: string;
+  export type Tag = {
+    id: string;
+    name: string;
+    slug: string;
   }
-  export type MarbleTag = {
-    tag: Tag;
+  export type MarbleTag = {
+    tag: Tag;
   }
-  export type MarbleTagList = {
-    tags: Tag[];
-    pagination: Pagination;
+  export type MarbleTagList = {
+    tags: Tag[];
+    pagination: Pagination;
   }
-  export type Category = {
-    id: string;
-    name: string;
-    slug: string;
+  export type Category = {
+    id: string;
+    name: string;
+    slug: string;
   }
-  export type MarbleCategory = {
-    category: Category;
+  export type MarbleCategory = {
+    category: Category;
   }
-  export type MarbleCategoryList = {
-    categories: Category[];
-    pagination: Pagination;
+  export type MarbleCategoryList = {
+    categories: Category[];
+    pagination: Pagination;
   }
-  export type Author = {
-    id: string;
-    name: string;
-    image: string;
+  export type Author = {
+    id: string;
+    name: string;
+    image: string;
   }
-  export type MarbleAuthor = {
-    author: Author;
+  export type MarbleAuthor = {
+    author: Author;
   }
-  export type MarbleAuthorList = {
-    authors: Author[];
-    pagination: Pagination;
+  export type MarbleAuthorList = {
+    authors: Author[];
+    pagination: Pagination;
   }
 
 drag.ts
@@ -1426,13 +1334,12 @@ keybinding.ts
 
 project.ts
   export type TBackground = | {
-      type: "color";
-      color: string;
-    }
+        type: "color";
+        color: string;
+      }
     | {
-      type: "blur";
-      blurIntensity: number;
-    }
+        type: "blur";
+        blurIntensity...
   export interface TCanvasSize {
     width: number
     height: number
@@ -1660,19 +1567,19 @@ transcription.ts
     language: string
   }
   export type TranscriptionStatus = | "idle"
-      | "loading-model"
-      | "transcribing"
-      | "complete"
-      | "error"
+    | "loading-model"
+    | "transcribing"
+    | "complete"
+    | "error"
   export interface TranscriptionProgress {
     status: TranscriptionStatus
     progress: number
     message?: string
   }
   export type TranscriptionModelId = | "whisper-tiny"
-      | "whisper-small"
-      | "whisper-medium"
-      | "whisper-large-v3-turbo"
+    | "whisper-small"
+    | "whisper-medium"
+    | "whisper-large-v3-turbo"
   export interface TranscriptionModel {
     id: TranscriptionModelId
     name: string
@@ -1687,30 +1594,47 @@ transcription.ts
 
 ## apps/web/src/utils
 
+browser.ts
+  export function isTypableDOMElement({
+    element,
+  }: {
+    element: HTMLElement;
+  }): boolean
+
+date.ts
+  export function formatDate({ date }: { date: Date }): string
+
 geometry.ts
-  export function dimensionToAspectRatio({
-      width,
-      height,
-  }: {
-      width: number;
-      height: number;
+  export function dimensionToAspectRatio({
+    width,
+    height,
+  }: {
+    width: number;
+    height: number;
   }): string
 
+id.ts
+  export function generateUUID(): string
+
 math.ts
-  export function clamp({
-      value,
-      min,
-      max,
-  }: {
-      value: number;
-      min: number;
-      max: number;
+  export function clamp({
+    value,
+    min,
+    max,
+  }: {
+    value: number;
+    min: number;
+    max: number;
   }): number
 
 platform.ts
   export function getPlatformSpecialKey(): string
   export function getPlatformAlternateKey(): string
   export function isAppleDevice(): boolean
+
+string-utils.ts
+  export function capitalizeFirstLetter({ string }: { string: string })
+  export function uppercase({ string }: { string: string })
 
 ui.ts
   export function cn(...inputs: ClassValue[]): string
@@ -1722,40 +1646,40 @@ index.tsx
   export function GithubIcon({ className }: { className?: string })
   export function VercelIcon({ className }: { className?: string })
   export function BackgroundIcon({ className }: { className?: string })
-  export function MarbleIcon({
-    className = "",
-    size = 32,
-  }: {
-    className?: string;
-    size?: number;
+  export function MarbleIcon({
+    className = "",
+    size = 32,
+  }: {
+    className?: string;
+    size?: number;
   })
-  export function DataBuddyIcon({
-    className = "",
-    size = 32,
-  }: {
-    className?: string;
-    size?: number;
+  export function DataBuddyIcon({
+    className = "",
+    size = 32,
+  }: {
+    className?: string;
+    size?: number;
   })
-  export function SocialsIcon({
-    className = "",
-    size = 32,
-  }: {
-    className?: string;
-    size?: number;
+  export function SocialsIcon({
+    className = "",
+    size = 32,
+  }: {
+    className?: string;
+    size?: number;
   })
-  export function TransitionUpIcon({
-    className = "",
-    size = 16,
-  }: {
-    className?: string;
-    size?: number;
+  export function TransitionUpIcon({
+    className = "",
+    size = 16,
+  }: {
+    className?: string;
+    size?: number;
   })
-  export function MenuIcon({
-    className = "",
-    size = 16,
-  }: {
-    className?: string;
-    size?: number;
+  export function MenuIcon({
+    className = "",
+    size = 16,
+  }: {
+    className?: string;
+    size?: number;
   })
 
 ```

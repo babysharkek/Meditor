@@ -5,3 +5,8 @@ export const DEFAULT_EXPORT_OPTIONS = {
   quality: "high",
   includeAudio: true,
 } satisfies ExportOptions;
+
+export const EXPORT_MIME_TYPES = {
+  webm: "video/webm",
+  mp4: "video/mp4",
+} as const;

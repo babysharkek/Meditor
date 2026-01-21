@@ -33,7 +33,7 @@ import {
 } from "@/lib/iconify-api";
 import { cn } from "@/utils/ui";
 import Image from "next/image";
-import { DraggableItem } from "@/components/ui/draggable-item";
+import { DraggableItem } from "@/components/editor/draggable-item";
 import { InputWithBack } from "@/components/ui/input-with-back";
 import type { StickerCategory } from "@/types/stickers";
 import { STICKER_CATEGORIES } from "@/constants/stickers-constants";
@@ -208,17 +208,17 @@ function StickersContentView({ category }: { category: StickerCategory }) {
         const collection = collections[c.prefix];
         return collection
           ? {
-              prefix: c.prefix,
-              name: c.name,
-              total: collection.total,
-            }
+            prefix: c.prefix,
+            name: c.name,
+            total: collection.total,
+          }
           : null;
       })
       .filter(Boolean) as Array<{
-      prefix: string;
-      name: string;
-      total: number;
-    }>;
+        prefix: string;
+        name: string;
+        total: number;
+      }>;
   }, [collections, category]);
 
   const { scrollAreaRef, handleScroll } = useInfiniteScroll({
@@ -531,10 +531,10 @@ function StickerItem({
           hostIndex === 0
             ? getIconSvgUrl(iconName, { width: 64, height: 64 })
             : buildIconSvgUrl(
-                ICONIFY_HOSTS[Math.min(hostIndex, ICONIFY_HOSTS.length - 1)],
-                iconName,
-                { width: 64, height: 64 },
-              )
+              ICONIFY_HOSTS[Math.min(hostIndex, ICONIFY_HOSTS.length - 1)],
+              iconName,
+              { width: 64, height: 64 },
+            )
         }
         alt={displayName}
         width={64}
@@ -543,9 +543,9 @@ function StickerItem({
         style={
           capSize
             ? {
-                maxWidth: "var(--sticker-max, 160px)",
-                maxHeight: "var(--sticker-max, 160px)",
-              }
+              maxWidth: "var(--sticker-max, 160px)",
+              maxHeight: "var(--sticker-max, 160px)",
+            }
             : undefined
         }
         onError={() => {

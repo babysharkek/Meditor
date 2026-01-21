@@ -1,3 +1,4 @@
+import { EXPORT_MIME_TYPES } from "@/constants/export-constants";
 import { ExportFormat } from "@/types/export";
 
 export function getExportMimeType({
@@ -5,12 +6,7 @@ export function getExportMimeType({
 }: {
   format: ExportFormat;
 }): string {
-  const mimeTypes: Record<ExportFormat, string> = {
-    webm: "video/webm",
-    mp4: "video/mp4",
-  };
-
-  return mimeTypes[format];
+  return EXPORT_MIME_TYPES[format];
 }
 
 export function getExportFileExtension({

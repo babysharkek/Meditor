@@ -16,7 +16,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { KeyboardEvent, MouseEvent } from "react";
 import { useState, useEffect } from "react";
-import { DeleteProjectDialog } from "@/components/delete-project-dialog";
+import { DeleteProjectDialog } from "@/components/editor/delete-project-dialog";
 import { RenameProjectDialog } from "@/components/rename-project-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -419,14 +419,12 @@ function ProjectCard({
 
   const cardContent = (
     <Card
-      className={`bg-background overflow-hidden border-none p-0 transition-all ${
-        isSelectionMode && isSelected ? "ring-primary ring-2" : ""
-      }`}
+      className={`bg-background overflow-hidden border-none p-0 transition-all ${isSelectionMode && isSelected ? "ring-primary ring-2" : ""
+        }`}
     >
       <div
-        className={`bg-muted relative aspect-square transition-opacity ${
-          isDropdownOpen ? "opacity-65" : "opacity-100 group-hover:opacity-65"
-        }`}
+        className={`bg-muted relative aspect-square transition-opacity ${isDropdownOpen ? "opacity-65" : "opacity-100 group-hover:opacity-65"
+          }`}
       >
         {isSelectionMode && (
           <div className="absolute top-3 left-3 z-10">
@@ -477,11 +475,10 @@ function ProjectCard({
                   aria-label="project options"
                   variant="text"
                   size="sm"
-                  className={`ml-2 size-6 shrink-0 p-0 transition-all ${
-                    isDropdownOpen
+                  className={`ml-2 size-6 shrink-0 p-0 transition-all ${isDropdownOpen
                       ? "opacity-100"
                       : "opacity-0 group-hover:opacity-100"
-                  }`}
+                    }`}
                   onClick={(event) => event.preventDefault()}
                 >
                   <MoreHorizontal aria-hidden="true" />

@@ -19,7 +19,7 @@ import {
 } from "../ui/dropdown-menu";
 import Link from "next/link";
 import { RenameProjectDialog } from "../rename-project-dialog";
-import { DeleteProjectDialog } from "../delete-project-dialog";
+import { DeleteProjectDialog } from "./delete-project-dialog";
 import { useRouter } from "next/navigation";
 import { FaDiscord } from "react-icons/fa6";
 import { ExportButton } from "./export-button";

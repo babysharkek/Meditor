@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Progress } from "../ui/progress";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/utils/ui";
-import { getExportMimeType, getExportFileExtension } from "@/utils/export";
+import { getExportMimeType, getExportFileExtension } from "@/lib/export";
 import { Check, Copy, Download, RotateCcw, X } from "lucide-react";
 import {
   EXPORT_FORMAT_VALUES,
@@ -108,7 +108,6 @@ function ExportPopover({
     setExportResult(result);
 
     if (result.success && result.buffer) {
-      // Download the file
       const mimeType = getExportMimeType({ format });
       const extension = getExportFileExtension({ format });
       const blob = new Blob([result.buffer], { type: mimeType });

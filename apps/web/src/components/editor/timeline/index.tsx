@@ -36,13 +36,12 @@ import {
   getTotalTracksHeight,
   canTracktHaveAudio,
   canTrackBeHidden,
-  isMainTrack,
   getTimelineZoomMin,
 } from "@/lib/timeline";
 import { TimelineToolbar } from "./timeline-toolbar";
 import { useScrollSync } from "@/hooks/timeline/use-scroll-sync";
 import { useElementSelection } from "@/hooks/timeline/element/use-element-selection";
-import { useTimelineInteractions } from "@/hooks/timeline/use-timeline-interactions";
+import { useTimelineSeek } from "@/hooks/timeline/use-timeline-seek";
 import { useTimelineDragDrop } from "@/hooks/timeline/use-timeline-drag-drop";
 import { TimelineRuler } from "./timeline-ruler";
 import { TimelineBookmarksRow } from "./bookmarks";
@@ -162,7 +161,7 @@ export function Timeline() {
     handleTracksClick,
     handleRulerMouseDown,
     handleRulerClick,
-  } = useTimelineInteractions({
+  } = useTimelineSeek({
     playheadRef,
     trackLabelsRef,
     rulerScrollRef,

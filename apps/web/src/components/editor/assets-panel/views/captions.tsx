@@ -11,7 +11,7 @@ import { Loader2 } from "lucide-react";
 import type { TranscriptionProgress } from "@/types/transcription";
 import { transcriptionService } from "@/services/transcription";
 import { decodeAudioToFloat32 } from "@/lib/media/audio";
-import { buildCaptionChunks } from "@/lib/utils/caption-utils";
+import { buildCaptionChunks } from "@/lib/transcription/caption";
 
 export function Captions() {
   const [selectedLanguage, setSelectedLanguage] = useState("auto");

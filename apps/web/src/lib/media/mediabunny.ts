@@ -1,19 +1,7 @@
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { Input, ALL_FORMATS, BlobSource } from "mediabunny";
+import { Input, ALL_FORMATS, BlobSource, AudioBufferSink } from "mediabunny";
 import { collectAudioMixSources } from "@/lib/media/audio";
 import type { TimelineTrack } from "@/types/timeline";
 import type { MediaAsset } from "@/types/assets";
-
-let ffmpeg: FFmpeg | null = null;
-
-export const initFFmpeg = async (): Promise<FFmpeg> => {
-  if (ffmpeg) return ffmpeg;
-
-  ffmpeg = new FFmpeg();
-  await ffmpeg.load(); // Use default config
-
-  return ffmpeg;
-};
 
 export async function getVideoInfo({
   videoFile,
@@ -37,7 +25,6 @@ export async function getVideoInfo({
     throw new Error("No video track found in the file");
   }
 
-  // Get frame rate from packet statistics
   const packetStats = await videoTrack.computePacketStats(100);
   const fps = packetStats.averagePacketRate;
 
@@ -49,8 +36,9 @@ export async function getVideoInfo({
   };
 }
 
-// audio mixing for timeline - keeping ffmpeg for now due to complexity
-// TODO: Replace with Mediabunny audio processing when implementing canvas preview
+const SAMPLE_RATE = 44100;
+const NUM_CHANNELS = 2;
+
 export const extractTimelineAudio = async ({
   tracks,
   mediaAssets,
@@ -62,24 +50,8 @@ export const extractTimelineAudio = async ({
   totalDuration: number;
   onProgress?: (progress: number) => void;
 }): Promise<Blob> => {
-  const ffmpeg = new FFmpeg();
-
-  try {
-    await ffmpeg.load();
-  } catch (error) {
-    console.error("Failed to load fresh FFmpeg instance:", error);
-    throw new Error("Unable to initialize audio processing. Please try again.");
-  }
-
   if (totalDuration === 0) {
-    const emptyAudioData = new ArrayBuffer(44);
-    return new Blob([emptyAudioData], { type: "audio/wav" });
-  }
-
-  if (onProgress) {
-    ffmpeg.on("progress", ({ progress }) => {
-      onProgress(progress * 100);
-    });
+    return createWavBlob({ samples: new Float32Array(SAMPLE_RATE * 0.1) });
   }
 
   const audioMixSources = await collectAudioMixSources({
@@ -88,140 +60,159 @@ export const extractTimelineAudio = async ({
   });
 
   if (audioMixSources.length === 0) {
-    // Return silent audio if no audio elements
-    const silentDuration = Math.max(1, totalDuration); // At least 1 second
+    const silentDuration = Math.max(1, totalDuration);
+    const silentSamples = new Float32Array(
+      Math.ceil(silentDuration * SAMPLE_RATE) * NUM_CHANNELS,
+    );
+    return createWavBlob({ samples: silentSamples });
+  }
+
+  const totalSamples = Math.ceil(totalDuration * SAMPLE_RATE);
+  const mixBuffers = [
+    new Float32Array(totalSamples),
+    new Float32Array(totalSamples),
+  ];
+
+  for (let i = 0; i < audioMixSources.length; i++) {
+    const source = audioMixSources[i];
+
+    if (onProgress) {
+      onProgress((i / audioMixSources.length) * 90);
+    }
+
     try {
-      const silentAudio = await generateSilentAudio(silentDuration);
-      return silentAudio;
+      await decodeAndMixAudioSource({
+        source,
+        mixBuffers,
+        totalSamples,
+      });
     } catch (error) {
-      console.error("Failed to generate silent audio:", error);
-      throw new Error("Unable to generate audio for empty timeline.");
+      console.warn(`Failed to process audio source ${source.file.name}:`, error);
     }
   }
 
-  // Create a complex filter to mix all audio sources
-  const inputFiles: string[] = [];
-  const filterInputs: string[] = [];
-
-  try {
-    for (let i = 0; i < audioMixSources.length; i++) {
-      const element = audioMixSources[i];
-      const inputName = `input_${i}.${element.file.name.split(".").pop()}`;
-      inputFiles.push(inputName);
-
-      try {
-        await ffmpeg.writeFile(
-          inputName,
-          new Uint8Array(await element.file.arrayBuffer()),
-        );
-      } catch (error) {
-        console.error(`Failed to write file ${element.file.name}:`, error);
-        throw new Error(
-          `Unable to process file: ${element.file.name}. The file may be corrupted or in an unsupported format.`,
-        );
-      }
-
-      const actualStart = element.trimStart;
-      const actualDuration = element.duration;
-
-      const filterName = `audio_${i}`;
-      filterInputs.push(
-        `[${i}:a]atrim=start=${actualStart}:duration=${actualDuration},asetpts=PTS-STARTPTS,adelay=${element.startTime * 1000}|${element.startTime * 1000}[${filterName}]`,
-      );
+  // clamp to prevent clipping
+  for (const channel of mixBuffers) {
+    for (let i = 0; i < channel.length; i++) {
+      channel[i] = Math.max(-1, Math.min(1, channel[i]));
     }
-
-    const mixFilter =
-      audioMixSources.length === 1
-        ? `[audio_0]aresample=44100,aformat=sample_fmts=s16:channel_layouts=stereo[out]`
-        : `${filterInputs.map((_, i) => `[audio_${i}]`).join("")}amix=inputs=${audioMixSources.length}:duration=longest:dropout_transition=2,aresample=44100,aformat=sample_fmts=s16:channel_layouts=stereo[out]`;
-
-    const complexFilter = [...filterInputs, mixFilter].join(";");
-    const outputName = "timeline_audio.wav";
-
-    const ffmpegArgs = [
-      ...inputFiles.flatMap((name) => ["-i", name]),
-      "-filter_complex",
-      complexFilter,
-      "-map",
-      "[out]",
-      "-t",
-      totalDuration.toString(),
-      "-c:a",
-      "pcm_s16le",
-      "-ar",
-      "44100",
-      outputName,
-    ];
-
-    try {
-      await ffmpeg.exec(ffmpegArgs);
-    } catch (error) {
-      console.error("FFmpeg execution failed:", error);
-      throw new Error(
-        "Audio processing failed. Some audio files may be corrupted or incompatible.",
-      );
-    }
-
-    const data = await ffmpeg.readFile(outputName);
-    const blob = new Blob([data], { type: "audio/wav" });
-
-    return blob;
-  } catch (error) {
-    for (const inputFile of inputFiles) {
-      try {
-        await ffmpeg.deleteFile(inputFile);
-      } catch (cleanupError) {
-        console.warn(`Failed to cleanup file ${inputFile}:`, cleanupError);
-      }
-    }
-    try {
-      await ffmpeg.deleteFile("timeline_audio.wav");
-    } catch (cleanupError) {
-      console.warn("Failed to cleanup output file:", cleanupError);
-    }
-
-    throw error;
-  } finally {
-    for (const inputFile of inputFiles) {
-      try {
-        await ffmpeg.deleteFile(inputFile);
-      } catch (cleanupError) {}
-    }
-    try {
-      await ffmpeg.deleteFile("timeline_audio.wav");
-    } catch (cleanupError) {}
   }
+
+  // interleave channels for wav output
+  const interleavedSamples = new Float32Array(totalSamples * NUM_CHANNELS);
+  for (let i = 0; i < totalSamples; i++) {
+    interleavedSamples[i * 2] = mixBuffers[0][i];
+    interleavedSamples[i * 2 + 1] = mixBuffers[1][i];
+  }
+
+  if (onProgress) {
+    onProgress(100);
+  }
+
+  return createWavBlob({ samples: interleavedSamples });
 };
 
-const generateSilentAudio = async (durationSeconds: number): Promise<Blob> => {
-  const ffmpeg = await initFFmpeg();
-  const outputName = "silent.wav";
+async function decodeAndMixAudioSource({
+  source,
+  mixBuffers,
+  totalSamples,
+}: {
+  source: { file: File; startTime: number; duration: number; trimStart: number };
+  mixBuffers: Float32Array[];
+  totalSamples: number;
+}): Promise<void> {
+  const input = new Input({
+    source: new BlobSource(source.file),
+    formats: ALL_FORMATS,
+  });
 
-  try {
-    await ffmpeg.exec([
-      "-f",
-      "lavfi",
-      "-i",
-      `anullsrc=channel_layout=stereo:sample_rate=44100`,
-      "-t",
-      durationSeconds.toString(),
-      "-c:a",
-      "pcm_s16le",
-      outputName,
-    ]);
+  const audioTrack = await input.getPrimaryAudioTrack();
+  if (!audioTrack) return;
 
-    const data = await ffmpeg.readFile(outputName);
-    const blob = new Blob([data], { type: "audio/wav" });
+  const sink = new AudioBufferSink(audioTrack);
+  const trimEnd = source.trimStart + source.duration;
 
-    return blob;
-  } catch (error) {
-    console.error("Failed to generate silent audio:", error);
-    throw error;
-  } finally {
-    try {
-      await ffmpeg.deleteFile(outputName);
-    } catch (cleanupError) {
-      // Silent cleanup
+  for await (const { buffer, timestamp } of sink.buffers(
+    source.trimStart,
+    trimEnd,
+  )) {
+    const relativeTime = timestamp - source.trimStart;
+    const outputStartSample = Math.floor(
+      (source.startTime + relativeTime) * SAMPLE_RATE,
+    );
+
+    // resample if needed
+    const resampleRatio = SAMPLE_RATE / buffer.sampleRate;
+
+    for (let ch = 0; ch < NUM_CHANNELS; ch++) {
+      const sourceChannel = Math.min(ch, buffer.numberOfChannels - 1);
+      const channelData = buffer.getChannelData(sourceChannel);
+      const outputChannel = mixBuffers[ch];
+
+      const resampledLength = Math.floor(channelData.length * resampleRatio);
+      for (let i = 0; i < resampledLength; i++) {
+        const outputIdx = outputStartSample + i;
+        if (outputIdx < 0 || outputIdx >= totalSamples) continue;
+
+        const sourceIdx = Math.floor(i / resampleRatio);
+        if (sourceIdx < channelData.length) {
+          outputChannel[outputIdx] += channelData[sourceIdx];
+        }
+      }
     }
   }
-};
+}
+
+function createWavBlob({ samples }: { samples: Float32Array }): Blob {
+  const numChannels = NUM_CHANNELS;
+  const bitsPerSample = 16;
+  const bytesPerSample = bitsPerSample / 8;
+  const numSamples = samples.length / numChannels;
+  const dataSize = numSamples * numChannels * bytesPerSample;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  // riff header
+  writeString({ view, offset: 0, str: "RIFF" });
+  view.setUint32(4, 36 + dataSize, true);
+  writeString({ view, offset: 8, str: "WAVE" });
+
+  // fmt chunk
+  writeString({ view, offset: 12, str: "fmt " });
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, SAMPLE_RATE, true);
+  view.setUint32(28, SAMPLE_RATE * numChannels * bytesPerSample, true);
+  view.setUint16(32, numChannels * bytesPerSample, true);
+  view.setUint16(34, bitsPerSample, true);
+
+  // data chunk
+  writeString({ view, offset: 36, str: "data" });
+  view.setUint32(40, dataSize, true);
+
+  // convert float32 to int16 and write
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++) {
+    const sample = Math.max(-1, Math.min(1, samples[i]));
+    const int16 = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+    view.setInt16(offset, int16, true);
+    offset += 2;
+  }
+
+  return new Blob([buffer], { type: "audio/wav" });
+}
+
+function writeString({
+  view,
+  offset,
+  str,
+}: {
+  view: DataView;
+  offset: number;
+  str: string;
+}): void {
+  for (let i = 0; i < str.length; i++) {
+    view.setUint8(offset + i, str.charCodeAt(i));
+  }
+}

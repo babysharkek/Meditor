@@ -42,7 +42,7 @@
     "feed": "^5.1.0",
     "input-otp": "^1.4.1",
     "lucide-react": "^0.468.0",
-    "mediabunny": "^1.9.3",
+    "mediabunny": "^1.29.1",
     "motion": "^12.18.1",
     "nanoid": "^5.1.5",
     "next": "16.1.3",

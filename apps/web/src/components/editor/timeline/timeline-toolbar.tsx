@@ -33,7 +33,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { formatTimeCode } from "@/lib/time";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { EditableTimecode } from "@/components/ui/editable-timecode";
+import { EditableTimecode } from "@/components/editor/editable-timecode";
 import { ScenesView } from "../scenes-view";
 import { type TAction, invokeAction } from "@/lib/actions";
 import { cn } from "@/utils/ui";
