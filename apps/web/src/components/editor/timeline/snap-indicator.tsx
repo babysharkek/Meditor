@@ -38,7 +38,7 @@ export function SnapIndicator({
 
   return (
     <div
-      className="z-90 pointer-events-none absolute"
+      className="pointer-events-none absolute z-90"
       style={{
         left: `${leftPosition}px`,
         top: topPosition,

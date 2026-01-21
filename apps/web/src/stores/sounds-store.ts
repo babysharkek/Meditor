@@ -46,10 +46,18 @@ interface SoundsStore {
   appendTopSounds: ({ results }: { results: SoundEffect[] }) => void;
   resetPagination: () => void;
   loadSavedSounds: () => Promise<void>;
-  saveSoundEffect: ({ soundEffect }: { soundEffect: SoundEffect }) => Promise<void>;
+  saveSoundEffect: ({
+    soundEffect,
+  }: {
+    soundEffect: SoundEffect;
+  }) => Promise<void>;
   removeSavedSound: ({ soundId }: { soundId: number }) => Promise<void>;
   isSoundSaved: ({ soundId }: { soundId: number }) => boolean;
-  toggleSavedSound: ({ soundEffect }: { soundEffect: SoundEffect }) => Promise<void>;
+  toggleSavedSound: ({
+    soundEffect,
+  }: {
+    soundEffect: SoundEffect;
+  }) => Promise<void>;
   clearSavedSounds: () => Promise<void>;
 }
 

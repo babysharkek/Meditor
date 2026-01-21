@@ -5,11 +5,11 @@ import Image from "next/image";
 
 function TikTokGuide() {
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="pointer-events-none absolute inset-0">
       <Image
         src="/platform-guides/tiktok-blueprint.png"
         alt="TikTok layout guide"
-        className="absolute inset-0 w-full h-full object-contain"
+        className="absolute inset-0 h-full w-full object-contain"
         draggable={false}
         fill
       />

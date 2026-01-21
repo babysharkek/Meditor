@@ -31,7 +31,7 @@ import { InsertElementParams } from "@/lib/commands/timeline/element/insert-elem
 export class TimelineManager {
   private listeners = new Set<() => void>();
 
-  constructor(private editor: EditorCore) { }
+  constructor(private editor: EditorCore) {}
 
   addTrack({ type, index }: { type: TrackType; index?: number }): string {
     const command = new AddTrackCommand(type, index);
@@ -44,10 +44,7 @@ export class TimelineManager {
     this.editor.command.execute({ command });
   }
 
-  insertElement({
-    element,
-    placement,
-  }: InsertElementParams): void {
+  insertElement({ element, placement }: InsertElementParams): void {
     const command = new InsertElementCommand({ element, placement });
     this.editor.command.execute({ command });
   }
@@ -63,11 +60,7 @@ export class TimelineManager {
     trimEnd: number;
     pushHistory?: boolean;
   }): void {
-    const command = new UpdateElementTrimCommand(
-      elementId,
-      trimStart,
-      trimEnd,
-    );
+    const command = new UpdateElementTrimCommand(elementId, trimStart, trimEnd);
     if (pushHistory) {
       this.editor.command.execute({ command });
     } else {

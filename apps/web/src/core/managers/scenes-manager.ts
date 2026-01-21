@@ -7,10 +7,7 @@ import {
   canDeleteScene,
   findCurrentScene,
 } from "@/lib/scenes";
-import {
-  getFrameTime,
-  isBookmarkAtTime,
-} from "@/lib/timeline/bookmarks";
+import { getFrameTime, isBookmarkAtTime } from "@/lib/timeline/bookmarks";
 import { ensureMainTrack } from "@/lib/timeline/track-utils";
 import {
   CreateSceneCommand,
@@ -25,7 +22,7 @@ export class ScenesManager {
   private list: TScene[] = [];
   private listeners = new Set<() => void>();
 
-  constructor(private editor: EditorCore) { }
+  constructor(private editor: EditorCore) {}
 
   async createScene({
     name,
@@ -262,11 +259,7 @@ export class ScenesManager {
     this.listeners.forEach((fn) => fn());
   }
 
-  updateSceneTracks({
-    tracks,
-  }: {
-    tracks: TimelineTrack[];
-  }): void {
+  updateSceneTracks({ tracks }: { tracks: TimelineTrack[] }): void {
     if (!this.active) return;
 
     const updatedScene: TScene = {
@@ -319,5 +312,4 @@ export class ScenesManager {
 
     return { scenes: ensuredScenes, hasAddedMainTrack };
   }
-
 }

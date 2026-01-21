@@ -115,7 +115,7 @@ export function Header() {
               ))}
             </nav>
             <ThemeToggle
-              className="absolute bottom-8 right-8 size-10"
+              className="absolute right-8 bottom-8 size-10"
               iconClassName="!size-[1.2rem]"
               onToggle={(e) => {
                 e.preventDefault();

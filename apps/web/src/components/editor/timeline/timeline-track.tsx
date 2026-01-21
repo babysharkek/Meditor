@@ -58,7 +58,7 @@ export function TimelineTrackContent({
   });
 
   const hasSelectedElements = track.elements.some((element) =>
-    isElementSelected({ trackId: track.id, elementId: element.id })
+    isElementSelected({ trackId: track.id, elementId: element.id }),
   );
 
   return (

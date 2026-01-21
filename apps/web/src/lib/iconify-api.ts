@@ -1,4 +1,3 @@
-
 export const ICONIFY_HOSTS = [
   "https://api.iconify.design",
   "https://api.simplesvg.com",
@@ -61,7 +60,7 @@ export interface CollectionInfo {
 }
 
 export async function getCollections(
-  category?: string
+  category?: string,
 ): Promise<Record<string, IconSet>> {
   try {
     const response = await fetchWithFallback("/collections?pretty=1");
@@ -70,8 +69,8 @@ export async function getCollections(
     if (category) {
       const filtered = Object.fromEntries(
         Object.entries(data).filter(
-          ([_key, info]) => info.category === category
-        )
+          ([_key, info]) => info.category === category,
+        ),
       ) as Record<string, IconSet>;
       return filtered;
     }
@@ -84,11 +83,11 @@ export async function getCollections(
 }
 
 export async function getCollection(
-  prefix: string
+  prefix: string,
 ): Promise<CollectionInfo | null> {
   try {
     const response = await fetchWithFallback(
-      `/collection?prefix=${prefix}&pretty=1`
+      `/collection?prefix=${prefix}&pretty=1`,
     );
     return await response.json();
   } catch (error) {
@@ -101,7 +100,7 @@ export async function searchIcons(
   query: string,
   limit: number = 64,
   prefixes?: string[],
-  category?: string
+  category?: string,
 ): Promise<IconSearchResult> {
   const params = new URLSearchParams({
     query,
@@ -141,7 +140,7 @@ export function buildIconSvgUrl(
     height?: number;
     flip?: "horizontal" | "vertical" | "horizontal,vertical";
     rotate?: number | string;
-  }
+  },
 ): string {
   const [prefix, name] = iconName.includes(":")
     ? iconName.split(":")
@@ -179,14 +178,14 @@ export function buildIconSvgUrl(
 
 export function getIconSvgUrl(
   iconName: string,
-  params?: Parameters<typeof buildIconSvgUrl>[2]
+  params?: Parameters<typeof buildIconSvgUrl>[2],
 ): string {
   return buildIconSvgUrl(currentHost, iconName, params);
 }
 
 export async function downloadSvgAsText(
   iconName: string,
-  params?: Parameters<typeof getIconSvgUrl>[1]
+  params?: Parameters<typeof getIconSvgUrl>[1],
 ): Promise<string> {
   const url = getIconSvgUrl(iconName, params);
   const response = await fetch(url);
@@ -230,7 +229,7 @@ export const POPULAR_COLLECTIONS = {
 };
 
 export function getCategoriesFromCollections(
-  collections: Record<string, IconSet>
+  collections: Record<string, IconSet>,
 ): string[] {
   const categories = new Set<string>();
   Object.values(collections).forEach((collection) => {

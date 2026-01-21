@@ -96,7 +96,7 @@ function buildSortParameter({ query, sort }: { query?: string; sort: string }) {
 function applyEffectsFilters({
   params,
   min_rating,
-  commercial_only
+  commercial_only,
 }: {
   params: URLSearchParams;
   min_rating: number;
@@ -108,17 +108,19 @@ function applyEffectsFilters({
   if (commercial_only) {
     params.append(
       "filter",
-      'license:("Attribution" OR "Creative Commons 0" OR "Attribution Noncommercial" OR "Attribution Commercial")'
+      'license:("Attribution" OR "Creative Commons 0" OR "Attribution Noncommercial" OR "Attribution Commercial")',
     );
   }
 
   params.append(
     "filter",
-    "tag:sound-effect OR tag:sfx OR tag:foley OR tag:ambient OR tag:nature OR tag:mechanical OR tag:electronic OR tag:impact OR tag:whoosh OR tag:explosion"
+    "tag:sound-effect OR tag:sfx OR tag:foley OR tag:ambient OR tag:nature OR tag:mechanical OR tag:electronic OR tag:impact OR tag:whoosh OR tag:explosion",
   );
 }
 
-function transformFreesoundResult(result: z.infer<typeof freesoundResultSchema>) {
+function transformFreesoundResult(
+  result: z.infer<typeof freesoundResultSchema>,
+) {
   return {
     id: result.id,
     name: result.name,
@@ -169,7 +171,7 @@ export async function GET(request: NextRequest) {
           error: "Invalid parameters",
           details: validationResult.error.flatten().fieldErrors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -190,7 +192,7 @@ export async function GET(request: NextRequest) {
           message:
             "Song search functionality is coming soon. Try searching for sound effects instead.",
         },
-        { status: 501 }
+        { status: 501 },
       );
     }
 
@@ -220,7 +222,7 @@ export async function GET(request: NextRequest) {
       console.error("Freesound API error:", response.status, errorText);
       return NextResponse.json(
         { error: "Failed to search sounds" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -230,11 +232,11 @@ export async function GET(request: NextRequest) {
     if (!freesoundValidation.success) {
       console.error(
         "Invalid Freesound API response:",
-        freesoundValidation.error
+        freesoundValidation.error,
       );
       return NextResponse.json(
         { error: "Invalid response from Freesound API" },
-        { status: 502 }
+        { status: 502 },
       );
     }
 
@@ -259,11 +261,11 @@ export async function GET(request: NextRequest) {
     if (!responseValidation.success) {
       console.error(
         "Invalid API response structure:",
-        responseValidation.error
+        responseValidation.error,
       );
       return NextResponse.json(
         { error: "Internal response formatting error" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -272,7 +274,7 @@ export async function GET(request: NextRequest) {
     console.error("Error searching sounds:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

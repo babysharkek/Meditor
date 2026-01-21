@@ -82,18 +82,14 @@ export function TimelineElement({
 
   const hasAudio = mediaSupportsAudio({ media: mediaAsset });
 
-  const {
-    handleResizeStart,
-    isResizing,
-    currentStartTime,
-    currentDuration,
-  } = useTimelineElementResize({
-    element,
-    track,
-    zoomLevel,
-    onSnapPointChange,
-    onResizeStateChange,
-  });
+  const { handleResizeStart, isResizing, currentStartTime, currentDuration } =
+    useTimelineElementResize({
+      element,
+      track,
+      zoomLevel,
+      onSnapPointChange,
+      onResizeStateChange,
+    });
 
   const isCurrentElementSelected = selectedElements.some(
     (selected) =>
@@ -139,8 +135,9 @@ export function TimelineElement({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          className={`absolute top-0 h-full select-none ${isBeingDragged ? "z-30" : "z-10"
-            }`}
+          className={`absolute top-0 h-full select-none ${
+            isBeingDragged ? "z-30" : "z-10"
+          }`}
           style={{
             left: `${elementLeft}px`,
             width: `${elementWidth}px`,
@@ -299,7 +296,7 @@ function ElementInner({
       </div>
 
       {(hasAudio ? isMuted : canElementBeHidden(element) && element.hidden) && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-opacity-50 pointer-events-none absolute inset-0 flex items-center justify-center bg-black">
           {hasAudio ? (
             <VolumeX className="size-6 text-white" />
           ) : (
@@ -342,7 +339,7 @@ function ResizeHandle({
   const isLeft = side === "left";
   return (
     <div
-      className={`bg-primary absolute bottom-0 top-0 z-50 flex w-[0.6rem] items-center justify-center ${isLeft ? "left-0 cursor-w-resize" : "right-0 cursor-e-resize"}`}
+      className={`bg-primary absolute top-0 bottom-0 z-50 flex w-[0.6rem] items-center justify-center ${isLeft ? "left-0 cursor-w-resize" : "right-0 cursor-e-resize"}`}
       onMouseDown={(e) => handleResizeStart({ e, elementId, side })}
     >
       <div className="bg-foreground h-[1.5rem] w-[0.2rem] rounded-full" />
@@ -383,7 +380,8 @@ function ElementContent({
   }
 
   if (element.type === "audio") {
-    const audioBuffer = element.sourceType === "library" ? element.buffer : undefined;
+    const audioBuffer =
+      element.sourceType === "library" ? element.buffer : undefined;
 
     const audioUrl =
       element.sourceType === "library"
@@ -436,7 +434,7 @@ function ElementContent({
           className={`relative size-full ${isSelected ? "bg-primary" : "bg-transparent"}`}
         >
           <div
-            className="absolute left-0 right-0"
+            className="absolute right-0 left-0"
             style={{
               backgroundImage: imageUrl ? `url(${imageUrl})` : "none",
               backgroundRepeat: "repeat-x",

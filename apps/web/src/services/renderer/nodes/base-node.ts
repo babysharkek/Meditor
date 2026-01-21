@@ -21,7 +21,13 @@ export class BaseNode<Params extends BaseNodeParams = BaseNodeParams> {
     return this;
   }
 
-  async render({ renderer, time }: { renderer: CanvasRenderer; time: number }): Promise<void> {
+  async render({
+    renderer,
+    time,
+  }: {
+    renderer: CanvasRenderer;
+    time: number;
+  }): Promise<void> {
     for (const child of this.children) {
       await child.render({ renderer, time });
     }

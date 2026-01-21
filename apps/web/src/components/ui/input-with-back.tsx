@@ -41,7 +41,7 @@ export function InputWithBack({
   return (
     <div ref={setContainerRef} className="relative w-full">
       <motion.div
-        className="absolute left-0 top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-75 transition-opacity z-10"
+        className="absolute top-1/2 left-0 z-10 -translate-y-1/2 cursor-pointer transition-opacity hover:opacity-75"
         initial={{
           x: isExpanded ? 0 : buttonOffset,
           opacity: isExpanded ? 1 : 0.5,
@@ -55,7 +55,7 @@ export function InputWithBack({
       >
         <Button
           variant="outline"
-          className="!size-9 rounded-full bg-panel-accent"
+          className="bg-panel-accent !size-9 rounded-full"
         >
           <ArrowLeft />
         </Button>
@@ -74,10 +74,10 @@ export function InputWithBack({
           }}
           transition={smoothTransition}
         >
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             placeholder={placeholder}
-            className="pl-9 bg-panel-accent w-full"
+            className="bg-panel-accent w-full pl-9"
             value={value}
             onChange={(e) => onChange?.(e.target.value)}
           />

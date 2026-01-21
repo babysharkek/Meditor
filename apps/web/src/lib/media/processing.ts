@@ -4,7 +4,7 @@ import { getMediaTypeFromFile } from "@/lib/media/media-utils";
 import { getVideoInfo } from "./mediabunny";
 import { Input, ALL_FORMATS, BlobSource, VideoSampleSink } from "mediabunny";
 
-export interface ProcessedMediaAsset extends Omit<MediaAsset, "id"> { }
+export interface ProcessedMediaAsset extends Omit<MediaAsset, "id"> {}
 
 export async function generateThumbnail({
   videoFile,

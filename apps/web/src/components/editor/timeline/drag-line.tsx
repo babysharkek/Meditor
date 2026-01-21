@@ -14,7 +14,7 @@ export function DragLine({ dropTarget, tracks, isVisible }: DragLineProps) {
 
   return (
     <div
-      className="bg-primary pointer-events-none absolute left-0 right-0 z-50 h-0.5"
+      className="bg-primary pointer-events-none absolute right-0 left-0 z-50 h-0.5"
       style={{ top: `${y}px` }}
     />
   );

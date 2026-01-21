@@ -124,7 +124,9 @@ function getDragDropTarget({
   if (!containerRect || !scrollContainer) return null;
 
   const sourceTrack = tracks.find(({ id }) => id === trackId);
-  const movingElement = sourceTrack?.elements.find(({ id }) => id === elementId);
+  const movingElement = sourceTrack?.elements.find(
+    ({ id }) => id === elementId,
+  );
   if (!movingElement) return null;
 
   const elementDuration = movingElement.duration;
@@ -149,8 +151,10 @@ function getDragDropTarget({
   });
 }
 
-interface StartDragParams
-  extends Omit<ElementDragState, "isDragging" | "currentTime" | "currentMouseY"> {
+interface StartDragParams extends Omit<
+  ElementDragState,
+  "isDragging" | "currentTime" | "currentMouseY"
+> {
   initialCurrentTime: number;
   initialCurrentMouseY: number;
 }
@@ -538,9 +542,7 @@ export function useElementInteraction({
       // start drag
       const clickOffsetTime = getClickOffsetTime({
         clientX: event.clientX,
-        elementRect: (
-          event.currentTarget
-        ).getBoundingClientRect(),
+        elementRect: event.currentTarget.getBoundingClientRect(),
         zoomLevel,
       });
       pendingDragRef.current = {

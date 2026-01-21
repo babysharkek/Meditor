@@ -30,7 +30,7 @@ export function BasePage({
       <Header />
       <main
         className={cn(
-          "container relative mx-auto flex flex-col gap-12 px-6 pb-24 pt-12 md:pt-24",
+          "relative container mx-auto flex flex-col gap-12 px-6 pt-12 pb-24 md:pt-24",
           maxWidthClass,
           mainClassName,
         )}

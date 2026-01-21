@@ -52,11 +52,11 @@ export function KeyboardShortcutsHelp() {
         // Auto-save the new keybinding
         const conflict = validateKeybinding(
           keyString,
-          recordingShortcut.action
+          recordingShortcut.action,
         );
         if (conflict) {
           toast.error(
-            `Key "${keyString}" is already bound to "${conflict.existingAction}"`
+            `Key "${keyString}" is already bound to "${conflict.existingAction}"`,
           );
           setRecordingShortcut(null);
           return;
@@ -110,10 +110,10 @@ export function KeyboardShortcutsHelp() {
           Shortcuts
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0">
+      <DialogContent className="flex max-h-[80vh] max-w-2xl flex-col p-0">
         <DialogHeader className="flex-shrink-0 p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
-            <Keyboard className="w-5 h-5" />
+            <Keyboard className="h-5 w-5" />
             Keyboard Shortcuts
           </DialogTitle>
           <DialogDescription>
@@ -122,11 +122,11 @@ export function KeyboardShortcutsHelp() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="overflow-y-auto flex-grow scrollbar-thin">
+        <div className="scrollbar-thin flex-grow overflow-y-auto">
           <div className="space-y-6 p-6 pt-2">
             {categories.map((category) => (
               <div key={category} className="flex flex-col gap-1">
-                <h3 className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                   {category}
                 </h3>
                 <div className="space-y-1">
@@ -153,7 +153,6 @@ export function KeyboardShortcutsHelp() {
           </Button>
         </DialogFooter>
       </DialogContent>
-      
     </Dialog>
   );
 }
@@ -204,7 +203,7 @@ function ShortcutItem({
               })}
             </div>
             {index < displayKeys.length - 1 && (
-              <span className="text-xs text-muted-foreground">or</span>
+              <span className="text-muted-foreground text-xs">or</span>
             )}
           </div>
         ))}

@@ -73,7 +73,7 @@ export function TabBar() {
                   variant="sidebar"
                   sideOffset={8}
                 >
-                  <div className="text-foreground text-sm font-medium leading-none">
+                  <div className="text-foreground text-sm leading-none font-medium">
                     {tab.label}
                   </div>
                 </TooltipContent>
@@ -99,7 +99,7 @@ function FadeOverlay({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute left-0 right-0 h-6 transition-opacity duration-200",
+        "pointer-events-none absolute right-0 left-0 h-6 transition-opacity duration-200",
         direction === "top" && show
           ? "from-panel top-0 bg-gradient-to-b to-transparent"
           : "from-panel bottom-0 bg-gradient-to-t to-transparent",

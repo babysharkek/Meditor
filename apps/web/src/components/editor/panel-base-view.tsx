@@ -42,7 +42,7 @@ export function PanelBaseView({
   ref,
 }: PanelBaseViewProps) {
   return (
-    <div className={cn("h-full flex flex-col", className)} ref={ref}>
+    <div className={cn("flex h-full flex-col", className)} ref={ref}>
       {!tabs || tabs.length === 0 ? (
         <ViewContent className={className}>{children}</ViewContent>
       ) : (
@@ -50,15 +50,15 @@ export function PanelBaseView({
           defaultValue={defaultTab}
           value={value}
           onValueChange={onValueChange}
-          className="flex flex-col h-full"
+          className="flex h-full flex-col"
         >
-          <div className="sticky top-0 z-10 bg-panel">
+          <div className="bg-panel sticky top-0 z-10">
             <div className="px-3 pt-3 pb-0">
               <TabsList>
                 {tabs.map((tab) => (
                   <TabsTrigger key={tab.value} value={tab.value}>
                     {tab.icon ? (
-                      <span className="inline-flex items-center mr-1">
+                      <span className="mr-1 inline-flex items-center">
                         {tab.icon}
                       </span>
                     ) : null}
@@ -73,7 +73,7 @@ export function PanelBaseView({
             <TabsContent
               key={tab.value}
               value={tab.value}
-              className="mt-0 flex-1 flex flex-col min-h-0"
+              className="mt-0 flex min-h-0 flex-1 flex-col"
             >
               <ViewContent className={className}>{tab.content}</ViewContent>
             </TabsContent>

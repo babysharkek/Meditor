@@ -185,11 +185,11 @@ export const extractTimelineAudio = async ({
     for (const inputFile of inputFiles) {
       try {
         await ffmpeg.deleteFile(inputFile);
-      } catch (cleanupError) { }
+      } catch (cleanupError) {}
     }
     try {
       await ffmpeg.deleteFile("timeline_audio.wav");
-    } catch (cleanupError) { }
+    } catch (cleanupError) {}
   }
 };
 

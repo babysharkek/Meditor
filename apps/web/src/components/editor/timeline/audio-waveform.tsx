@@ -79,8 +79,7 @@ export function AudioWaveform({
         } else {
           try {
             newWaveSurfer.destroy();
-          } catch {
-          }
+          } catch {}
           return;
         }
 
@@ -121,8 +120,7 @@ export function AudioWaveform({
       requestAnimationFrame(() => {
         try {
           wsToDestroy.destroy();
-        } catch {
-        }
+        } catch {}
         if (mounted) {
           initWaveSurfer();
         }
@@ -142,8 +140,7 @@ export function AudioWaveform({
         requestAnimationFrame(() => {
           try {
             wsToDestroy.destroy();
-          } catch {
-          }
+          } catch {}
         });
       }
     };
@@ -155,7 +152,7 @@ export function AudioWaveform({
         className={`flex items-center justify-center ${className}`}
         style={{ height }}
       >
-        <span className="text-xs text-foreground/60">Audio unavailable</span>
+        <span className="text-foreground/60 text-xs">Audio unavailable</span>
       </div>
     );
   }
@@ -164,7 +161,7 @@ export function AudioWaveform({
     <div className={`relative ${className}`}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs text-foreground/60">Loading...</span>
+          <span className="text-foreground/60 text-xs">Loading...</span>
         </div>
       )}
       <div

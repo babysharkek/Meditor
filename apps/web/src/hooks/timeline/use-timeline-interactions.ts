@@ -132,7 +132,7 @@ export function useTimelineInteractions({
         Math.min(
           duration,
           (mouseX + scrollLeft) /
-          (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel),
+            (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel),
         ),
       );
 

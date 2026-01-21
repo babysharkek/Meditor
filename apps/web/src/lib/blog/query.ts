@@ -16,12 +16,16 @@ const url =
   process.env.NEXT_PUBLIC_MARBLE_API_URL ?? "https://api.marblecms.com";
 const key = process.env.MARBLE_WORKSPACE_KEY ?? "cmd4iw9mm0006l804kwqv0k46";
 
-async function fetchFromMarble<T>({ endpoint }: { endpoint: string }): Promise<T> {
+async function fetchFromMarble<T>({
+  endpoint,
+}: {
+  endpoint: string;
+}): Promise<T> {
   try {
     const response = await fetch(`${url}/${key}/${endpoint}`);
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch ${endpoint}: ${response.status} ${response.statusText}`
+        `Failed to fetch ${endpoint}: ${response.status} ${response.statusText}`,
       );
     }
     return (await response.json()) as T;
@@ -51,7 +55,11 @@ export async function getAuthors() {
   return fetchFromMarble<MarbleAuthorList>({ endpoint: "authors" });
 }
 
-export async function processHtmlContent({ html }: { html: string }): Promise<string> {
+export async function processHtmlContent({
+  html,
+}: {
+  html: string;
+}): Promise<string> {
   const processor = unified()
     .use(rehypeSanitize)
     .use(rehypeParse, { fragment: true })

@@ -11,7 +11,11 @@ interface ThemeToggleProps {
   onToggle?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-export function ThemeToggle({ className, iconClassName, onToggle }: ThemeToggleProps) {
+export function ThemeToggle({
+  className,
+  iconClassName,
+  onToggle,
+}: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
 
   return (

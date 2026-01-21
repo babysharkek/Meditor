@@ -52,13 +52,10 @@ export function TimelineToolbar({
     const newZoomLevel =
       direction === "in"
         ? Math.min(
-          TIMELINE_CONSTANTS.ZOOM_MAX,
-          zoomLevel + TIMELINE_CONSTANTS.ZOOM_STEP,
-        )
-        : Math.max(
-          minZoom,
-          zoomLevel - TIMELINE_CONSTANTS.ZOOM_STEP,
-        );
+            TIMELINE_CONSTANTS.ZOOM_MAX,
+            zoomLevel + TIMELINE_CONSTANTS.ZOOM_STEP,
+          )
+        : Math.max(minZoom, zoomLevel - TIMELINE_CONSTANTS.ZOOM_STEP);
     setZoomLevel({ zoom: newZoomLevel });
   };
 
@@ -146,7 +143,7 @@ function ToolbarLeftSection() {
           icon={<SplitSquareHorizontal />}
           tooltip="Coming soon" /* separate audio */
           disabled={true}
-          onClick={({ event }) => { }}
+          onClick={({ event }) => {}}
         />
 
         <ToolbarButton
@@ -161,7 +158,7 @@ function ToolbarLeftSection() {
           icon={<Snowflake />}
           tooltip="Coming soon" /* freeze frame */
           disabled={true}
-          onClick={({ event }) => { }}
+          onClick={({ event }) => {}}
         />
 
         <ToolbarButton
@@ -231,10 +228,7 @@ function SceneSelector() {
         <SplitButtonLeft>{currentScene?.name || "No Scene"}</SplitButtonLeft>
         <SplitButtonSeparator />
         <ScenesView>
-          <SplitButtonRight
-            onClick={() => { }}
-            type="button"
-          >
+          <SplitButtonRight onClick={() => {}} type="button">
             <LayersIcon className="size-4" />
           </SplitButtonRight>
         </ScenesView>
@@ -254,19 +248,28 @@ function ToolbarRightSection({
   onZoomChange: (zoom: number) => void;
   onZoom: (options: { direction: "in" | "out" }) => void;
 }) {
-  const { snappingEnabled, rippleEditingEnabled, toggleSnapping, toggleRippleEditing } = useTimelineStore();
+  const {
+    snappingEnabled,
+    rippleEditingEnabled,
+    toggleSnapping,
+    toggleRippleEditing,
+  } = useTimelineStore();
 
   return (
     <div className="flex items-center gap-1">
       <TooltipProvider delayDuration={500}>
         <ToolbarButton
-          icon={<Magnet className={cn(snappingEnabled ? "text-primary" : "")} />}
+          icon={
+            <Magnet className={cn(snappingEnabled ? "text-primary" : "")} />
+          }
           tooltip="Auto snapping"
           onClick={() => toggleSnapping()}
         />
 
         <ToolbarButton
-          icon={<Link className={cn(rippleEditingEnabled ? "text-primary" : "")} />}
+          icon={
+            <Link className={cn(rippleEditingEnabled ? "text-primary" : "")} />
+          }
           tooltip="Ripple editing"
           onClick={() => toggleRippleEditing()}
         />

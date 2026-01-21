@@ -23,9 +23,7 @@ export function Captions() {
 
   const handleProgress = (progress: TranscriptionProgress) => {
     if (progress.status === "loading-model") {
-      setProcessingStep(
-        `Loading model ${Math.round(progress.progress)}%`,
-      );
+      setProcessingStep(`Loading model ${Math.round(progress.progress)}%`);
     } else if (progress.status === "transcribing") {
       setProcessingStep("Transcribing...");
     }
@@ -48,7 +46,8 @@ export function Captions() {
 
       const result = await transcriptionService.transcribe({
         audioData: samples,
-        language: selectedLanguage === "auto" ? "auto" : selectedLanguage.toLowerCase(),
+        language:
+          selectedLanguage === "auto" ? "auto" : selectedLanguage.toLowerCase(),
         onProgress: handleProgress,
       });
 

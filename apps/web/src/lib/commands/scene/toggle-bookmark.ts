@@ -2,10 +2,7 @@ import { Command } from "@/lib/commands/base-command";
 import { EditorCore } from "@/core";
 import type { TScene } from "@/types/timeline";
 import { updateSceneInArray } from "@/lib/scenes";
-import {
-  getFrameTime,
-  toggleBookmarkInArray,
-} from "@/lib/timeline/bookmarks";
+import { getFrameTime, toggleBookmarkInArray } from "@/lib/timeline/bookmarks";
 
 export class ToggleBookmarkCommand extends Command {
   private savedScenes: TScene[] | null = null;

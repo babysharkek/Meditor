@@ -1,7 +1,15 @@
 "use client";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, EyeOff, VolumeOff, Volume2, LucideIcon, EyeIcon, Trash2 } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  VolumeOff,
+  Volume2,
+  LucideIcon,
+  EyeIcon,
+  Trash2,
+} from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -249,7 +257,7 @@ export function Timeline() {
           {tracks.length > 0 && (
             <div
               ref={trackLabelsRef}
-              className="z-100 bg-panel w-28 shrink-0 overflow-y-auto border-r"
+              className="bg-panel z-100 w-28 shrink-0 overflow-y-auto border-r"
               style={{ paddingTop: TIMELINE_CONSTANTS.PADDING_TOP }}
             >
               <ScrollArea className="h-full w-full" ref={trackLabelsScrollRef}>
@@ -378,7 +386,7 @@ export function Timeline() {
                       <ContextMenu key={track.id}>
                         <ContextMenuTrigger asChild>
                           <div
-                            className="absolute left-0 right-0"
+                            className="absolute right-0 left-0"
                             style={{
                               top: `${getCumulativeHeightBefore({
                                 tracks,
@@ -412,7 +420,6 @@ export function Timeline() {
                           >
                             <Volume2 />
                             <span>
-
                               {canTracktHaveAudio(track) && track.muted
                                 ? "Unmute track"
                                 : "Mute track"}

@@ -234,7 +234,8 @@ export function useTimelineElementResize({
       if (newTrimEnd < 0) {
         if (canExtendElementDuration()) {
           const extensionNeeded = Math.abs(newTrimEnd);
-          const baseDuration = resizing.initialDuration + resizing.initialTrimEnd;
+          const baseDuration =
+            resizing.initialDuration + resizing.initialTrimEnd;
           const newDuration = snapTimeToFrame({
             time: baseDuration + extensionNeeded,
             fps: projectFps,

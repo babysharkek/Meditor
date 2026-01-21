@@ -88,6 +88,6 @@ export const usePanelStore = create<PanelState>()(
       partialize: (state) => ({
         panels: state.panels,
       }),
-    }
-  )
+    },
+  ),
 );

@@ -135,11 +135,11 @@ const ColorPicker = React.forwardRef<HTMLDivElement, ColorPickerProps>(
           const rect = saturationRef.current.getBoundingClientRect();
           const x = Math.max(
             0,
-            Math.min(1, (e.clientX - rect.left) / rect.width)
+            Math.min(1, (e.clientX - rect.left) / rect.width),
           );
           const y = Math.max(
             0,
-            Math.min(1, (e.clientY - rect.top) / rect.height)
+            Math.min(1, (e.clientY - rect.top) / rect.height),
           );
           const newS = x;
           const newV = 1 - y;
@@ -151,7 +151,7 @@ const ColorPicker = React.forwardRef<HTMLDivElement, ColorPickerProps>(
           const rect = hueRef.current.getBoundingClientRect();
           const x = Math.max(
             0,
-            Math.min(1, (e.clientX - rect.left) / rect.width)
+            Math.min(1, (e.clientX - rect.left) / rect.width),
           );
           const newH = x * 360;
           setInternalHue(newH);
@@ -231,14 +231,14 @@ const ColorPicker = React.forwardRef<HTMLDivElement, ColorPickerProps>(
         <div
           ref={ref}
           className={cn(
-            "bg-panel-accent h-9 rounded-full flex items-center gap-2 px-[0.45rem]",
-            className
+            "bg-panel-accent flex h-9 items-center gap-2 rounded-full px-[0.45rem]",
+            className,
           )}
           {...props}
         >
           <div
             ref={triggerRef}
-            className="size-6 rounded-full cursor-pointer hover:ring-2 hover:ring-white/20 transition-all"
+            className="size-6 cursor-pointer rounded-full transition-all hover:ring-2 hover:ring-white/20"
             style={{ backgroundColor: `#${value}` }}
             onClick={() => {
               if (!isOpen && triggerRef.current && containerRef?.current) {
@@ -252,9 +252,9 @@ const ColorPicker = React.forwardRef<HTMLDivElement, ColorPickerProps>(
               setIsOpen(!isOpen);
             }}
           />
-          <div className="flex-1 flex items-center">
+          <div className="flex flex-1 items-center">
             <Input
-              className="bg-transparent p-0 !ring-0 !ring-offset-0 !border-0"
+              className="!border-0 bg-transparent p-0 !ring-0 !ring-offset-0"
               containerClassName="w-full"
               value={inputValue}
               onChange={handleInputChange}
@@ -268,7 +268,7 @@ const ColorPicker = React.forwardRef<HTMLDivElement, ColorPickerProps>(
           createPortal(
             <div
               ref={pickerRef}
-              className="fixed z-50 p-4 bg-popover border border-border rounded-lg shadow-lg select-none"
+              className="bg-popover border-border fixed z-50 rounded-lg border p-4 shadow-lg select-none"
               style={{
                 right: pickerPosition.right,
                 bottom: pickerPosition.bottom,
@@ -276,7 +276,7 @@ const ColorPicker = React.forwardRef<HTMLDivElement, ColorPickerProps>(
             >
               <div
                 ref={saturationRef}
-                className="relative w-48 h-32 cursor-crosshair mb-3"
+                className="relative mb-3 h-32 w-48 cursor-crosshair"
                 style={saturationStyle}
                 onMouseDown={handleSaturationMouseDown}
               >
@@ -289,7 +289,7 @@ const ColorPicker = React.forwardRef<HTMLDivElement, ColorPickerProps>(
 
               <div
                 ref={hueRef}
-                className="relative w-48 h-4 rounded-lg cursor-pointer"
+                className="relative h-4 w-48 cursor-pointer rounded-lg"
                 style={hueStyle}
                 onMouseDown={handleHueMouseDown}
               >
@@ -303,11 +303,11 @@ const ColorPicker = React.forwardRef<HTMLDivElement, ColorPickerProps>(
                 />
               </div>
             </div>,
-            document.body
+            document.body,
           )}
       </div>
     );
-  }
+  },
 );
 ColorPicker.displayName = "ColorPicker";
 
@@ -321,8 +321,9 @@ const ColorCircle = ({
   color: string;
 }) => (
   <div
-    className={`absolute border-3 border-white rounded-full shadow-lg pointer-events-none ${size === "sm" ? "size-3" : "size-4"
-      }`}
+    className={`pointer-events-none absolute rounded-full border-3 border-white shadow-lg ${
+      size === "sm" ? "size-3" : "size-4"
+    }`}
     style={{
       left: position.left,
       top: position.top,

@@ -28,7 +28,7 @@ export function useInfiniteScroll({
         onLoadMore();
       }
     },
-    [onLoadMore, hasMore, isLoading, threshold, enabled]
+    [onLoadMore, hasMore, isLoading, threshold, enabled],
   );
 
   return { scrollAreaRef, handleScroll };

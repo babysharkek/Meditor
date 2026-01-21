@@ -10,7 +10,7 @@ export class MediaManager {
   private isLoading = false;
   private listeners = new Set<() => void>();
 
-  constructor(private editor: EditorCore) { }
+  constructor(private editor: EditorCore) {}
 
   async addMediaAsset({
     projectId,

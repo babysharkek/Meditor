@@ -59,7 +59,10 @@ export class DuplicateElementsCommand extends Command {
       }
 
       const newTrackId = generateUUID();
-      const newTrackBase = buildEmptyTrack({ id: newTrackId, type: track.type });
+      const newTrackBase = buildEmptyTrack({
+        id: newTrackId,
+        type: track.type,
+      });
       const newTrack = {
         ...newTrackBase,
         elements: newTrackElements,

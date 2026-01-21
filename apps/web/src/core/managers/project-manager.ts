@@ -45,7 +45,7 @@ export class ProjectManager {
     projectName: null,
   };
 
-  constructor(private editor: EditorCore) { }
+  constructor(private editor: EditorCore) {}
 
   private async ensureStorageMigrations(): Promise<void> {
     if (this.storageMigrationPromise) {
@@ -384,8 +384,12 @@ export class ProjectManager {
       const tracks = this.editor.timeline.getTracks();
       const mediaAssets = this.editor.media.getAssets();
 
-      const allElements = tracks.flatMap((track): TimelineElement[] => track.elements);
-      const sortedElements = allElements.sort((a, b) => a.startTime - b.startTime);
+      const allElements = tracks.flatMap(
+        (track): TimelineElement[] => track.elements,
+      );
+      const sortedElements = allElements.sort(
+        (a, b) => a.startTime - b.startTime,
+      );
       const firstElement = sortedElements[0];
 
       if (

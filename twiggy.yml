@@ -36,7 +36,13 @@ indexing:
 
   # Include patterns (empty = index everything)
   # Examples: ["src/**/*.ts", "lib/**/*.ts"]
-  include: ["apps/web/**/*.ts", "apps/web/**/*.tsx", "packages/**/*.ts", "packages/**/*.tsx"]
+  include:
+    [
+      "apps/web/**/*.ts",
+      "apps/web/**/*.tsx",
+      "packages/**/*.ts",
+      "packages/**/*.tsx",
+    ]
 
   # Exclude patterns (in addition to defaults)
   # By default: test files, config files, build outputs, and node_modules are excluded

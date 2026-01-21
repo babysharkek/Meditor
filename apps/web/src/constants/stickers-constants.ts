@@ -1,4 +1,9 @@
-export const STICKER_CATEGORIES = ["all", "general", "brands", "emoji"] as const;
+export const STICKER_CATEGORIES = [
+  "all",
+  "general",
+  "brands",
+  "emoji",
+] as const;
 
 export const STICKER_CATEGORY_CONFIG: Record<
   (typeof STICKER_CATEGORIES)[number],

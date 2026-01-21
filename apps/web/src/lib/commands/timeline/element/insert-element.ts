@@ -28,7 +28,7 @@ type InsertElementPlacement =
 export interface InsertElementParams {
   element: CreateTimelineElement;
   placement: InsertElementPlacement;
-};
+}
 
 export class InsertElementCommand extends Command {
   private elementId: string;
@@ -139,8 +139,7 @@ export class InsertElementCommand extends Command {
       startTime: element.startTime,
       trimStart: element.trimStart ?? 0,
       trimEnd: element.trimEnd ?? 0,
-      duration:
-        element.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION,
+      duration: element.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION,
     } as TimelineElement;
   }
 

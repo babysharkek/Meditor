@@ -111,12 +111,12 @@ export function Handlebars({ children }: HandlebarsProps) {
     width > 0 ? (rightHandle / (width + 10)) * 100 : 0;
 
   return (
-    <div className="leading-16 flex justify-center gap-4">
+    <div className="flex justify-center gap-4 leading-16">
       <div ref={containerRef} className="relative mt-0.5 -rotate-[2.76deg]">
         <div className="absolute inset-0 z-10 flex h-full w-full justify-between rounded-2xl border border-yellow-500">
           <div
             ref={leftHandleRef}
-            className="bg-background absolute left-0 z-20 flex h-full w-7 cursor-ew-resize touch-none select-none items-center justify-center rounded-full border border-yellow-500"
+            className="bg-background absolute left-0 z-20 flex h-full w-7 cursor-ew-resize touch-none items-center justify-center rounded-full border border-yellow-500 select-none"
             style={{
               translate: `${leftHandle}px 0`,
             }}
@@ -135,7 +135,7 @@ export function Handlebars({ children }: HandlebarsProps) {
 
           <div
             ref={rightHandleRef}
-            className="bg-background absolute -left-[30px] z-20 flex h-full w-7 cursor-ew-resize touch-none select-none items-center justify-center rounded-full border border-yellow-500"
+            className="bg-background absolute -left-[30px] z-20 flex h-full w-7 cursor-ew-resize touch-none items-center justify-center rounded-full border border-yellow-500 select-none"
             style={{
               translate: `${rightHandle}px 0`,
             }}

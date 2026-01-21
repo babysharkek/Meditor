@@ -34,10 +34,7 @@ export class DeleteElementsCommand extends Command {
           ),
         } as typeof track;
       })
-      .filter(
-        (track) =>
-          track.elements.length > 0 || isMainTrack(track),
-      );
+      .filter((track) => track.elements.length > 0 || isMainTrack(track));
 
     editor.timeline.updateTracks(updatedTracks);
   }

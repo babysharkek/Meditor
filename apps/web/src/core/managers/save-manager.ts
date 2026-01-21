@@ -51,9 +51,7 @@ export class SaveManager {
     }
   }
 
-  markDirty(
-    { force = false }: { force?: boolean } = {},
-  ): void {
+  markDirty({ force = false }: { force?: boolean } = {}): void {
     if (this.isPaused && !force) return;
     this.hasPendingSave = true;
     this.queueSave();

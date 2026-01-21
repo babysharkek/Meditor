@@ -79,7 +79,7 @@ export function TimelineBookmark({
       }}
       onClick={(event) => handleBookmarkClick({ event })}
     >
-      <div className="text-primary absolute left-[-5px] top-[-1px]">
+      <div className="text-primary absolute top-[-1px] left-[-5px]">
         <Bookmark className="fill-primary size-3" />
       </div>
     </div>

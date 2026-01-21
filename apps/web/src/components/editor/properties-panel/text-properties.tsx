@@ -118,7 +118,11 @@ export function TextProperties({
     });
   };
 
-  const handleTransparentToggle = ({ isTransparent }: { isTransparent: boolean }) => {
+  const handleTransparentToggle = ({
+    isTransparent,
+  }: {
+    isTransparent: boolean;
+  }) => {
     const newColor = isTransparent ? "transparent" : lastSelectedColor.current;
     editor.timeline.updateTextElement({
       trackId,
@@ -146,7 +150,7 @@ export function TextProperties({
               <Textarea
                 placeholder="Name"
                 defaultValue={element.content}
-                className="min-h-18 bg-panel-accent resize-none"
+                className="bg-panel-accent min-h-18 resize-none"
                 onChange={(e) =>
                   editor.timeline.updateTextElement({
                     trackId,
@@ -287,9 +291,11 @@ export function TextProperties({
                       value={fontSizeInput}
                       min={8}
                       max={300}
-                      onChange={(e) => handleFontSizeChange({ value: e.target.value })}
+                      onChange={(e) =>
+                        handleFontSizeChange({ value: e.target.value })
+                      }
                       onBlur={handleFontSizeBlur}
-                      className="bg-panel-accent h-7 w-12 rounded-sm px-2 text-center !text-xs [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="bg-panel-accent h-7 w-12 [appearance:textfield] rounded-sm px-2 text-center !text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </div>
                 </PropertyItemValue>
@@ -299,8 +305,7 @@ export function TextProperties({
                 <PropertyItemValue>
                   <ColorPicker
                     value={uppercase({
-                      string:
-                        (element.color || "FFFFFF").replace("#", "")
+                      string: (element.color || "FFFFFF").replace("#", ""),
                     })}
                     onChange={(color) => {
                       editor.timeline.updateTextElement({
@@ -337,9 +342,11 @@ export function TextProperties({
                       value={opacityInput}
                       min={0}
                       max={100}
-                      onChange={(e) => handleOpacityChange({ value: e.target.value })}
+                      onChange={(e) =>
+                        handleOpacityChange({ value: e.target.value })
+                      }
                       onBlur={handleOpacityBlur}
-                      className="bg-panel-accent h-7 w-12 rounded-sm text-center !text-xs [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="bg-panel-accent h-7 w-12 [appearance:textfield] rounded-sm text-center !text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </div>
                 </PropertyItemValue>
@@ -353,12 +360,11 @@ export function TextProperties({
                         string:
                           element.backgroundColor === "transparent"
                             ? lastSelectedColor.current.replace("#", "")
-                            : (element.backgroundColor).replace(
-                              "#",
-                              "",
-                            ),
+                            : element.backgroundColor.replace("#", ""),
                       })}
-                      onChange={(color) => handleColorChange({ color: `#${color}` })}
+                      onChange={(color) =>
+                        handleColorChange({ color: `#${color}` })
+                      }
                       containerRef={containerRef}
                       className={
                         element.backgroundColor === "transparent"
@@ -374,7 +380,8 @@ export function TextProperties({
                           size="icon"
                           onClick={() =>
                             handleTransparentToggle({
-                              isTransparent: element.backgroundColor !== "transparent",
+                              isTransparent:
+                                element.backgroundColor !== "transparent",
                             })
                           }
                           className="bg-panel-accent size-9 overflow-hidden rounded-full p-0"
@@ -383,7 +390,7 @@ export function TextProperties({
                             className={cn(
                               "text-foreground",
                               element.backgroundColor === "transparent" &&
-                              "text-primary",
+                                "text-primary",
                             )}
                           />
                         </Button>

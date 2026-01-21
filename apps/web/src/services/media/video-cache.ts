@@ -206,7 +206,7 @@ export class VideoCache {
       activeSinks: Array.from(this.sinks.values()).filter((s) => s.iterator)
         .length,
       cachedFrames: Array.from(this.sinks.values()).filter(
-        (s) => s.currentFrame
+        (s) => s.currentFrame,
       ).length,
     };
   }

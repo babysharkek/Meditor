@@ -1,10 +1,7 @@
 import type { TrackType } from "@/types/timeline";
 import { Video, TypeIcon, Music, Sticker } from "lucide-react";
 
-export const TRACK_COLORS: Record<
-  TrackType,
-  { background: string; }
-> = {
+export const TRACK_COLORS: Record<TrackType, { background: string }> = {
   video: {
     background: "transparent",
   },

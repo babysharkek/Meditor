@@ -170,7 +170,7 @@ export function DraggableItem({
         typeof document !== "undefined" &&
         createPortal(
           <div
-            className="z-9999 pointer-events-none fixed"
+            className="pointer-events-none fixed z-9999"
             style={{
               left: dragPosition.x - 40,
               top: dragPosition.y - 40,
@@ -179,7 +179,7 @@ export function DraggableItem({
             <div className="w-[80px]">
               <AspectRatio
                 ratio={1}
-                className="ring-3 ring-primary relative overflow-hidden rounded-md shadow-2xl"
+                className="ring-primary relative overflow-hidden rounded-md shadow-2xl ring-3"
               >
                 <div className="h-full w-full [&_img]:h-full [&_img]:w-full [&_img]:rounded-none [&_img]:object-cover">
                   {preview}
@@ -212,7 +212,7 @@ function PlusButton({
     <Button
       size="icon"
       className={cn(
-        "bg-background hover:bg-panel text-foreground absolute bottom-2 right-2 size-5",
+        "bg-background hover:bg-panel text-foreground absolute right-2 bottom-2 size-5",
         className,
       )}
       onClick={(e) => {

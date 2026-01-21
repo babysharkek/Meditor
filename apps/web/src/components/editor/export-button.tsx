@@ -52,11 +52,11 @@ export function ExportButton() {
             }
           }}
         >
-          <div className="bg-linear-270 relative flex items-center gap-1.5 rounded-[0.8rem] from-[#2567EC] to-[#37B6F7] px-4 py-1 shadow-[0_1px_3px_0px_rgba(0,0,0,0.65)]">
+          <div className="relative flex items-center gap-1.5 rounded-[0.8rem] bg-linear-270 from-[#2567EC] to-[#37B6F7] px-4 py-1 shadow-[0_1px_3px_0px_rgba(0,0,0,0.65)]">
             <TransitionUpIcon className="z-50" />
             <span className="z-50 text-[0.875rem]">Export</span>
-            <div className="bg-linear-to-t absolute left-0 top-0 z-10 flex h-full w-full items-center justify-center rounded-[0.8rem] from-white/0 to-white/50">
-              <div className="bg-linear-270 absolute top-[0.08rem] z-50 h-[calc(100%-2px)] w-[calc(100%-2px)] rounded-[0.8rem] from-[#2567EC] to-[#37B6F7]"></div>
+            <div className="absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center rounded-[0.8rem] bg-linear-to-t from-white/0 to-white/50">
+              <div className="absolute top-[0.08rem] z-50 h-[calc(100%-2px)] w-[calc(100%-2px)] rounded-[0.8rem] bg-linear-270 from-[#2567EC] to-[#37B6F7]"></div>
             </div>
           </div>
         </button>
@@ -263,7 +263,7 @@ function ExportPopover({
                   <Button
                     variant="outline"
                     className="w-full rounded-md"
-                    onClick={() => { }}
+                    onClick={() => {}}
                   >
                     Cancel
                   </Button>

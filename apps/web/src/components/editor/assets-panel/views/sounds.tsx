@@ -36,8 +36,8 @@ import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 export function SoundsView() {
   return (
-    <div className="h-full flex flex-col">
-      <Tabs defaultValue="sound-effects" className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
+      <Tabs defaultValue="sound-effects" className="flex h-full flex-col">
         <div className="px-3 pt-4 pb-0">
           <TabsList>
             <TabsTrigger value="sound-effects">Sound effects</TabsTrigger>
@@ -48,19 +48,19 @@ export function SoundsView() {
         <Separator className="my-4" />
         <TabsContent
           value="sound-effects"
-          className="p-5 pt-0 mt-0 flex-1 flex flex-col min-h-0"
+          className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
         >
           <SoundEffectsView />
         </TabsContent>
         <TabsContent
           value="saved"
-          className="p-5 pt-0 mt-0 flex-1 flex flex-col min-h-0"
+          className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
         >
           <SavedSoundsView />
         </TabsContent>
         <TabsContent
           value="songs"
-          className="p-5 pt-0 mt-0 flex-1 flex flex-col min-h-0"
+          className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
         >
           <SongsView />
         </TabsContent>
@@ -97,12 +97,15 @@ function SoundEffectsView() {
     loadMore,
     hasNextPage,
     isLoadingMore,
-  } = useSoundSearch({ query: searchQuery, commercialOnly: showCommercialOnly });
+  } = useSoundSearch({
+    query: searchQuery,
+    commercialOnly: showCommercialOnly,
+  });
 
   // Audio playback state
   const [playingId, setPlayingId] = useState<number | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
-    null
+    null,
   );
 
   const { scrollAreaRef, handleScroll } = useInfiniteScroll({
@@ -125,7 +128,7 @@ function SoundEffectsView() {
           }
 
           const response = await fetch(
-            "/api/sounds/search?page_size=50&sort=downloads"
+            "/api/sounds/search?page_size=50&sort=downloads",
           );
 
           if (!ignore) {
@@ -146,7 +149,9 @@ function SoundEffectsView() {
             console.error("Failed to fetch top sounds:", error);
             setError({
               error:
-                error instanceof Error ? error.message : "Failed to load sounds",
+                error instanceof Error
+                  ? error.message
+                  : "Failed to load sounds",
             });
           }
         } finally {
@@ -221,7 +226,7 @@ function SoundEffectsView() {
   };
 
   return (
-    <div className="flex flex-col gap-5 mt-1 h-full">
+    <div className="mt-1 flex h-full flex-col gap-5">
       <div className="flex items-center gap-3">
         <Input
           placeholder="Search sound effects"
@@ -249,7 +254,7 @@ function SoundEffectsView() {
             >
               Show only commercially licensed
             </DropdownMenuCheckboxItem>
-            <div className="px-2 py-1.5 text-xs text-muted-foreground">
+            <div className="text-muted-foreground px-2 py-1.5 text-xs">
               {showCommercialOnly
                 ? "Only showing sounds licensed for commercial use"
                 : "Showing all sounds regardless of license"}
@@ -260,7 +265,7 @@ function SoundEffectsView() {
 
       <div className="relative h-full overflow-hidden">
         <ScrollArea
-          className="flex-1 h-full"
+          className="h-full flex-1"
           ref={scrollAreaRef}
           onScrollCapture={handleScrollWithPosition}
         >
@@ -289,7 +294,7 @@ function SoundEffectsView() {
               </div>
             )}
             {isLoadingMore && (
-              <div className="text-muted-foreground text-sm text-center py-4">
+              <div className="text-muted-foreground py-4 text-center text-sm">
                 Loading more sounds...
               </div>
             )}
@@ -314,7 +319,7 @@ function SavedSoundsView() {
   // Audio playback state
   const [playingId, setPlayingId] = useState<number | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
-    null
+    null,
   );
 
   // Clear confirmation dialog state
@@ -378,7 +383,7 @@ function SavedSoundsView() {
 
   if (isLoadingSavedSounds) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <div className="text-muted-foreground text-sm">
           Loading saved sounds...
         </div>
@@ -388,7 +393,7 @@ function SavedSoundsView() {
 
   if (savedSoundsError) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <div className="text-destructive text-sm">
           Error: {savedSoundsError}
         </div>
@@ -398,14 +403,14 @@ function SavedSoundsView() {
 
   if (savedSounds.length === 0) {
     return (
-      <div className="bg-panel h-full p-4 flex flex-col items-center justify-center gap-3">
+      <div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
         <HeartIcon
-          className="w-10 h-10 text-muted-foreground"
+          className="text-muted-foreground h-10 w-10"
           strokeWidth={1.5}
         />
         <div className="flex flex-col gap-2 text-center">
           <p className="text-lg font-medium">No saved sounds</p>
-          <p className="text-sm text-muted-foreground text-balance">
+          <p className="text-muted-foreground text-sm text-balance">
             Click the heart icon on any sound to save it here
           </p>
         </div>
@@ -414,9 +419,9 @@ function SavedSoundsView() {
   }
 
   return (
-    <div className="flex flex-col gap-5 mt-1 h-full">
+    <div className="mt-1 flex h-full flex-col gap-5">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           {savedSounds.length} saved{" "}
           {savedSounds.length === 1 ? "sound" : "sounds"}
         </p>
@@ -425,7 +430,7 @@ function SavedSoundsView() {
             <Button
               variant="text"
               size="sm"
-              className="h-auto text-muted-foreground hover:text-destructive !opacity-100"
+              className="text-muted-foreground hover:text-destructive h-auto !opacity-100"
             >
               Clear all
             </Button>
@@ -457,7 +462,7 @@ function SavedSoundsView() {
       </div>
 
       <div className="relative h-full overflow-hidden">
-        <ScrollArea className="flex-1 h-full">
+        <ScrollArea className="h-full flex-1">
           <div className="flex flex-col gap-4">
             {savedSounds.map((sound) => (
               <AudioItem
@@ -515,11 +520,11 @@ function AudioItem({
 
   return (
     <div
-      className="group flex items-center gap-3 opacity-100 hover:opacity-75 transition-opacity cursor-pointer"
+      className="group flex cursor-pointer items-center gap-3 opacity-100 transition-opacity hover:opacity-75"
       onClick={handleClick}
     >
-      <div className="relative w-12 h-12 bg-accent rounded-md flex items-center justify-center overflow-hidden shrink-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
+      <div className="bg-accent relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md">
+        <div className="from-primary/20 absolute inset-0 bg-gradient-to-br to-transparent" />
         {isPlaying ? (
           <PauseIcon className="size-5" />
         ) : (
@@ -527,9 +532,9 @@ function AudioItem({
         )}
       </div>
 
-      <div className="flex-1 min-w-0 overflow-hidden">
-        <p className="font-medium truncate text-sm">{sound.name}</p>
-        <span className="text-xs text-muted-foreground truncate block">
+      <div className="min-w-0 flex-1 overflow-hidden">
+        <p className="truncate text-sm font-medium">{sound.name}</p>
+        <span className="text-muted-foreground block truncate text-xs">
           {sound.username}
         </span>
       </div>
@@ -538,7 +543,7 @@ function AudioItem({
         <Button
           variant="text"
           size="icon"
-          className="text-muted-foreground hover:text-foreground !opacity-100 w-auto"
+          className="text-muted-foreground hover:text-foreground w-auto !opacity-100"
           onClick={handleAddToTimeline}
           title="Add to timeline"
         >
@@ -547,10 +552,11 @@ function AudioItem({
         <Button
           variant="text"
           size="icon"
-          className={`hover:text-foreground !opacity-100 w-auto ${isSaved
-            ? "text-red-500 hover:text-red-600"
-            : "text-muted-foreground"
-            }`}
+          className={`hover:text-foreground w-auto !opacity-100 ${
+            isSaved
+              ? "text-red-500 hover:text-red-600"
+              : "text-muted-foreground"
+          }`}
           onClick={handleSaveClick}
           title={isSaved ? "Remove from saved" : "Save sound"}
         >

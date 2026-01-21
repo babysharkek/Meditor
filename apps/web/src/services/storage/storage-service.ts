@@ -9,7 +9,10 @@ import type {
   SerializedScene,
 } from "./types";
 import { SavedSoundsData, SavedSound, SoundEffect } from "@/types/sounds";
-import { migrations, runStorageMigrations } from "@/services/storage/migrations";
+import {
+  migrations,
+  runStorageMigrations,
+} from "@/services/storage/migrations";
 import { TimelineTrack } from "@/types/timeline";
 
 class StorageService {

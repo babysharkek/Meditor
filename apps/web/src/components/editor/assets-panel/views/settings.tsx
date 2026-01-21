@@ -82,11 +82,7 @@ function ProjectSettingsTabs() {
   );
 }
 
-function getCurrentCanvasSize({
-  activeProject,
-}: {
-  activeProject: TProject;
-}) {
+function getCurrentCanvasSize({ activeProject }: { activeProject: TProject }) {
   const { canvasSize } = activeProject.settings;
 
   return {
@@ -155,9 +151,7 @@ function ProjectInfoView() {
     <div className="flex flex-col gap-4">
       <PropertyItem direction="column">
         <PropertyItemLabel>Name</PropertyItemLabel>
-        <PropertyItemValue>
-          {activeProject.metadata.name}
-        </PropertyItemValue>
+        <PropertyItemValue>{activeProject.metadata.name}</PropertyItemValue>
       </PropertyItem>
 
       <PropertyItem direction="column">
@@ -237,7 +231,7 @@ const BlurPreview = memo(
         style={{ filter: `blur(${blur.value}px)` }}
         loading="eager"
       />
-      <div className="absolute bottom-1 left-1 right-1 text-center">
+      <div className="absolute right-1 bottom-1 left-1 text-center">
         <span className="rounded bg-black/50 px-1 text-xs text-white">
           {blur.label}
         </span>
@@ -270,18 +264,18 @@ const BackgroundPreviews = memo(
             className={cn(
               "border-foreground/15 hover:border-primary aspect-square w-full cursor-pointer rounded-sm border",
               isColorBackground &&
-              bg === currentBackgroundColor &&
-              "border-primary border-2",
+                bg === currentBackgroundColor &&
+                "border-primary border-2",
             )}
             style={
               useBackgroundColor
                 ? { backgroundColor: bg }
                 : {
-                  background: bg,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                }
+                    background: bg,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                  }
             }
             onClick={() => handleColorSelect({ bg })}
           />

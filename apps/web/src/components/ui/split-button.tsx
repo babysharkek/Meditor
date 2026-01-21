@@ -18,15 +18,15 @@ const SplitButton = forwardRef<HTMLDivElement, SplitButtonProps>(
       <div
         ref={ref}
         className={cn(
-          "inline-flex rounded-full h-7 border border-input bg-panel-accent overflow-hidden",
-          className
+          "border-input bg-panel-accent inline-flex h-7 overflow-hidden rounded-full border",
+          className,
         )}
         {...props}
       >
         {children}
       </div>
     );
-  }
+  },
 );
 SplitButton.displayName = "SplitButton";
 
@@ -39,18 +39,18 @@ const SplitButtonSide = forwardRef<
       ref={ref}
       variant="text"
       className={cn(
-        "h-full rounded-none bg-panel-accent !opacity-100 border-0 gap-0 font-normal transition-colors disabled:text-muted-foreground",
+        "bg-panel-accent disabled:text-muted-foreground h-full gap-0 rounded-none border-0 font-normal !opacity-100 transition-colors",
         onClick
-          ? "hover:bg-foreground/10 hover:opacity-100 cursor-pointer"
+          ? "hover:bg-foreground/10 cursor-pointer hover:opacity-100"
           : "cursor-default select-text",
         paddingClass,
-        className
+        className,
       )}
       onClick={onClick}
       {...props}
     >
       {typeof children === "string" ? (
-        <span className="font-normal cursor-text">{children}</span>
+        <span className="cursor-text font-normal">{children}</span>
       ) : (
         children
       )}
@@ -62,14 +62,14 @@ SplitButtonSide.displayName = "SplitButtonSide";
 const SplitButtonLeft = forwardRef<HTMLButtonElement, SplitButtonSideProps>(
   ({ ...props }, ref) => {
     return <SplitButtonSide ref={ref} paddingClass="pl-3 pr-2" {...props} />;
-  }
+  },
 );
 SplitButtonLeft.displayName = "SplitButtonLeft";
 
 const SplitButtonRight = forwardRef<HTMLButtonElement, SplitButtonSideProps>(
   ({ ...props }, ref) => {
     return <SplitButtonSide ref={ref} paddingClass="pl-2 pr-3" {...props} />;
-  }
+  },
 );
 SplitButtonRight.displayName = "SplitButtonRight";
 
@@ -79,11 +79,11 @@ const SplitButtonSeparator = forwardRef<HTMLDivElement, { className?: string }>(
       <Separator
         ref={ref}
         orientation="vertical"
-        className={cn("h-full bg-foreground/15", className)}
+        className={cn("bg-foreground/15 h-full", className)}
         {...props}
       />
     );
-  }
+  },
 );
 SplitButtonSeparator.displayName = "SplitButtonSeparator";
 

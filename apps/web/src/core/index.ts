@@ -41,5 +41,4 @@ export class EditorCore {
   static reset(): void {
     EditorCore.instance = null;
   }
-
 }

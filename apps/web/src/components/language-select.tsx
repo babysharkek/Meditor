@@ -19,7 +19,7 @@ interface LanguageSelectProps {
 
 function FlagPreloader({ languages }: { languages: Language[] }) {
   return (
-    <div className="absolute -top-[9999px] left-0 pointer-events-none">
+    <div className="pointer-events-none absolute -top-[9999px] left-0">
       {languages.map((language) => (
         <ReactCountryFlag
           key={language.code}
@@ -74,7 +74,7 @@ export function LanguageSelect({
   }, [expanded]);
 
   const selectedLanguage = languages.find(
-    (lang) => lang.code === selectedCountry
+    (lang) => lang.code === selectedCountry,
   );
 
   const handleSelect = ({
@@ -91,14 +91,14 @@ export function LanguageSelect({
   };
 
   return (
-    <div className="relative w-full h-9">
+    <div className="relative h-9 w-full">
       <FlagPreloader languages={languages} />
       <motion.button
         type="button"
         className={cn(
-          "absolute w-full h-full flex flex-col overflow-hidden items-start justify-between z-10 rounded-lg px-3 cursor-pointer",
-          "!bg-foreground/10 backdrop-blur-md text-foreground py-0",
-          "transition-[color,box-shadow] focus:border-ring focus:ring-ring/50 focus:ring-[1px]"
+          "absolute z-10 flex h-full w-full cursor-pointer flex-col items-start justify-between overflow-hidden rounded-lg px-3",
+          "!bg-foreground/10 text-foreground py-0 backdrop-blur-md",
+          "focus:border-ring focus:ring-ring/50 transition-[color,box-shadow] focus:ring-[1px]",
         )}
         initial={{
           height: collapsedHeight,
@@ -117,7 +117,7 @@ export function LanguageSelect({
       >
         {!expanded ? (
           <div
-            className="flex items-center justify-between w-full"
+            className="flex w-full items-center justify-between"
             style={{
               height: collapsedHeight,
             }}
@@ -138,7 +138,7 @@ export function LanguageSelect({
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-2 my-2.5 w-full overflow-y-auto scrollbar-hidden">
+          <div className="scrollbar-hidden my-2.5 flex w-full flex-col gap-2 overflow-y-auto">
             <LanguageButton
               language={{ code: "auto", name: "Auto" }}
               onSelect={handleSelect}
@@ -157,7 +157,7 @@ export function LanguageSelect({
       </motion.button>
 
       <motion.div
-        className="absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none z-20 mt-0.5"
+        className="pointer-events-none absolute top-1/2 right-3 z-20 mt-0.5 -translate-y-1/2"
         initial={{ opacity: 1 }}
         animate={{ opacity: expanded ? 0 : 1 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
@@ -186,7 +186,7 @@ function LanguageButton({
   return (
     <button
       type="button"
-      className="flex items-center gap-2 cursor-pointer text-foreground hover:text-foreground/75"
+      className="text-foreground hover:text-foreground/75 flex cursor-pointer items-center gap-2"
       onClick={(e) => onSelect({ code: language.code, e })}
     >
       {language.code === "auto" ? (

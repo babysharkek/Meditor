@@ -28,6 +28,6 @@ export const useTextPropertiesStore = create<TextPropertiesState>()(
       activeTab: "text",
       setActiveTab: (tab) => set({ activeTab: tab }),
     }),
-    { name: "text-properties" }
-  )
+    { name: "text-properties" },
+  ),
 );

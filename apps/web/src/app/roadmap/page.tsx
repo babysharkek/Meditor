@@ -156,7 +156,7 @@ function RoadmapItem({ item, index }: { item: RoadmapItem; index: number }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2 text-lg font-medium">
-        <span className="select-none leading-normal">{index + 1}</span>
+        <span className="leading-normal select-none">{index + 1}</span>
         <h3>{item.title}</h3>
         <StatusBadge status={item.status} className="ml-1" />
       </div>

@@ -31,7 +31,7 @@ const dropdownMenuItemVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 const DropdownMenuSubTrigger = React.forwardRef<
@@ -47,7 +47,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
       dropdownMenuItemVariants({ variant }),
       "data-[state=open]:bg-accent data-[state=open]:opacity-65",
       inset && "pl-8",
-      className
+      className,
     )}
     {...props}
   >
@@ -65,8 +65,8 @@ const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      "z-50 min-w-32 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-      className
+      "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-32 overflow-hidden rounded-md border p-1 shadow-lg",
+      className,
     )}
     {...props}
   />
@@ -87,9 +87,9 @@ const DropdownMenuContent = React.forwardRef<
         e.preventDefault();
       }}
       className={cn(
-        "z-50 min-w-32 overflow-hidden rounded-md border p-1 bg-popover text-popover-foreground shadow-md",
+        "bg-popover text-popover-foreground z-50 min-w-32 overflow-hidden rounded-md border p-1 shadow-md",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        className
+        className,
       )}
       {...props}
     />
@@ -109,7 +109,7 @@ const DropdownMenuItem = React.forwardRef<
     className={cn(
       dropdownMenuItemVariants({ variant }),
       inset && "pl-8",
-      className
+      className,
     )}
     {...props}
   />
@@ -126,8 +126,8 @@ const DropdownMenuCheckboxItem = React.forwardRef<
     ref={ref}
     className={cn(
       dropdownMenuItemVariants({ variant }),
-      "pl-2 pr-8",
-      className
+      "pr-8 pl-2",
+      className,
     )}
     checked={checked}
     onSelect={(e) => {
@@ -157,8 +157,8 @@ const DropdownMenuRadioItem = React.forwardRef<
     ref={ref}
     className={cn(
       dropdownMenuItemVariants({ variant }),
-      "pl-8 pr-2",
-      className
+      "pr-2 pl-8",
+      className,
     )}
     {...props}
   >
@@ -183,7 +183,7 @@ const DropdownMenuLabel = React.forwardRef<
     className={cn(
       "px-2 py-1.5 text-sm font-semibold",
       inset && "pl-8",
-      className
+      className,
     )}
     {...props}
   />
@@ -196,7 +196,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-foreground/10", className)}
+    className={cn("bg-foreground/10 -mx-1 my-1 h-px", className)}
     {...props}
   />
 ));

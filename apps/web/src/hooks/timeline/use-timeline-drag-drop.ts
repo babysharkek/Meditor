@@ -369,9 +369,9 @@ export function useTimelineDragDrop({
             added.type === "audio" ? "audio" : "video";
           const trackId = dropTarget.isNewTrack
             ? editor.timeline.addTrack({
-              type: trackType,
-              index: dropTarget.trackIndex,
-            })
+                type: trackType,
+                index: dropTarget.trackIndex,
+              })
             : currentTracks[dropTarget.trackIndex]?.id;
 
           if (!trackId) return;
@@ -441,13 +441,7 @@ export function useTimelineDragDrop({
         }
       }
     },
-    [
-      activeProject,
-      editor.media,
-      editor.timeline,
-      currentTime,
-      zoomLevel,
-    ],
+    [activeProject, editor.media, editor.timeline, currentTime, zoomLevel],
   );
 
   const handleDrop = useCallback(

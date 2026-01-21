@@ -108,10 +108,7 @@ function StickerGrid({
   };
 
   return (
-    <div
-      className="grid gap-2"
-      style={gridStyle}
-    >
+    <div className="grid gap-2" style={gridStyle}>
       {icons.map((iconName) => (
         <StickerItem
           key={iconName}
@@ -160,7 +157,7 @@ function EmptyView({ message }: { message: string }) {
       />
       <div className="flex flex-col gap-2 text-center">
         <p className="text-lg font-medium">No stickers found</p>
-        <p className="text-muted-foreground text-balance text-sm">{message}</p>
+        <p className="text-muted-foreground text-sm text-balance">{message}</p>
       </div>
     </div>
   );
@@ -211,17 +208,17 @@ function StickersContentView({ category }: { category: StickerCategory }) {
         const collection = collections[c.prefix];
         return collection
           ? {
-            prefix: c.prefix,
-            name: c.name,
-            total: collection.total,
-          }
+              prefix: c.prefix,
+              name: c.name,
+              total: collection.total,
+            }
           : null;
       })
       .filter(Boolean) as Array<{
-        prefix: string;
-        name: string;
-        total: number;
-      }>;
+      prefix: string;
+      name: string;
+      total: number;
+    }>;
   }, [collections, category]);
 
   const { scrollAreaRef, handleScroll } = useInfiniteScroll({
@@ -485,7 +482,7 @@ function CollectionItem({ title, subtitle, onClick }: CollectionItemProps) {
   return (
     <Button
       variant="outline"
-      className="h-auto justify-between py-2 rounded-md"
+      className="h-auto justify-between rounded-md py-2"
       onClick={onClick}
     >
       <div className="text-left">
@@ -523,7 +520,7 @@ function StickerItem({
 
   const preview = imageError ? (
     <div className="flex h-full w-full items-center justify-center p-2">
-      <span className="text-muted-foreground break-all text-center text-xs">
+      <span className="text-muted-foreground text-center text-xs break-all">
         {displayName}
       </span>
     </div>
@@ -534,10 +531,10 @@ function StickerItem({
           hostIndex === 0
             ? getIconSvgUrl(iconName, { width: 64, height: 64 })
             : buildIconSvgUrl(
-              ICONIFY_HOSTS[Math.min(hostIndex, ICONIFY_HOSTS.length - 1)],
-              iconName,
-              { width: 64, height: 64 },
-            )
+                ICONIFY_HOSTS[Math.min(hostIndex, ICONIFY_HOSTS.length - 1)],
+                iconName,
+                { width: 64, height: 64 },
+              )
         }
         alt={displayName}
         width={64}
@@ -546,9 +543,9 @@ function StickerItem({
         style={
           capSize
             ? {
-              maxWidth: "var(--sticker-max, 160px)",
-              maxHeight: "var(--sticker-max, 160px)",
-            }
+                maxWidth: "var(--sticker-max, 160px)",
+                maxHeight: "var(--sticker-max, 160px)",
+              }
             : undefined
         }
         onError={() => {

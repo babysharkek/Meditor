@@ -29,7 +29,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       onBlur,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [isFocused, setIsFocused] = useState(false);
 
@@ -49,15 +49,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       iconCount === 2 ? "pr-20" : iconCount === 1 ? "pr-10" : "";
 
     return (
-      <div className={cn(hasIcons ? "relative w-full" : "", containerClassName)}>
+      <div
+        className={cn(hasIcons ? "relative w-full" : "", containerClassName)}
+      >
         <input
           type={inputType}
           className={cn(
-            "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-input flex h-9 w-full min-w-0 rounded-md border bg-background px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+            "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-input bg-background flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
             "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[2px]",
             "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
             paddingRight,
-            className
+            className,
           )}
           ref={ref}
           value={value}
@@ -80,7 +82,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               e.preventDefault();
               onClear?.();
             }}
-            className="absolute right-0 top-0 h-full px-3 text-muted-foreground !opacity-100"
+            className="text-muted-foreground absolute top-0 right-0 h-full px-3 !opacity-100"
             aria-label="Clear input"
           >
             <X className="!size-[0.85]" />
@@ -93,8 +95,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             size="icon"
             onClick={() => onShowPasswordChange?.(!showPassword)}
             className={cn(
-              "absolute top-0 h-full px-3 text-muted-foreground hover:text-foreground",
-              showClear ? "right-10" : "right-0"
+              "text-muted-foreground hover:text-foreground absolute top-0 h-full px-3",
+              showClear ? "right-10" : "right-0",
             )}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
@@ -107,7 +109,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
       </div>
     );
-  }
+  },
 );
 Input.displayName = "Input";
 

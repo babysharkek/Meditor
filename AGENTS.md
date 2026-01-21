@@ -32,16 +32,17 @@ import { useEditor } from '@/hooks/use-editor';
 function MyComponent() {
   const editor = useEditor();
   const tracks = editor.timeline.getTracks();
-  
+
   // Call methods
   editor.timeline.addTrack({ type: 'media' });
-  
+
   // Display data (auto re-renders on changes)
   return <div>{tracks.length} tracks</div>;
 }
 ```
 
 The hook:
+
 - Returns the singleton instance
 - Subscribes to all manager changes
 - Automatically re-renders when state changes
@@ -52,10 +53,10 @@ The hook:
 
 ```typescript
 // In utilities, event handlers, or non-React code
-import { EditorCore } from '@/core';
+import { EditorCore } from "@/core";
 
 const editor = EditorCore.getInstance();
-await editor.export({ format: 'mp4', quality: 'high' });
+await editor.export({ format: "mp4", quality: "high" });
 ```
 
 ## Actions System
@@ -65,6 +66,7 @@ Actions are the trigger layer for user-initiated operations. The single source o
 **To add a new action:**
 
 1. Add it to `ACTIONS` in `@/lib/actions/definitions.ts`:
+
 ```typescript
 export const ACTIONS = {
   "my-action": {
@@ -73,14 +75,19 @@ export const ACTIONS = {
     defaultShortcuts: ["ctrl+m"],
   },
   // ...
-}
+};
 ```
 
 2. Add handler in `@/hooks/use-editor-actions.ts`:
+
 ```typescript
-useActionHandler("my-action", () => {
-  // implementation
-}, undefined);
+useActionHandler(
+  "my-action",
+  () => {
+    // implementation
+  },
+  undefined,
+);
 ```
 
 **In components, use `invokeAction()` for user-triggered operations:**
@@ -102,6 +109,7 @@ Direct `editor.xxx()` calls are for internal use (commands, tests, complex multi
 Commands handle undo/redo. They live in `@/lib/commands/` organized by domain (timeline, media, scene).
 
 Each command extends `Command` from `@/lib/commands/base-command` and implements:
+
 - `execute()` - saves current state, then does the mutation
 - `undo()` - restores the saved state
 

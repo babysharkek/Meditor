@@ -14,8 +14,9 @@ export async function GET() {
       language: "en",
       image: `${SITE_INFO.openGraphImage}`,
       favicon: `${SITE_INFO.favicon}`,
-      copyright: `All rights reserved ${new Date().getFullYear()}, ${SITE_INFO.title
-        }`,
+      copyright: `All rights reserved ${new Date().getFullYear()}, ${
+        SITE_INFO.title
+      }`,
     });
 
     for (const post of posts) {

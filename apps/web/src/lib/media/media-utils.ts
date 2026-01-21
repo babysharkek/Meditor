@@ -11,7 +11,11 @@ export function mediaSupportsAudio({
   return SUPPORTS_AUDIO.includes(media.type);
 }
 
-export const getMediaTypeFromFile = ({ file }: { file: File }): MediaType | null => {
+export const getMediaTypeFromFile = ({
+  file,
+}: {
+  file: File;
+}): MediaType | null => {
   const { type } = file;
 
   if (type.startsWith("image/")) {

@@ -28,7 +28,7 @@ export function TextView() {
         name="Default text"
         preview={
           <div className="bg-panel-accent flex size-full items-center justify-center rounded">
-            <span className="select-none text-xs">Default text</span>
+            <span className="text-xs select-none">Default text</span>
           </div>
         }
         dragData={{

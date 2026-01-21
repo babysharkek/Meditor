@@ -2,13 +2,13 @@ import { TScene } from "./timeline";
 
 export type TBackground =
   | {
-    type: "color";
-    color: string;
-  }
+      type: "color";
+      color: string;
+    }
   | {
-    type: "blur";
-    blurIntensity: number;
-  };
+      type: "blur";
+      blurIntensity: number;
+    };
 
 export interface TCanvasSize {
   width: number;

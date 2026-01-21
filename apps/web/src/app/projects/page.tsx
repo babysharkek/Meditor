@@ -190,7 +190,7 @@ export default function ProjectsPage() {
           )}
         </div>
       </div>
-      <main className="mx-auto max-w-6xl px-6 pb-6 pt-6">
+      <main className="mx-auto max-w-6xl px-6 pt-6 pb-6">
         <div className="mb-8 flex items-center justify-between">
           <div className="flex flex-col gap-3">
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
@@ -419,16 +419,18 @@ function ProjectCard({
 
   const cardContent = (
     <Card
-      className={`bg-background overflow-hidden border-none p-0 transition-all ${isSelectionMode && isSelected ? "ring-primary ring-2" : ""
-        }`}
+      className={`bg-background overflow-hidden border-none p-0 transition-all ${
+        isSelectionMode && isSelected ? "ring-primary ring-2" : ""
+      }`}
     >
       <div
-        className={`bg-muted relative aspect-square transition-opacity ${isDropdownOpen ? "opacity-65" : "opacity-100 group-hover:opacity-65"
-          }`}
+        className={`bg-muted relative aspect-square transition-opacity ${
+          isDropdownOpen ? "opacity-65" : "opacity-100 group-hover:opacity-65"
+        }`}
       >
         {isSelectionMode && (
-          <div className="absolute left-3 top-3 z-10">
-            <div className="bg-background/80 backdrop-blur-xs flex size-5 items-center justify-center rounded-full border">
+          <div className="absolute top-3 left-3 z-10">
+            <div className="bg-background/80 flex size-5 items-center justify-center rounded-full border backdrop-blur-xs">
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={(checked) =>
@@ -462,7 +464,7 @@ function ProjectCard({
 
       <CardContent className="flex flex-col gap-1 px-0 pt-5">
         <div className="flex items-start justify-between">
-          <h3 className="group-hover:text-foreground/90 line-clamp-2 text-sm font-medium leading-snug transition-colors">
+          <h3 className="group-hover:text-foreground/90 line-clamp-2 text-sm leading-snug font-medium transition-colors">
             {project.name}
           </h3>
           {!isSelectionMode && (
@@ -475,10 +477,11 @@ function ProjectCard({
                   aria-label="project options"
                   variant="text"
                   size="sm"
-                  className={`ml-2 size-6 shrink-0 p-0 transition-all ${isDropdownOpen
-                    ? "opacity-100"
-                    : "opacity-0 group-hover:opacity-100"
-                    }`}
+                  className={`ml-2 size-6 shrink-0 p-0 transition-all ${
+                    isDropdownOpen
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
+                  }`}
                   onClick={(event) => event.preventDefault()}
                 >
                   <MoreHorizontal aria-hidden="true" />

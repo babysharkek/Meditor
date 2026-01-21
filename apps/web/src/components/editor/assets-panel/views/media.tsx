@@ -49,7 +49,8 @@ export function MediaView() {
   const mediaFiles = editor.media.getAssets();
   const activeProject = editor.project.getActive();
 
-  const { mediaViewMode, setMediaViewMode, highlightMediaId, clearHighlight } = useAssetsPanelStore();
+  const { mediaViewMode, setMediaViewMode, highlightMediaId, clearHighlight } =
+    useAssetsPanelStore();
   const { highlightedId, registerElement } = useRevealItem(
     highlightMediaId,
     clearHighlight,
@@ -509,7 +510,7 @@ function MediaDurationBadge({ duration }: { duration?: number }) {
   if (!duration) return null;
 
   return (
-    <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 text-xs text-white">
+    <div className="absolute right-1 bottom-1 rounded bg-black/70 px-1 text-xs text-white">
       {formatDuration({ duration })}
     </div>
   );
@@ -551,7 +552,6 @@ function MediaTypePlaceholder({
 }
 
 function MediaPreview({ item }: { item: MediaAsset }) {
-
   if (item.type === "image") {
     return (
       <div className="flex size-full items-center justify-center">
@@ -604,13 +604,7 @@ function MediaPreview({ item }: { item: MediaAsset }) {
     );
   }
 
-  return (
-    <MediaTypePlaceholder
-      icon={Image}
-      label="Unknown"
-      variant="muted"
-    />
-  );
+  return <MediaTypePlaceholder icon={Image} label="Unknown" variant="muted" />;
 }
 
 function SortMenuItem({

@@ -20,7 +20,7 @@ export function PropertyItem({
         direction === "row"
           ? "items-center justify-between gap-6"
           : "flex-col gap-1.5",
-        className
+        className,
       )}
     >
       {children}
@@ -36,7 +36,7 @@ export function PropertyItemLabel({
   className?: string;
 }) {
   return (
-    <label className={cn("text-xs text-muted-foreground", className)}>
+    <label className={cn("text-muted-foreground text-xs", className)}>
       {children}
     </label>
   );
@@ -72,7 +72,7 @@ export function PropertyGroup({
   return (
     <PropertyItem direction="column" className={cn("gap-3", className)}>
       <div
-        className="flex items-center gap-1.5 cursor-pointer"
+        className="flex cursor-pointer items-center gap-1.5"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <PropertyItemLabel className={cn("cursor-pointer", titleClassName)}>
