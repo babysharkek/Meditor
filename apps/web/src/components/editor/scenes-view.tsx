@@ -159,7 +159,7 @@ export function ScenesView({ children }: { children: React.ReactNode }) {
 									<div className="flex items-center gap-2">
 										{((isSelectMode && selectedScenes.has(scene.id)) ||
 											(!isSelectMode && currentScene?.id === scene.id)) && (
-											<Check className="h-4 w-4" />
+											<Check className="size-4" />
 										)}
 									</div>
 								</Button>

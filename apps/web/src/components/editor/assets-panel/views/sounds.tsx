@@ -407,7 +407,7 @@ function SavedSoundsView() {
 		return (
 			<div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
 				<HeartIcon
-					className="text-muted-foreground h-10 w-10"
+					className="text-muted-foreground size-10"
 					strokeWidth={1.5}
 				/>
 				<div className="flex flex-col gap-2 text-center">
@@ -524,7 +524,7 @@ function AudioItem({ sound, isPlaying, onPlay }: AudioItemProps) {
 				className="flex min-w-0 flex-1 items-center gap-3 text-left"
 				onClick={handleClick}
 			>
-				<div className="bg-accent relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md">
+				<div className="bg-accent relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md">
 					<div className="from-primary/20 absolute inset-0 bg-gradient-to-br to-transparent" />
 					{isPlaying ? (
 						<PauseIcon className="size-5" />

@@ -1,13 +1,7 @@
 "use client";
 
 import { Button } from "../ui/button";
-import {
-	ChevronDown,
-	ArrowLeft,
-	SquarePen,
-	Trash,
-	Loader2,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { KeyboardShortcutsHelp } from "../keyboard-shortcuts-help";
 import { useState } from "react";
 import {
@@ -27,7 +21,7 @@ import { ThemeToggle } from "../theme-toggle";
 import { SOCIAL_LINKS } from "@/constants/site-constants";
 import { toast } from "sonner";
 import { useEditor } from "@/hooks/use-editor";
-import { PencilIcon } from "@opencut/ui/icons";
+import { OcLeftArrowIcon, OcPencilIcon, OcTrashIcon } from "@opencut/ui/icons";
 
 export function EditorHeader() {
 	return (
@@ -125,18 +119,14 @@ function ProjectDropdown() {
 						onClick={handleExit}
 						disabled={isExiting}
 					>
-						{isExiting ? (
-							<Loader2 className="h-4 w-4 animate-spin" />
-						) : (
-							<ArrowLeft className="h-4 w-4" />
-						)}
+						<OcLeftArrowIcon className="size-4" />
 						Projects
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						className="flex items-center gap-1.5"
 						onClick={() => setIsRenameDialogOpen(true)}
 					>
-						<PencilIcon className="h-4 w-4" />
+						<OcPencilIcon className="size-4" />
 						Rename project
 					</DropdownMenuItem>
 					<DropdownMenuItem
@@ -144,7 +134,7 @@ function ProjectDropdown() {
 						className="flex items-center gap-1.5"
 						onClick={() => setIsDeleteDialogOpen(true)}
 					>
-						<Trash className="h-4 w-4" />
+						<OcTrashIcon className="size-4" />
 						Delete Project
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
@@ -155,7 +145,7 @@ function ProjectDropdown() {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1.5"
 						>
-							<FaDiscord className="h-4 w-4" />
+							<FaDiscord className="size-4" />
 							Discord
 						</Link>
 					</DropdownMenuItem>

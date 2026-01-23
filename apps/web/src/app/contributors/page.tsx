@@ -1,4 +1,4 @@
-import { GithubIcon } from "@opencut/ui/icons";
+import { OcGithubIcon } from "@opencut/ui/icons";
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -101,7 +101,7 @@ export default async function ContributorsPage() {
 function StatItem({ value, label }: { value: number; label: string }) {
 	return (
 		<div className="flex items-center gap-2">
-			<div className="bg-foreground h-2 w-2 rounded-full" />
+			<div className="bg-foreground size-2 rounded-full" />
 			<span className="font-medium">{value}</span>
 			<span className="text-muted-foreground">{label}</span>
 		</div>
@@ -187,7 +187,7 @@ function AllContributorsSection({
 						className="opacity-100 transition-opacity hover:opacity-70"
 					>
 						<div className="flex flex-col items-center gap-2 p-2">
-							<Avatar className="h-16 w-16">
+							<Avatar className="size-16">
 								<AvatarImage
 									src={contributor.avatar_url}
 									alt={`${contributor.login}'s avatar`}
@@ -214,8 +214,8 @@ function EmptyState() {
 	return (
 		<div className="flex flex-col gap-8 py-20 text-center">
 			<div className="flex flex-col gap-6">
-				<div className="bg-muted/50 mx-auto flex h-20 w-20 items-center justify-center rounded-full">
-					<GithubIcon className="text-muted-foreground h-8 w-8" />
+				<div className="bg-muted/50 mx-auto flex size-20 items-center justify-center rounded-full">
+					<OcGithubIcon className="text-muted-foreground size-8" />
 				</div>
 				<div className="flex flex-col gap-3">
 					<h3 className="text-xl font-medium">No contributors found</h3>
@@ -231,9 +231,9 @@ function EmptyState() {
 				rel="noopener noreferrer"
 			>
 				<Button variant="outline" className="gap-2">
-					<GithubIcon className="h-4 w-4" />
+					<OcGithubIcon />
 					View on GitHub
-					<ExternalLink className="h-4 w-4" />
+					<ExternalLink />
 				</Button>
 			</Link>
 		</div>
@@ -259,8 +259,8 @@ function ExternalToolsSection() {
 					>
 						<Card className="h-full">
 							<CardContent className="flex h-full flex-col gap-4 p-6 text-center">
-								<div className="bg-muted/50 mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-									<tool.icon className="h-6 w-6" />
+								<div className="bg-muted/50 mx-auto flex size-12 items-center justify-center rounded-full">
+									<tool.icon className="size-6" />
 								</div>
 								<div className="flex flex-1 flex-col gap-2">
 									<h3 className="text-lg font-semibold">{tool.name}</h3>

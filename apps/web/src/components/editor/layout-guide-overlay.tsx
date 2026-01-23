@@ -9,7 +9,7 @@ function TikTokGuide() {
 			<Image
 				src="/platform-guides/tiktok-blueprint.png"
 				alt="TikTok layout guide"
-				className="absolute inset-0 h-full w-full object-contain"
+				className="absolute inset-0 size-full object-contain"
 				draggable={false}
 				fill
 			/>

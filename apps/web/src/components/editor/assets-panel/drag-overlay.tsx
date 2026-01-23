@@ -28,7 +28,7 @@ export function MediaDragOverlay({
 
 	return (
 		<button
-			className="bg-foreground/5 hover:bg-foreground/10 flex h-full w-full flex-col items-center justify-center gap-4 rounded-lg p-8 text-center transition-all duration-200"
+			className="bg-foreground/5 hover:bg-foreground/10 flex size-full flex-col items-center justify-center gap-4 rounded-lg p-8 text-center transition-all duration-200"
 			type="button"
 			disabled={isProcessing || !onClick}
 			onClick={(event) => handleClick({ event })}

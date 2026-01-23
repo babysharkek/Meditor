@@ -342,7 +342,7 @@ export function MediaView() {
 					</div>
 				</div>
 
-				<div className="scrollbar-thin h-full w-full overflow-y-auto pt-1">
+				<div className="scrollbar-thin size-full overflow-y-auto pt-1">
 					<div className="w-full flex-1 p-3 pt-0">
 						{isDragOver || filteredMediaItems.length === 0 ? (
 							<MediaDragOverlay

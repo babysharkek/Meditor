@@ -110,7 +110,7 @@ export default function ProjectsPage() {
 						href="/projects"
 						className="flex items-center gap-3 rounded-2xl bg-blue-50/50 px-4 py-3 text-sm font-medium text-[#00A3FF]"
 					>
-						<LayoutGrid className="h-5 w-5" />
+						<LayoutGrid className="size-5" />
 						Projects
 					</a>
 					<div className="px-4 pt-6 pb-2">
@@ -122,14 +122,14 @@ export default function ProjectsPage() {
 						href="/projects"
 						className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
 					>
-						<Folder className="h-5 w-5 text-slate-400" />
+						<Folder className="size-5 text-slate-400" />
 						Marketing
 					</a>
 					<a
 						href="/projects"
 						className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
 					>
-						<Folder className="h-5 w-5 text-slate-400" />
+						<Folder className="size-5 text-slate-400" />
 						Social media
 					</a>
 				</nav>
@@ -143,7 +143,7 @@ export default function ProjectsPage() {
 
 					<div className="flex items-center gap-4">
 						<div className="group relative">
-							<Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400" />
+							<Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" />
 							<input
 								type="text"
 								placeholder="Search..."
@@ -157,7 +157,7 @@ export default function ProjectsPage() {
 								className="rounded-full bg-slate-100 p-2 text-slate-900"
 								aria-label="Grid view"
 							>
-								<LayoutGrid className="h-4 w-4" aria-hidden="true">
+								<LayoutGrid className="size-4" aria-hidden="true">
 									<title>Grid view</title>
 								</LayoutGrid>
 							</button>
@@ -166,7 +166,7 @@ export default function ProjectsPage() {
 								className="rounded-full p-2 text-slate-400 hover:text-slate-600"
 								aria-label="List view"
 							>
-								<List className="h-4 w-4" aria-hidden="true">
+								<List className="size-4" aria-hidden="true">
 									<title>List view</title>
 								</List>
 							</button>
@@ -176,7 +176,7 @@ export default function ProjectsPage() {
 							type="button"
 							className="flex items-center gap-2 rounded-full bg-[#00A3FF] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#008BE0] active:scale-95"
 						>
-							<Plus className="h-4 w-4" />
+							<Plus className="size-4" />
 							New project
 						</button>
 					</div>
@@ -226,7 +226,7 @@ export default function ProjectsPage() {
 									<div className="project-select-wrapper absolute top-4 left-4 z-20">
 										<input
 											type="checkbox"
-											className="custom-checkbox project-select h-6 w-6 cursor-pointer shadow-md"
+											className="custom-checkbox project-select size-6 cursor-pointer shadow-md"
 											checked={isSelected}
 											onChange={({ currentTarget }) => {
 												toggleProjectSelection({
@@ -243,7 +243,7 @@ export default function ProjectsPage() {
 											className="rounded-full bg-white/90 p-2 text-slate-600 backdrop-blur-sm hover:bg-white hover:text-[#00A3FF]"
 											aria-label="Project menu"
 										>
-											<MoreHorizontal className="h-4 w-4" aria-hidden="true">
+											<MoreHorizontal className="size-4" aria-hidden="true">
 												<title>Project menu</title>
 											</MoreHorizontal>
 										</button>

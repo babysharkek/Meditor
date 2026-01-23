@@ -181,7 +181,7 @@ export function DraggableItem({
 								ratio={1}
 								className="ring-primary relative overflow-hidden rounded-md shadow-2xl ring-3"
 							>
-								<div className="h-full w-full [&_img]:h-full [&_img]:w-full [&_img]:rounded-none [&_img]:object-cover">
+								<div className="size-full [&_img]:size-full [&_img]:rounded-none [&_img]:object-cover">
 									{preview}
 								</div>
 								{shouldShowPlusOnDrag && (
@@ -222,7 +222,7 @@ function PlusButton({
 			}}
 			title={tooltipText}
 		>
-			<Plus className="size-4!" />
+			<Plus />
 		</Button>
 	);
 

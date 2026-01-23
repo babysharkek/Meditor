@@ -15,8 +15,20 @@ Review every point below carefully for files to ensure they follow consistent co
 13. Booleans must be named like `isSomething` or `hasSomething` or `shouldSomething`. Not `something` or `somethingIs`.
 14. No text in docs or UI ever uses title case. Example: `Hello World` is wrong. It should be `Hello world`.
 15. Use `size-10` instead of `h-10 w-10` when the width and height are the same.
-16. For components that need to subscribe to data from the editor api (`src/core`, `src/managers`), use the `useEditor` hook.
-17. In react components: store/manager methods should not be passed as props to sub-components. If a sub-component can access the same methods, it should do so. Example:
+
+16. When using `size-` on an SVG (lucide, react-icons, @opencut/ui/icons, etc.) inside of a <Button> (not <buttom>), make sure to use the `!` modifier to ensure the size is applied correctly. This is becuase the <Button> component has a default size of `size-4` that can only be overridden with the `!` modifier. That also means, don't do `!size-4` since that's the default size.
+   - Example:
+   ```tsx
+   <Button>
+     <PlusIcon className="!size-6" /> // This is correct ✅
+     <PlusIcon className="size-6" /> // This is wrong ❌
+     <PlusIcon className="!size-4" /> // This is wrong ❌
+     <span>Add</span>
+   </Button>
+   ```
+   
+17. For components that need to subscribe to data from the editor api (`src/core`, `src/managers`), use the `useEditor` hook.
+18. In react components: store/manager methods should not be passed as props to sub-components. If a sub-component can access the same methods, it should do so. Example:
 
     ```tsx
     import { useTimelineStore } from "@/stores/timeline-store";
@@ -41,7 +53,7 @@ Review every point below carefully for files to ensure they follow consistent co
     ```
 
 ```
-18. Components render UI. Domain logic (data transformations, business rules, state mutations) lives in hooks, utilities, or managers. Simple interaction logic (gesture detection, modifier keys) can stay in components if not too many lines of code/complex.
+19. Components render UI. Domain logic (data transformations, business rules, state mutations) lives in hooks, utilities, or managers. Simple interaction logic (gesture detection, modifier keys) can stay in components if not too many lines of code/complex.
 
 19. Readability matters more than short names in the age of AI coding. Do not shorten names for the sake of "typing less". Nobody is typing code these days. AI agents are. Hence, clarity and readability are the most important things. Example: "element" is better than "el".
 

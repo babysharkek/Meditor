@@ -40,7 +40,7 @@ function EditorLayout() {
 	return (
 		<ResizablePanelGroup
 			direction="vertical"
-			className="h-full w-full gap-[0.18rem]"
+			className="size-full gap-[0.18rem]"
 			onLayout={(sizes) => {
 				setPanel("mainContent", sizes[0] ?? panels.mainContent);
 				setPanel("timeline", sizes[1] ?? panels.timeline);
@@ -54,7 +54,7 @@ function EditorLayout() {
 			>
 				<ResizablePanelGroup
 					direction="horizontal"
-					className="h-full w-full gap-[0.19rem] px-3"
+					className="size-full gap-[0.19rem] px-3"
 					onLayout={(sizes) => {
 						setPanel("tools", sizes[0] ?? panels.tools);
 						setPanel("preview", sizes[1] ?? panels.preview);

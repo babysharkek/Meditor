@@ -171,7 +171,7 @@ export default function ProjectsPage() {
 								size="sm"
 								onClick={handleCancelSelection}
 							>
-								<X className="size-4!" />
+								<X />
 								Cancel
 							</Button>
 							{selectedProjects.size > 0 && (
@@ -180,7 +180,7 @@ export default function ProjectsPage() {
 									size="sm"
 									onClick={() => setIsBulkDeleteDialogOpen(true)}
 								>
-									<Trash2 className="size-4!" />
+									<Trash2 />
 									Delete ({selectedProjects.size})
 								</Button>
 							)}
@@ -210,7 +210,7 @@ export default function ProjectsPage() {
 						{isSelectionMode ? (
 							<div className="flex items-center gap-2">
 								<Button variant="outline" onClick={handleCancelSelection}>
-									<X className="size-4!" />
+									<X />
 									Cancel
 								</Button>
 								<Button
@@ -218,7 +218,7 @@ export default function ProjectsPage() {
 									disabled={selectedProjects.size === 0}
 									onClick={() => setIsBulkDeleteDialogOpen(true)}
 								>
-									<Trash2 className="size-4!" />
+									<Trash2 />
 									Delete {selectedProjects.size} projects
 								</Button>
 							</div>
@@ -429,7 +429,7 @@ function ProjectCard({
 							className="object-cover"
 						/>
 					) : (
-						<div className="bg-muted/50 flex h-full w-full items-center justify-center">
+						<div className="bg-muted/50 flex size-full items-center justify-center">
 							<Video className="text-muted-foreground size-12 shrink-0" />
 						</div>
 					)}
@@ -562,7 +562,7 @@ function ProjectsLoader() {
 					<div className="flex flex-col gap-1.5 px-0 pt-5">
 						<Skeleton className="bg-muted/50 h-4 w-3/4" />
 						<div className="flex items-center gap-1.5">
-							<Skeleton className="bg-muted/50 h-4 w-4" />
+							<Skeleton className="bg-muted/50 size-4" />
 							<Skeleton className="bg-muted/50 h-4 w-24" />
 						</div>
 					</div>
@@ -575,7 +575,7 @@ function ProjectsLoader() {
 function CreateButton({ onClick }: { onClick?: () => void }) {
 	return (
 		<Button className="flex" onClick={onClick}>
-			<Plus className="size-4!" />
+			<Plus />
 			<span className="text-sm font-medium">New project</span>
 		</Button>
 	);

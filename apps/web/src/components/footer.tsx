@@ -56,7 +56,7 @@ export function Footer() {
 								target="_blank"
 								rel="noopener noreferrer"
 							>
-								<FaGithub className="h-5 w-5" />
+								<FaGithub className="size-5" />
 							</Link>
 							<Link
 								href={SOCIAL_LINKS.x}
@@ -64,7 +64,7 @@ export function Footer() {
 								target="_blank"
 								rel="noopener noreferrer"
 							>
-								<RiTwitterXLine className="h-5 w-5" />
+								<RiTwitterXLine className="size-5" />
 							</Link>
 							<Link
 								href={SOCIAL_LINKS.discord}
@@ -72,7 +72,7 @@ export function Footer() {
 								target="_blank"
 								rel="noopener noreferrer"
 							>
-								<RiDiscordFill className="h-5 w-5" />
+								<RiDiscordFill className="size-5" />
 							</Link>
 						</div>
 					</div>

@@ -113,7 +113,7 @@ export function KeyboardShortcutsHelp() {
 			<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col p-0">
 				<DialogHeader className="flex-shrink-0 p-6 pb-0">
 					<DialogTitle className="flex items-center gap-2">
-						<Keyboard className="h-5 w-5" />
+						<Keyboard className="size-5" />
 						Keyboard Shortcuts
 					</DialogTitle>
 					<DialogDescription>

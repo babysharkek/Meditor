@@ -51,7 +51,7 @@ function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
 			href={sponsor.url}
 			target="_blank"
 			rel="noopener noreferrer"
-			className="h-full w-full"
+					className="size-full"
 		>
 			<Card className="h-full">
 				<CardContent className="flex h-full flex-col justify-center gap-8 p-8">
@@ -67,7 +67,7 @@ function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
 							<h3 className="text-xl font-semibold group-hover:underline">
 								{sponsor.name}
 							</h3>
-							<ExternalLink className="text-muted-foreground h-4 w-4" />
+							<ExternalLink className="text-muted-foreground size-4" />
 						</div>
 						<p className="text-muted-foreground">{sponsor.description}</p>
 					</div>

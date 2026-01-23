@@ -36,7 +36,7 @@ export function MigrationDialog() {
 				</DialogHeader>
 
 				<div className="flex items-center justify-center py-4">
-					<Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+					<Loader2 className="text-muted-foreground size-8 animate-spin" />
 				</div>
 			</DialogContent>
 		</Dialog>

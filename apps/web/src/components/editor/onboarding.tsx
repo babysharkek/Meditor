@@ -131,7 +131,7 @@ function NextButton({
 	return (
 		<Button onClick={onClick} variant="default" className="w-full">
 			{children}
-			<ArrowRightIcon className="h-4 w-4" />
+			<ArrowRightIcon className="size-4" />
 		</Button>
 	);
 }

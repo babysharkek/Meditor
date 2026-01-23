@@ -7,12 +7,13 @@ import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "./theme-toggle";
-import { GithubIcon, MenuIcon } from "@opencut/ui/icons";
+import { OcGithubIcon, OcMenuIcon } from "@opencut/ui/icons";
 import { cn } from "@/utils/ui";
 import { DEFAULT_LOGO_URL, SOCIAL_LINKS } from "@/constants/site-constants";
 
 export function Header() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const closeMenu = () => setIsMenuOpen(false);
 
 	const links = [
 		{
@@ -61,20 +62,20 @@ export function Header() {
 							className="flex items-center justify-center p-0"
 							onClick={() => setIsMenuOpen(!isMenuOpen)}
 						>
-							<MenuIcon size={30} />
+							<OcMenuIcon size={30} />
 						</Button>
 					</div>
 					<div className="hidden items-center gap-3 md:flex">
 						<Link href={SOCIAL_LINKS.github}>
 							<Button className="bg-background text-sm" variant="outline">
-								<GithubIcon className="h-4 w-4" />
+								<OcGithubIcon className="size-4" />
 								31k+
 							</Button>
 						</Link>
 						<Link href="/projects">
 							<Button className="text-sm">
 								Projects
-								<ArrowRight className="h-4 w-4" />
+								<ArrowRight className="size-4" />
 							</Button>
 						</Link>
 						<ThemeToggle />
@@ -86,9 +87,24 @@ export function Header() {
 						"transition-opacity duration-150",
 						isMenuOpen && "pointer-events-auto opacity-100",
 					)}
-					onClick={() => setIsMenuOpen(false)}
 				>
 					<div className="relative h-full">
+						<button
+							type="button"
+							aria-label="Close menu"
+							className="absolute inset-0"
+							onClick={closeMenu}
+							onKeyDown={(event) => {
+								if (
+									event.key === "Enter" ||
+									event.key === " " ||
+									event.key === "Escape"
+								) {
+									event.preventDefault();
+									closeMenu();
+								}
+							}}
+						/>
 						<nav className="flex flex-col gap-3 px-6 pt-[5rem]">
 							{links.map((link, index) => (
 								<motion.div

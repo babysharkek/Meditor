@@ -60,7 +60,7 @@ function AuthorList({ authors }: { authors: Author[] }) {
 		<div className="flex items-center gap-2">
 			{authors.map((author) => (
 				<div key={author.id} className="flex items-center gap-2">
-					<Avatar className="h-6 w-6 shadow-sm">
+					<Avatar className="size-6 shadow-sm">
 						<AvatarImage src={author.image} alt={author.name} />
 						<AvatarFallback className="text-xs">
 							{author.name.charAt(0).toUpperCase()}

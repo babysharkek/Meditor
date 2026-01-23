@@ -37,8 +37,8 @@ export const TIMELINE_CONSTANTS = {
 } as const;
 
 export const TRACK_ICONS: Record<TrackType, React.ReactNode> = {
-	video: <Video className="text-muted-foreground h-4 w-4 shrink-0" />,
-	text: <TypeIcon className="text-muted-foreground h-4 w-4 shrink-0" />,
-	audio: <Music className="text-muted-foreground h-4 w-4 shrink-0" />,
-	sticker: <Sticker className="text-muted-foreground h-4 w-4 shrink-0" />,
+	video: <Video className="text-muted-foreground size-4 shrink-0" />,
+	text: <TypeIcon className="text-muted-foreground size-4 shrink-0" />,
+	audio: <Music className="text-muted-foreground size-4 shrink-0" />,
+	sticker: <Sticker className="text-muted-foreground size-4 shrink-0" />,
 } as const;

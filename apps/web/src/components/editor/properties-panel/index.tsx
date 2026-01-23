@@ -52,7 +52,7 @@ function EmptyView() {
 	return (
 		<div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
 			<SquareSlashIcon
-				className="text-muted-foreground h-10 w-10"
+				className="text-muted-foreground size-10"
 				strokeWidth={1.5}
 			/>
 			<div className="flex flex-col gap-2 text-center">

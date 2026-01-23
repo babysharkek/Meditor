@@ -151,7 +151,7 @@ function EmptyView({ message }: { message: string }) {
 	return (
 		<div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
 			<StickerIcon
-				className="text-muted-foreground h-10 w-10"
+				className="text-muted-foreground size-10"
 				strokeWidth={1.5}
 			/>
 			<div className="flex flex-col gap-2 text-center">
@@ -342,7 +342,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 												<button
 													type="button"
 													onClick={clearRecentStickers}
-													className="hover:bg-accent ml-auto flex h-5 w-5 items-center justify-center rounded p-0"
+													className="hover:bg-accent ml-auto flex size-5 items-center justify-center rounded p-0"
 												>
 													<X className="text-muted-foreground size-3" />
 												</button>
@@ -376,7 +376,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 									/>
 								) : (
 									<div className="flex items-center justify-center py-8">
-										<Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+										<Loader2 className="text-muted-foreground size-6 animate-spin" />
 									</div>
 								)}
 							</div>
@@ -489,7 +489,7 @@ function CollectionItem({ title, subtitle, onClick }: CollectionItemProps) {
 				<p className="font-medium">{title}</p>
 				<p className="text-muted-foreground text-xs">{subtitle}</p>
 			</div>
-			<ArrowRight className="size-4" />
+			<ArrowRight />
 		</Button>
 	);
 }
@@ -522,13 +522,13 @@ function StickerItem({
 	const collectionPrefix = iconName.split(":")[0];
 
 	const preview = imageError ? (
-		<div className="flex h-full w-full items-center justify-center p-2">
+		<div className="flex size-full items-center justify-center p-2">
 			<span className="text-muted-foreground text-center text-xs break-all">
 				{displayName}
 			</span>
 		</div>
 	) : (
-		<div className="flex h-full w-full items-center justify-center p-4">
+		<div className="flex size-full items-center justify-center p-4">
 			<Image
 				src={
 					hostIndex === 0
@@ -542,7 +542,7 @@ function StickerItem({
 				alt={displayName}
 				width={64}
 				height={64}
-				className="h-full w-full object-contain"
+				className="size-full object-contain"
 				style={
 					capSize
 						? {

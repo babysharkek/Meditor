@@ -260,7 +260,7 @@ export function Timeline() {
 							className="bg-panel z-100 w-28 shrink-0 overflow-y-auto border-r"
 							style={{ paddingTop: TIMELINE_CONSTANTS.PADDING_TOP }}
 						>
-							<ScrollArea className="h-full w-full" ref={trackLabelsScrollRef}>
+							<ScrollArea className="size-full" ref={trackLabelsScrollRef}>
 								<div className="flex flex-col gap-1">
 									{tracks.map((track) => (
 										<div
@@ -344,7 +344,7 @@ export function Timeline() {
 						/>
 
 						<ScrollArea
-							className="h-full w-full"
+							className="size-full"
 							ref={tracksScrollRef}
 							onMouseDown={(event) => {
 								const isDirectTarget = event.target === event.currentTarget;

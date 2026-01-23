@@ -1665,18 +1665,18 @@ create-icon.tsx
   export function createIcon({ definition }: CreateIconParams)
 
 index.tsx
-  export const GoogleIcon
-  export const GithubIcon
-  export const VercelIcon
-  export const DataBuddyIcon
-  export const MarbleIcon
-  export const BackgroundIcon
-  export const SocialsIcon
-  export const TransitionUpIcon
-  export const MenuIcon
-  export const PencilIcon
-  export const LeftArrowIcon
-  export const TrashIcon
+  export const OcGoogleIcon
+  export const OcGithubIcon
+  export const OcVercelIcon
+  export const OcDataBuddyIcon
+  export const OcMarbleIcon
+  export const OcBackgroundIcon
+  export const OcSocialsIcon
+  export const OcTransitionUpIcon
+  export const OcMenuIcon
+  export const OcPencilIcon
+  export const OcLeftArrowIcon
+  export const OcTrashIcon
 
 types.ts
   export type IconProps = Omit<
@@ -1694,24 +1694,13 @@ types.ts
   	nodes: IconNode;
   }
 
-## packages/ui/src/icons/collections
-
-brand.ts
-  export const BRAND_COLLECTION
-
-editor.ts
-  export const EDITOR_COLLECTION
-
-index.ts
-  export const ICON_COLLECTIONS
-
-ui.ts
-  export const UI_COLLECTION
-
 ## packages/ui/src/icons/registry
 
 brand.ts
   export const BRAND_ICONS
+
+editor.ts
+  export const EDITOR_ICONS
 
 index.ts
   export const ICON_DEFINITIONS

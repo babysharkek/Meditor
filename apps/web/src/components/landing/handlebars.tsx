@@ -113,7 +113,7 @@ export function Handlebars({ children }: HandlebarsProps) {
 	return (
 		<div className="flex justify-center gap-4 leading-16">
 			<div ref={containerRef} className="relative mt-0.5 -rotate-[2.76deg]">
-				<div className="absolute inset-0 z-10 flex h-full w-full justify-between rounded-2xl border border-yellow-500">
+				<div className="absolute inset-0 z-10 flex size-full justify-between rounded-2xl border border-yellow-500">
 					<div
 						ref={leftHandleRef}
 						className="bg-background absolute left-0 z-20 flex h-full w-7 cursor-ew-resize touch-none items-center justify-center rounded-full border border-yellow-500 select-none"
@@ -154,7 +154,7 @@ export function Handlebars({ children }: HandlebarsProps) {
 				</div>
 
 				<span
-					className="relative z-0 inline-flex h-full w-full items-center justify-center rounded-2xl px-9 will-change-auto"
+					className="relative z-0 inline-flex size-full items-center justify-center rounded-2xl px-9 will-change-auto"
 					style={{
 						mask: `linear-gradient(90deg,
             rgba(255, 255, 255, 0) 0%, 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TransitionUpIcon } from "@opencut/ui/icons";
+import { OcTransitionUpIcon } from "@opencut/ui/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
@@ -53,9 +53,9 @@ export function ExportButton() {
 					}}
 				>
 					<div className="relative flex items-center gap-1.5 rounded-[0.8rem] bg-linear-270 from-[#2567EC] to-[#37B6F7] px-4 py-1 shadow-[0_1px_3px_0px_rgba(0,0,0,0.65)]">
-						<TransitionUpIcon className="z-50" />
+						<OcTransitionUpIcon className="z-50" />
 						<span className="z-50 text-[0.875rem]">Export</span>
-						<div className="absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center rounded-[0.8rem] bg-linear-to-t from-white/0 to-white/50">
+						<div className="absolute top-0 left-0 z-10 flex size-full items-center justify-center rounded-[0.8rem] bg-linear-to-t from-white/0 to-white/50">
 							<div className="absolute top-[0.08rem] z-50 h-[calc(100%-2px)] w-[calc(100%-2px)] rounded-[0.8rem] bg-linear-270 from-[#2567EC] to-[#37B6F7]"></div>
 						</div>
 					</div>
@@ -240,7 +240,7 @@ function ExportPopover({
 								</div>
 
 								<Button onClick={handleExport} className="w-full gap-2">
-									<Download className="h-4 w-4" />
+									<Download className="size-4" />
 									Export
 								</Button>
 							</>

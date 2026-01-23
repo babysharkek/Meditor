@@ -1,51 +1,51 @@
 import { createIcon } from "./create-icon";
 import { ICON_DEFINITIONS } from "./registry";
 
-export const GoogleIcon = createIcon({
+export const OcGoogleIcon = createIcon({
 	definition: ICON_DEFINITIONS.google,
 });
 
-export const GithubIcon = createIcon({
+export const OcGithubIcon = createIcon({
 	definition: ICON_DEFINITIONS.github,
 });
 
-export const VercelIcon = createIcon({
+export const OcVercelIcon = createIcon({
 	definition: ICON_DEFINITIONS.vercel,
 });
 
-export const DataBuddyIcon = createIcon({
+export const OcDataBuddyIcon = createIcon({
 	definition: ICON_DEFINITIONS.databuddy,
 });
 
-export const MarbleIcon = createIcon({
+export const OcMarbleIcon = createIcon({
 	definition: ICON_DEFINITIONS.marble,
 });
 
-export const BackgroundIcon = createIcon({
+export const OcBackgroundIcon = createIcon({
 	definition: ICON_DEFINITIONS.background,
 });
 
-export const SocialsIcon = createIcon({
+export const OcSocialsIcon = createIcon({
 	definition: ICON_DEFINITIONS.socials,
 });
 
-export const TransitionUpIcon = createIcon({
+export const OcTransitionUpIcon = createIcon({
 	definition: ICON_DEFINITIONS.transitionUp,
 });
 
-export const MenuIcon = createIcon({
+export const OcMenuIcon = createIcon({
 	definition: ICON_DEFINITIONS.menu,
 });
 
-export const PencilIcon = createIcon({
+export const OcPencilIcon = createIcon({
 	definition: ICON_DEFINITIONS.pencil,
 });
 
-export const LeftArrowIcon = createIcon({
+export const OcLeftArrowIcon = createIcon({
 	definition: ICON_DEFINITIONS.leftArrow,
 });
 
-export const TrashIcon = createIcon({
+export const OcTrashIcon = createIcon({
 	definition: ICON_DEFINITIONS.trash,
 });
 
