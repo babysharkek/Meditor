@@ -16,13 +16,14 @@ export class ImageNode extends BaseNode<ImageNodeParams> {
 	}
 
 	private async load() {
-		this.image = new Image();
+		const image = new Image();
+		this.image = image;
 		const url = URL.createObjectURL(this.params.file);
 
 		await new Promise<void>((resolve, reject) => {
-			this.image!.onload = () => resolve();
-			this.image!.onerror = () => reject(new Error("Image load failed"));
-			this.image!.src = url;
+			image.onload = () => resolve();
+			image.onerror = () => reject(new Error("Image load failed"));
+			image.src = url;
 		});
 
 		URL.revokeObjectURL(url);

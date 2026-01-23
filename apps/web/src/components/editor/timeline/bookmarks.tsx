@@ -26,28 +26,30 @@ export function TimelineBookmarksRow({
 	const activeScene = editor.scenes.getActiveScene();
 
 	return (
-		<div
-			className="relative h-4 flex-1 overflow-hidden"
-			onWheel={handleWheel}
-			onClick={handleTimelineContentClick}
-			onMouseDown={handleRulerTrackingMouseDown}
-		>
+		<div className="relative h-4 flex-1 overflow-hidden">
 			<ScrollArea className="scrollbar-hidden w-full" ref={bookmarksScrollRef}>
-				<div
-					className="relative h-4 cursor-default select-none"
+				<button
+					className="relative h-4 w-full cursor-default select-none border-0 bg-transparent p-0"
 					style={{
 						width: `${dynamicTimelineWidth}px`,
 					}}
-					onMouseDown={handleRulerMouseDown}
+					aria-label="Timeline ruler"
+					type="button"
+					onWheel={handleWheel}
+					onClick={handleTimelineContentClick}
+					onMouseDown={(event) => {
+						handleRulerMouseDown(event);
+						handleRulerTrackingMouseDown(event);
+					}}
 				>
-					{activeScene.bookmarks.map((time: number, index: number) => (
+					{activeScene.bookmarks.map((time: number) => (
 						<TimelineBookmark
-							key={`bookmark-row-${index}`}
+							key={`bookmark-row-${time}`}
 							time={time}
 							zoomLevel={zoomLevel}
 						/>
 					))}
-				</div>
+				</button>
 			</ScrollArea>
 		</div>
 	);
@@ -65,23 +67,29 @@ export function TimelineBookmark({
 	const handleBookmarkClick = ({
 		event,
 	}: {
-		event: React.MouseEvent<HTMLDivElement>;
+		event: React.MouseEvent<HTMLButtonElement>;
 	}) => {
 		event.stopPropagation();
 		editor.playback.seek({ time });
 	};
 
 	return (
-		<div
-			className="absolute top-0 h-10 w-0.5 cursor-pointer"
+		<button
+			className="absolute top-0 h-10 w-0.5 cursor-pointer border-0 bg-transparent p-0"
 			style={{
 				left: `${time * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel}px`,
 			}}
+			aria-label={`Seek to bookmark at ${time}s`}
+			type="button"
 			onClick={(event) => handleBookmarkClick({ event })}
 		>
 			<div className="text-primary absolute top-[-1px] left-[-5px]">
-				<Bookmark className="fill-primary size-3" />
+				<Bookmark
+					aria-hidden="true"
+					className="fill-primary size-3"
+					focusable="false"
+				/>
 			</div>
-		</div>
+		</button>
 	);
 }

@@ -93,7 +93,7 @@ export const useKeybindingsStore = create<KeybindingsState>()(
 
 			importKeybindings: (config: KeybindingConfig) => {
 				// Validate all keys and actions
-				for (const [key, action] of Object.entries(config)) {
+				for (const [key] of Object.entries(config)) {
 					// Validate the key format
 					if (typeof key !== "string" || key.length === 0) {
 						throw new Error(`Invalid key format: ${key}`);

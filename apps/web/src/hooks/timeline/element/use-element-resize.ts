@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { TimelineElement, TimelineTrack } from "@/types/timeline";
 import { snapTimeToFrame } from "@/lib/time";
 import { EditorCore } from "@/core";
@@ -48,26 +48,6 @@ export function useTimelineElementResize({
 	const currentStartTimeRef = useRef(element.startTime);
 	const currentDurationRef = useRef(element.duration);
 
-	useEffect(() => {
-		if (!resizing) return;
-
-		const handleDocumentMouseMove = ({ clientX }: MouseEvent) => {
-			updateTrimFromMouseMove({ clientX });
-		};
-
-		const handleDocumentMouseUp = () => {
-			handleResizeEnd();
-		};
-
-		document.addEventListener("mousemove", handleDocumentMouseMove);
-		document.addEventListener("mouseup", handleDocumentMouseUp);
-
-		return () => {
-			document.removeEventListener("mousemove", handleDocumentMouseMove);
-			document.removeEventListener("mouseup", handleDocumentMouseUp);
-		};
-	}, [resizing]);
-
 	const handleResizeStart = ({
 		e,
 		elementId,
@@ -101,15 +81,15 @@ export function useTimelineElementResize({
 		onResizeStateChange?.({ isResizing: true });
 	};
 
-	const canExtendElementDuration = () => {
+	const canExtendElementDuration = useCallback(() => {
 		if (element.type === "text" || element.type === "image") {
 			return true;
 		}
 
 		return false;
-	};
+	}, [element.type]);
 
-	const updateTrimFromMouseMove = ({ clientX }: { clientX: number }) => {
+	const updateTrimFromMouseMove = useCallback(({ clientX }: { clientX: number }) => {
 		if (!resizing) return;
 
 		const deltaX = clientX - resizing.startX;
@@ -277,9 +257,9 @@ export function useTimelineElementResize({
 				currentDurationRef.current = newDuration;
 			}
 		}
-	};
+	}, [resizing, zoomLevel, activeProject.settings.fps, snappingEnabled, editor, findSnapPoints, snapToNearestPoint, element.id, onSnapPointChange, canExtendElementDuration]);
 
-	const handleResizeEnd = () => {
+	const handleResizeEnd = useCallback(() => {
 		if (!resizing) return;
 
 		const finalTrimStart = currentTrimStartRef.current;
@@ -317,7 +297,27 @@ export function useTimelineElementResize({
 		setResizing(null);
 		onResizeStateChange?.({ isResizing: false });
 		onSnapPointChange?.(null);
-	};
+	}, [resizing, editor.timeline, element.id, track.id, onResizeStateChange, onSnapPointChange]);
+
+	useEffect(() => {
+		if (!resizing) return;
+
+		const handleDocumentMouseMove = ({ clientX }: MouseEvent) => {
+			updateTrimFromMouseMove({ clientX });
+		};
+
+		const handleDocumentMouseUp = () => {
+			handleResizeEnd();
+		};
+
+		document.addEventListener("mousemove", handleDocumentMouseMove);
+		document.addEventListener("mouseup", handleDocumentMouseUp);
+
+		return () => {
+			document.removeEventListener("mousemove", handleDocumentMouseMove);
+			document.removeEventListener("mouseup", handleDocumentMouseUp);
+		};
+	}, [resizing, handleResizeEnd, updateTrimFromMouseMove]);
 
 	return {
 		resizing,

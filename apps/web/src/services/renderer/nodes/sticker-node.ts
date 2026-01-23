@@ -25,17 +25,18 @@ export class StickerNode extends BaseNode<StickerNodeParams> {
 	}
 
 	private async load() {
-		this.image = new Image();
+		const image = new Image();
+		this.image = image;
 		const color = this.params.color
 			? `&color=${encodeURIComponent(this.params.color)}`
 			: "";
 		const url = `https://api.iconify.design/${this.params.iconName}.svg?width=200&height=200${color}`;
 
 		await new Promise<void>((resolve, reject) => {
-			this.image!.onload = () => resolve();
-			this.image!.onerror = () =>
+			image.onload = () => resolve();
+			image.onerror = () =>
 				reject(new Error(`Failed to load sticker: ${this.params.iconName}`));
-			this.image!.src = url;
+			image.src = url;
 		});
 	}
 

@@ -3,7 +3,7 @@ import { invokeAction } from "@/lib/actions";
 import { useKeybindingsStore } from "@/stores/keybindings-store";
 
 /**
- * A composable that hooks to the caller component's
+ * a composable that hooks to the caller component's
  * lifecycle and hooks to the keyboard events to fire
  * the appropriate actions based on keybindings
  */
@@ -13,7 +13,7 @@ export function useKeybindingsListener() {
 
 	useEffect(() => {
 		const handleKeyDown = (ev: KeyboardEvent) => {
-			// Do not check keybinds if the mode is disabled
+			// do not check keybinds if the mode is disabled
 			if (!keybindingsEnabled) return;
 			// ignore key events if user is changing keybindings
 			if (isRecording) return;
@@ -35,20 +35,22 @@ export function useKeybindingsListener() {
 
 			ev.preventDefault();
 
-			// Handle actions with default arguments
-			let actionArgs: any;
-
-			if (boundAction === "seek-forward") {
-				actionArgs = { seconds: 1 };
-			} else if (boundAction === "seek-backward") {
-				actionArgs = { seconds: 1 };
-			} else if (boundAction === "jump-forward") {
-				actionArgs = { seconds: 5 };
-			} else if (boundAction === "jump-backward") {
-				actionArgs = { seconds: 5 };
-			}
-
-			invokeAction(boundAction, actionArgs, "keypress");
+		switch (boundAction) {
+			case "seek-forward":
+				invokeAction("seek-forward", { seconds: 1 }, "keypress");
+				break;
+			case "seek-backward":
+				invokeAction("seek-backward", { seconds: 1 }, "keypress");
+				break;
+			case "jump-forward":
+				invokeAction("jump-forward", { seconds: 5 }, "keypress");
+				break;
+			case "jump-backward":
+				invokeAction("jump-backward", { seconds: 5 }, "keypress");
+				break;
+			default:
+				invokeAction(boundAction, undefined, "keypress");
+		}
 		};
 
 		document.addEventListener("keydown", handleKeyDown);
@@ -60,7 +62,7 @@ export function useKeybindingsListener() {
 }
 
 /**
- * This composable allows for the UI component to be disabled if the component in question is mounted
+ * this composable allows for the UI component to be disabled if the component in question is mounted
  */
 export function useKeybindingDisabler() {
 	const { disableKeybindings, enableKeybindings } = useKeybindingsStore();
@@ -70,6 +72,3 @@ export function useKeybindingDisabler() {
 		enableKeybindings,
 	};
 }
-
-// Export the bindings for backward compatibility
-export const bindings = {};

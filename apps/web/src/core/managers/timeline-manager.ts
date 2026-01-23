@@ -1,7 +1,6 @@
 import type { EditorCore } from "@/core";
 import type {
 	TrackType,
-	CreateTimelineElement,
 	TimelineTrack,
 	TextElement,
 	TimelineElement,

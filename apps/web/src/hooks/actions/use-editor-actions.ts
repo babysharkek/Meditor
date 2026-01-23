@@ -224,7 +224,7 @@ export function useEditorActions() {
 				elements: selectedElements,
 			});
 			const items = results.map(({ track, element }) => {
-				const { id, ...elementWithoutId } = element;
+				const { ...elementWithoutId } = element;
 				return {
 					trackId: track.id,
 					trackType: track.type,

@@ -7,12 +7,12 @@ import { capitalizeFirstLetter } from "@/utils/strings";
 
 type Category = "resources" | "company";
 
-interface Link {
+interface FooterLink {
 	label: string;
 	href: string;
 }
 
-type CategoryLinks = Record<Category, Link[]>;
+type CategoryLinks = Record<Category, FooterLink[]>;
 
 const links: CategoryLinks = {
 	resources: [

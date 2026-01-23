@@ -129,12 +129,14 @@ export function DraggableItem({
 						{shouldShowLabel && (
 							<span
 								className="text-muted-foreground w-full truncate text-left text-[0.7rem]"
-								aria-label={name}
 								title={name}
 							>
-								{name.length > 8
-									? `${name.slice(0, 16)}...${name.slice(-3)}`
-									: name}
+								<span className="sr-only">{name}</span>
+								<span aria-hidden="true">
+									{name.length > 8
+										? `${name.slice(0, 16)}...${name.slice(-3)}`
+										: name}
+								</span>
 							</span>
 						)}
 					</div>
@@ -147,7 +149,8 @@ export function DraggableItem({
 						isHighlighted && highlightClassName,
 					)}
 				>
-					<div
+					<button
+						type="button"
 						className={cn(
 							"flex h-8 w-full cursor-default items-center gap-3 px-1",
 							isDraggable && "[&::-webkit-drag-ghost]:opacity-0",
@@ -161,7 +164,7 @@ export function DraggableItem({
 							{preview}
 						</div>
 						<span className="w-full flex-1 truncate text-sm">{name}</span>
-					</div>
+					</button>
 				</div>
 			)}
 

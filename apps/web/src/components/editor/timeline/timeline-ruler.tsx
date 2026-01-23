@@ -47,13 +47,21 @@ export function TimelineRuler({
 
 	return (
 		<div
+			role="slider"
+			tabIndex={0}
+			aria-label="Timeline ruler"
+			aria-valuemin={0}
+			aria-valuemax={effectiveDuration}
+			aria-valuenow={0}
 			className="relative h-4 flex-1 overflow-hidden"
 			onWheel={handleWheel}
 			onClick={handleTimelineContentClick}
 			onMouseDown={handleRulerTrackingMouseDown}
+			onKeyDown={() => {}}
 		>
 			<ScrollArea className="scrollbar-hidden w-full" ref={rulerScrollRef}>
 				<div
+					role="none"
 					ref={rulerRef}
 					className="relative h-4 cursor-default select-none"
 					style={{

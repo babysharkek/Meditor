@@ -56,7 +56,7 @@ export function EditorProvider({ projectId, children }: EditorProviderProps) {
 							name: "Untitled Project",
 						});
 						router.replace(`/editor/${newProjectId}`);
-					} catch (createErr) {
+					} catch (_createErr) {
 						setError("Failed to create project");
 						setIsLoading(false);
 					}

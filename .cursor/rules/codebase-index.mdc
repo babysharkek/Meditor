@@ -140,7 +140,6 @@ use-infinite-scroll.ts
 use-keybindings.ts
   export function useKeybindingsListener()
   export function useKeybindingDisabler()
-  export const bindings
 
 use-keyboard-shortcuts-help.ts
   export interface KeyboardShortcut {
@@ -228,19 +227,18 @@ use-snap-indicator-position.ts
   }: UseSnapIndicatorPositionParams): SnapIndicatorPosition
 
 use-timeline-drag-drop.ts
-  export function useTimelineDragDrop({
-  	containerRef,
-  	zoomLevel,
-  	isSnappingEnabled = true,
+  export function useTimelineDragDrop({
+  	containerRef,
+  	zoomLevel,
   }: UseTimelineDragDropProps)
 
 use-timeline-playhead.ts
-  export function useTimelinePlayhead({
-  	zoomLevel,
-  	rulerRef,
-  	rulerScrollRef,
-  	tracksScrollRef,
-  	playheadRef,
+  export function useTimelinePlayhead({
+  	zoomLevel,
+  	rulerRef,
+  	rulerScrollRef,
+  	tracksScrollRef,
+  	playheadRef,
   }: UseTimelinePlayheadProps)
 
 use-timeline-seek.ts
@@ -308,12 +306,12 @@ use-element-resize.ts
     initialStartTime: number
     initialDuration: number
   }
-  export function useTimelineElementResize({
-  	element,
-  	track,
-  	zoomLevel,
-  	onSnapPointChange,
-  	onResizeStateChange,
+  export function useTimelineElementResize({
+  	element,
+  	track,
+  	zoomLevel,
+  	onSnapPointChange,
+  	onResizeStateChange,
   }: UseTimelineElementResizeProps)
 
 use-element-selection.ts
@@ -1049,11 +1047,11 @@ scene-builder.ts
 scene-exporter.ts
   export type ExportFormat = "mp4" | "webm"
   export type ExportQuality = "low" | "medium" | "high" | "very_high"
-  export type SceneExporterEvents = {
-  	progress: [progress: number];
-  	complete: [buffer: ArrayBuffer];
-  	error: [error: Error];
-  	cance...
+  export type SceneExporterEvents = {
+  	progress: [progress: number];
+  	complete: [buffer: ArrayBuffer];
+  	error: [error: Error];
+  	c...
   export class SceneExporter extends EventEmitter<SceneExporterEvents> {
     renderer: CanvasRenderer
     format: ExportFormat

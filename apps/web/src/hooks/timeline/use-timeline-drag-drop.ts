@@ -16,13 +16,11 @@ import type { MediaDragData, StickerDragData } from "@/types/drag";
 interface UseTimelineDragDropProps {
 	containerRef: RefObject<HTMLDivElement | null>;
 	zoomLevel: number;
-	isSnappingEnabled?: boolean;
 }
 
 export function useTimelineDragDrop({
 	containerRef,
 	zoomLevel,
-	isSnappingEnabled = true,
 }: UseTimelineDragDropProps) {
 	const editor = useEditor();
 	const [isDragOver, setIsDragOver] = useState(false);
@@ -488,11 +486,12 @@ export function useTimelineDragDrop({
 			}
 		},
 		[
-			dropTarget,
-			executeTextDrop,
-			executeStickerDrop,
-			executeMediaDrop,
+			dropTarget, 
+			executeTextDrop, 
+			executeStickerDrop, 
+			executeMediaDrop, 
 			executeFileDrop,
+			containerRef,
 		],
 	);
 

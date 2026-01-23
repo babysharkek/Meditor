@@ -6,19 +6,21 @@ import type {
 	TActionArgsMap,
 	TArgOfAction,
 	TInvocationTrigger,
-	TBoundActionList,
 } from "./types";
 
-const boundActions: TBoundActionList = {};
+type ActionHandler = (arg: unknown, trigger?: TInvocationTrigger) => void;
+const boundActions: Partial<Record<TAction, ActionHandler[]>> = {};
 
 export function bindAction<A extends TAction>(
 	action: A,
 	handler: TActionFunc<A>,
 ) {
-	if (boundActions[action]) {
-		boundActions[action]?.push(handler);
+	const handlers = boundActions[action];
+	const typedHandler = handler as ActionHandler;
+	if (handlers) {
+		handlers.push(typedHandler);
 	} else {
-		boundActions[action] = [handler] as any;
+		boundActions[action] = [typedHandler];
 	}
 }
 
@@ -26,9 +28,11 @@ export function unbindAction<A extends TAction>(
 	action: A,
 	handler: TActionFunc<A>,
 ) {
-	boundActions[action] = boundActions[action]?.filter(
-		(x) => x !== handler,
-	) as any;
+	const handlers = boundActions[action];
+	if (!handlers) return;
+
+	const typedHandler = handler as ActionHandler;
+	boundActions[action] = handlers.filter((h) => h !== typedHandler);
 
 	if (boundActions[action]?.length === 0) {
 		delete boundActions[action];
@@ -41,7 +45,11 @@ type InvokeActionFunc = {
 		args?: undefined,
 		trigger?: TInvocationTrigger,
 	): void;
-	<A extends TActionWithArgs>(action: A, args: TActionArgsMap[A]): void;
+	<A extends TActionWithArgs>(
+		action: A,
+		args: TActionArgsMap[A],
+		trigger?: TInvocationTrigger,
+	): void;
 };
 
 export const invokeAction: InvokeActionFunc = <A extends TAction>(
@@ -49,5 +57,5 @@ export const invokeAction: InvokeActionFunc = <A extends TAction>(
 	args?: TArgOfAction<A>,
 	trigger?: TInvocationTrigger,
 ) => {
-	boundActions[action]?.forEach((handler) => (handler as any)(args, trigger));
+	boundActions[action]?.forEach((handler) => handler(args, trigger));
 };

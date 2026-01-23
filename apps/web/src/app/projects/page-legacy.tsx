@@ -102,7 +102,7 @@ export default function ProjectsPage() {
 		setSelectedProjects(newSelected);
 	};
 
-	const handleSelectAll = ({ checked }: { checked: boolean }) => {
+	const _handleSelectAll = ({ checked }: { checked: boolean }) => {
 		if (checked) {
 			setSelectedProjects(
 				new Set(projectsToDisplay.map((project) => project.id)),
@@ -141,11 +141,11 @@ export default function ProjectsPage() {
 		sortOption,
 	});
 
-	const isAllSelected =
+	const _isAllSelected =
 		projectsToDisplay.length > 0 &&
 		selectedProjects.size === projectsToDisplay.length;
 
-	const hasSomeSelected =
+	const _hasSomeSelected =
 		selectedProjects.size > 0 &&
 		selectedProjects.size < projectsToDisplay.length;
 
