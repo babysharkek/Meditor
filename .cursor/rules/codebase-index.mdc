@@ -1650,31 +1650,44 @@ ui.ts
 
 ## packages/ui/src/icons
 
-base-icon.tsx
-  export function BaseIcon({
-  	title,
-  	size = 24,
-  	viewBox = "0 0 24 24",
-  	children,
-  	...props
-  }: BaseIconProps)
+brand.tsx
+  export function OcGoogleIcon({ className }: { className?: string })
+  export function OcGithubIcon({ className }: { className?: string })
+  export function OcVercelIcon({ className }: { className?: string })
+  export function OcMarbleIcon({
+  	className = "",
+  	size = 32,
+  }: {
+  	className?: string;
+  	size?: number;
+  })
+  export function OcDataBuddyIcon({
+  	className = "",
+  	size = 32,
+  }: {
+  	className?: string;
+  	size?: number;
+  })
 
 create-icon.tsx
   export function createIcon({ definition }: CreateIconParams)
 
-index.tsx
-  export const OcGoogleIcon
-  export const OcGithubIcon
-  export const OcVercelIcon
-  export const OcDataBuddyIcon
-  export const OcMarbleIcon
-  export const OcBackgroundIcon
-  export const OcSocialsIcon
-  export const OcTransitionUpIcon
-  export const OcMenuIcon
-  export const OcPencilIcon
-  export const OcLeftArrowIcon
-  export const OcTrashIcon
+editor.tsx
+  export function OcBackgroundIcon({ className }: { className?: string })
+  export function OcSocialsIcon({
+  	className = "",
+  	size = 32,
+  }: {
+  	className?: string;
+  	size?: number;
+  })
+  export function OcTransitionUpIcon({
+  	className = "",
+  	size = 16,
+  }: {
+  	className?: string;
+  	size?: number;
+  })
 
 types.ts
   export type IconProps = Omit<
@@ -1692,10 +1705,37 @@ types.ts
   	nodes: IconNode;
   }
 
-## packages/ui/src/icons/registry
+ui.tsx
+  export function OcMenuIcon({
+  	className = "",
+  	size = 16,
+  }: {
+  	className?: string;
+  	size?: number;
+  })
+  export function OcPencilIcon({
+  	className = "",
+  	size = 24,
+  }: {
+  	className?: string;
+  	size?: number;
+  })
+  export function OcLeftArrowIcon({
+  	className = "",
+  	size = 24,
+  }: {
+  	className?: string;
+  	size?: number;
+  })
+  export function OcTrashIcon({
+  	className = "",
+  	size = 24,
+  }: {
+  	className?: string;
+  	size?: number;
+  })
 
-brand.ts
-  export const BRAND_ICONS
+## packages/ui/src/icons/registry
 
 editor.ts
   export const EDITOR_ICONS
