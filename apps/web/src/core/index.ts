@@ -8,37 +8,37 @@ import { CommandManager } from "./managers/commands";
 import { SaveManager } from "./managers/save-manager";
 
 export class EditorCore {
-  private static instance: EditorCore | null = null;
+	private static instance: EditorCore | null = null;
 
-  public readonly command: CommandManager;
-  public readonly playback: PlaybackManager;
-  public readonly timeline: TimelineManager;
-  public readonly scenes: ScenesManager;
-  public readonly project: ProjectManager;
-  public readonly media: MediaManager;
-  public readonly renderer: RendererManager;
-  public readonly save: SaveManager;
+	public readonly command: CommandManager;
+	public readonly playback: PlaybackManager;
+	public readonly timeline: TimelineManager;
+	public readonly scenes: ScenesManager;
+	public readonly project: ProjectManager;
+	public readonly media: MediaManager;
+	public readonly renderer: RendererManager;
+	public readonly save: SaveManager;
 
-  private constructor() {
-    this.command = new CommandManager();
-    this.playback = new PlaybackManager(this);
-    this.timeline = new TimelineManager(this);
-    this.scenes = new ScenesManager(this);
-    this.project = new ProjectManager(this);
-    this.media = new MediaManager(this);
-    this.renderer = new RendererManager(this);
-    this.save = new SaveManager(this);
-    this.save.start();
-  }
+	private constructor() {
+		this.command = new CommandManager();
+		this.playback = new PlaybackManager(this);
+		this.timeline = new TimelineManager(this);
+		this.scenes = new ScenesManager(this);
+		this.project = new ProjectManager(this);
+		this.media = new MediaManager(this);
+		this.renderer = new RendererManager(this);
+		this.save = new SaveManager(this);
+		this.save.start();
+	}
 
-  static getInstance(): EditorCore {
-    if (!EditorCore.instance) {
-      EditorCore.instance = new EditorCore();
-    }
-    return EditorCore.instance;
-  }
+	static getInstance(): EditorCore {
+		if (!EditorCore.instance) {
+			EditorCore.instance = new EditorCore();
+		}
+		return EditorCore.instance;
+	}
 
-  static reset(): void {
-    EditorCore.instance = null;
-  }
+	static reset(): void {
+		EditorCore.instance = null;
+	}
 }

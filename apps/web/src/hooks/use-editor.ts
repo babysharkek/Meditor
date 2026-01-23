@@ -1,22 +1,38 @@
-import { useEffect, useMemo, useReducer } from "react";
+import { useCallback, useMemo, useRef, useSyncExternalStore } from "react";
 import { EditorCore } from "@/core";
 
 export function useEditor(): EditorCore {
-  const editor = useMemo(() => EditorCore.getInstance(), []);
-  const [, forceUpdate] = useReducer((x) => x + 1, 0);
+	const editor = useMemo(() => EditorCore.getInstance(), []);
+	const versionRef = useRef(0);
 
-  useEffect(() => {
-    const unsubscribers = [
-      editor.playback.subscribe(forceUpdate),
-      editor.timeline.subscribe(forceUpdate),
-      editor.scenes.subscribe(forceUpdate),
-      editor.project.subscribe(forceUpdate),
-      editor.media.subscribe(forceUpdate),
-      editor.renderer.subscribe(forceUpdate),
-    ];
+	const subscribe = useCallback(
+		(onStoreChange: () => void) => {
+			const handleStoreChange = () => {
+				versionRef.current += 1;
+				onStoreChange();
+			};
 
-    return () => unsubscribers.forEach((unsub) => unsub());
-  }, [editor]);
+			const unsubscribers = [
+				editor.playback.subscribe(handleStoreChange),
+				editor.timeline.subscribe(handleStoreChange),
+				editor.scenes.subscribe(handleStoreChange),
+				editor.project.subscribe(handleStoreChange),
+				editor.media.subscribe(handleStoreChange),
+				editor.renderer.subscribe(handleStoreChange),
+			];
 
-  return editor;
+			return () => {
+				for (const unsubscribe of unsubscribers) {
+					unsubscribe();
+				}
+			};
+		},
+		[editor],
+	);
+
+	const getSnapshot = useCallback(() => versionRef.current, []);
+
+	useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+
+	return editor;
 }

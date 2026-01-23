@@ -1,568 +1,570 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { useState, useMemo, useEffect } from "react";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  PlayIcon,
-  PauseIcon,
-  HeartIcon,
-  PlusIcon,
-  ListFilter,
+	HeartIcon,
+	ListFilter,
+	PauseIcon,
+	PlayIcon,
+	PlusIcon,
 } from "lucide-react";
-import { useSoundsStore } from "@/stores/sounds-store";
-import { useSoundSearch } from "@/hooks/use-sound-search";
-import type { SoundEffect, SavedSound } from "@/types/sounds";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
 } from "@/components/ui/dialog";
-import { cn } from "@/utils/ui";
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { useSoundSearch } from "@/hooks/use-sound-search";
+import { useSoundsStore } from "@/stores/sounds-store";
+import type { SavedSound, SoundEffect } from "@/types/sounds";
+import { cn } from "@/utils/ui";
 
 export function SoundsView() {
-  return (
-    <div className="flex h-full flex-col">
-      <Tabs defaultValue="sound-effects" className="flex h-full flex-col">
-        <div className="px-3 pt-4 pb-0">
-          <TabsList>
-            <TabsTrigger value="sound-effects">Sound effects</TabsTrigger>
-            <TabsTrigger value="songs">Songs</TabsTrigger>
-            <TabsTrigger value="saved">Saved</TabsTrigger>
-          </TabsList>
-        </div>
-        <Separator className="my-4" />
-        <TabsContent
-          value="sound-effects"
-          className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
-        >
-          <SoundEffectsView />
-        </TabsContent>
-        <TabsContent
-          value="saved"
-          className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
-        >
-          <SavedSoundsView />
-        </TabsContent>
-        <TabsContent
-          value="songs"
-          className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
-        >
-          <SongsView />
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+	return (
+		<div className="flex h-full flex-col">
+			<Tabs defaultValue="sound-effects" className="flex h-full flex-col">
+				<div className="px-3 pt-4 pb-0">
+					<TabsList>
+						<TabsTrigger value="sound-effects">Sound effects</TabsTrigger>
+						<TabsTrigger value="songs">Songs</TabsTrigger>
+						<TabsTrigger value="saved">Saved</TabsTrigger>
+					</TabsList>
+				</div>
+				<Separator className="my-4" />
+				<TabsContent
+					value="sound-effects"
+					className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
+				>
+					<SoundEffectsView />
+				</TabsContent>
+				<TabsContent
+					value="saved"
+					className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
+				>
+					<SavedSoundsView />
+				</TabsContent>
+				<TabsContent
+					value="songs"
+					className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
+				>
+					<SongsView />
+				</TabsContent>
+			</Tabs>
+		</div>
+	);
 }
 
 function SoundEffectsView() {
-  const {
-    topSoundEffects,
-    isLoading,
-    searchQuery,
-    setSearchQuery,
-    scrollPosition,
-    setScrollPosition,
-    loadSavedSounds,
-    isSoundSaved,
-    toggleSavedSound,
-    showCommercialOnly,
-    toggleCommercialFilter,
-    hasLoaded,
-    setTopSoundEffects,
-    setLoading,
-    setError,
-    setHasLoaded,
-    setCurrentPage,
-    setHasNextPage,
-    setTotalCount,
-  } = useSoundsStore();
-  const {
-    results: searchResults,
-    isLoading: isSearching,
-    loadMore,
-    hasNextPage,
-    isLoadingMore,
-  } = useSoundSearch({
-    query: searchQuery,
-    commercialOnly: showCommercialOnly,
-  });
+	const {
+		topSoundEffects,
+		isLoading,
+		searchQuery,
+		setSearchQuery,
+		scrollPosition,
+		setScrollPosition,
+		loadSavedSounds,
+		showCommercialOnly,
+		toggleCommercialFilter,
+		hasLoaded,
+		setTopSoundEffects,
+		setLoading,
+		setError,
+		setHasLoaded,
+		setCurrentPage,
+		setHasNextPage,
+		setTotalCount,
+	} = useSoundsStore();
+	const {
+		results: searchResults,
+		isLoading: isSearching,
+		loadMore,
+		hasNextPage,
+		isLoadingMore,
+	} = useSoundSearch({
+		query: searchQuery,
+		commercialOnly: showCommercialOnly,
+	});
 
-  // Audio playback state
-  const [playingId, setPlayingId] = useState<number | null>(null);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
-    null,
-  );
+	const [playingId, setPlayingId] = useState<number | null>(null);
+	const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
+		null,
+	);
 
-  const { scrollAreaRef, handleScroll } = useInfiniteScroll({
-    onLoadMore: loadMore,
-    hasMore: hasNextPage,
-    isLoading: isLoadingMore || isSearching,
-  });
+	const { scrollAreaRef, handleScroll } = useInfiniteScroll({
+		onLoadMore: loadMore,
+		hasMore: hasNextPage,
+		isLoading: isLoadingMore || isSearching,
+	});
 
-  useEffect(() => {
-    loadSavedSounds();
+	useEffect(() => {
+		loadSavedSounds();
+	}, [loadSavedSounds]);
 
-    if (!hasLoaded) {
-      let ignore = false;
+	useEffect(() => {
+		if (hasLoaded) {
+			return;
+		}
 
-      const fetchTopSounds = async () => {
-        try {
-          if (!ignore) {
-            setLoading({ loading: true });
-            setError({ error: null });
-          }
+		let shouldIgnore = false;
 
-          const response = await fetch(
-            "/api/sounds/search?page_size=50&sort=downloads",
-          );
+		const fetchTopSounds = async () => {
+			try {
+				if (!shouldIgnore) {
+					setLoading({ loading: true });
+					setError({ error: null });
+				}
 
-          if (!ignore) {
-            if (!response.ok) {
-              throw new Error(`Failed to fetch: ${response.status}`);
-            }
+				const response = await fetch(
+					"/api/sounds/search?page_size=50&sort=downloads",
+				);
 
-            const data = await response.json();
-            setTopSoundEffects({ sounds: data.results });
-            setHasLoaded({ loaded: true });
+				if (!shouldIgnore) {
+					if (!response.ok) {
+						throw new Error(`Failed to fetch: ${response.status}`);
+					}
 
-            setCurrentPage({ page: 1 });
-            setHasNextPage({ hasNext: !!data.next });
-            setTotalCount({ count: data.count });
-          }
-        } catch (error) {
-          if (!ignore) {
-            console.error("Failed to fetch top sounds:", error);
-            setError({
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "Failed to load sounds",
-            });
-          }
-        } finally {
-          if (!ignore) {
-            setLoading({ loading: false });
-          }
-        }
-      };
+					const data = await response.json();
+					setTopSoundEffects({ sounds: data.results });
+					setHasLoaded({ loaded: true });
 
-      const timeoutId = setTimeout(fetchTopSounds, 100);
+					setCurrentPage({ page: 1 });
+					setHasNextPage({ hasNext: !!data.next });
+					setTotalCount({ count: data.count });
+				}
+			} catch (error) {
+				if (!shouldIgnore) {
+					console.error("Failed to fetch top sounds:", error);
+					setError({
+						error:
+							error instanceof Error ? error.message : "Failed to load sounds",
+					});
+				}
+			} finally {
+				if (!shouldIgnore) {
+					setLoading({ loading: false });
+				}
+			}
+		};
 
-      return () => {
-        clearTimeout(timeoutId);
-        ignore = true;
-      };
-    }
+		const timeoutId = setTimeout(fetchTopSounds, 100, {});
 
-    if (scrollAreaRef.current && scrollPosition > 0) {
-      const timeoutId = setTimeout(() => {
-        scrollAreaRef.current?.scrollTo({ top: scrollPosition });
-      }, 100);
+		return () => {
+			shouldIgnore = true;
+			clearTimeout(timeoutId);
+		};
+	}, [
+		hasLoaded,
+		setTopSoundEffects,
+		setLoading,
+		setError,
+		setHasLoaded,
+		setCurrentPage,
+		setHasNextPage,
+		setTotalCount,
+	]);
 
-      return () => clearTimeout(timeoutId);
-    }
-  }, [
-    hasLoaded,
-    setTopSoundEffects,
-    setLoading,
-    setError,
-    setHasLoaded,
-    setCurrentPage,
-    setHasNextPage,
-    setTotalCount,
-  ]);
+	useEffect(() => {
+		if (!scrollAreaRef.current || scrollPosition <= 0) {
+			return;
+		}
 
-  const handleScrollWithPosition = (event: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop } = event.currentTarget;
-    setScrollPosition({ position: scrollTop });
-    handleScroll(event);
-  };
+		const restoreScrollPosition = () => {
+			scrollAreaRef.current?.scrollTo({ top: scrollPosition });
+		};
 
-  const displayedSounds = useMemo(() => {
-    const sounds = searchQuery ? searchResults : topSoundEffects;
-    return sounds;
-  }, [searchQuery, searchResults, topSoundEffects]);
+		const timeoutId = setTimeout(restoreScrollPosition, 100, {});
 
-  const playSound = (sound: SoundEffect) => {
-    if (playingId === sound.id) {
-      audioElement?.pause();
-      setPlayingId(null);
-      return;
-    }
+		return () => clearTimeout(timeoutId);
+	}, [scrollPosition, scrollAreaRef]);
 
-    // Stop previous sound
-    audioElement?.pause();
+	const handleScrollWithPosition = ({
+		currentTarget,
+	}: React.UIEvent<HTMLDivElement>) => {
+		const { scrollTop } = currentTarget;
+		setScrollPosition({ position: scrollTop });
+		handleScroll({ currentTarget } as React.UIEvent<HTMLDivElement>);
+	};
 
-    if (sound.previewUrl) {
-      const audio = new Audio(sound.previewUrl);
-      audio.addEventListener("ended", () => {
-        setPlayingId(null);
-      });
-      audio.addEventListener("error", (e) => {
-        setPlayingId(null);
-      });
-      audio.play().catch((error) => {
-        setPlayingId(null);
-      });
+	const displayedSounds = searchQuery ? searchResults : topSoundEffects;
 
-      setAudioElement(audio);
-      setPlayingId(sound.id);
-    }
-  };
+	const playSound = ({ sound }: { sound: SoundEffect }) => {
+		if (playingId === sound.id) {
+			audioElement?.pause();
+			setPlayingId(null);
+			return;
+		}
 
-  return (
-    <div className="mt-1 flex h-full flex-col gap-5">
-      <div className="flex items-center gap-3">
-        <Input
-          placeholder="Search sound effects"
-          className="bg-panel-accent w-full"
-          containerClassName="w-full"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery({ query: e.target.value })}
-          showClearIcon
-          onClear={() => setSearchQuery({ query: "" })}
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="text"
-              size="icon"
-              className={cn(showCommercialOnly && "text-primary")}
-            >
-              <ListFilter />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuCheckboxItem
-              checked={showCommercialOnly}
-              onCheckedChange={() => toggleCommercialFilter()}
-            >
-              Show only commercially licensed
-            </DropdownMenuCheckboxItem>
-            <div className="text-muted-foreground px-2 py-1.5 text-xs">
-              {showCommercialOnly
-                ? "Only showing sounds licensed for commercial use"
-                : "Showing all sounds regardless of license"}
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+		audioElement?.pause();
 
-      <div className="relative h-full overflow-hidden">
-        <ScrollArea
-          className="h-full flex-1"
-          ref={scrollAreaRef}
-          onScrollCapture={handleScrollWithPosition}
-        >
-          <div className="flex flex-col gap-4">
-            {isLoading && !searchQuery && (
-              <div className="text-muted-foreground text-sm">
-                Loading sounds...
-              </div>
-            )}
-            {isSearching && searchQuery && (
-              <div className="text-muted-foreground text-sm">Searching...</div>
-            )}
-            {displayedSounds.map((sound) => (
-              <AudioItem
-                key={sound.id}
-                sound={sound}
-                isPlaying={playingId === sound.id}
-                onPlay={() => playSound(sound)}
-                isSaved={isSoundSaved({ soundId: sound.id })}
-                onToggleSaved={() => toggleSavedSound({ soundEffect: sound })}
-              />
-            ))}
-            {!isLoading && !isSearching && displayedSounds.length === 0 && (
-              <div className="text-muted-foreground text-sm">
-                {searchQuery ? "No sounds found" : "No sounds available"}
-              </div>
-            )}
-            {isLoadingMore && (
-              <div className="text-muted-foreground py-4 text-center text-sm">
-                Loading more sounds...
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      </div>
-    </div>
-  );
+		if (sound.previewUrl) {
+			const audio = new Audio(sound.previewUrl);
+			audio.addEventListener("ended", () => {
+				setPlayingId(null);
+			});
+			audio.addEventListener("error", () => {
+				setPlayingId(null);
+			});
+			audio.play().catch((error) => {
+				console.error("Failed to play sound preview:", error);
+				setPlayingId(null);
+			});
+
+			setAudioElement(audio);
+			setPlayingId(sound.id);
+		}
+	};
+
+	return (
+		<div className="mt-1 flex h-full flex-col gap-5">
+			<div className="flex items-center gap-3">
+				<Input
+					placeholder="Search sound effects"
+					className="bg-panel-accent w-full"
+					containerClassName="w-full"
+					value={searchQuery}
+					onChange={({ currentTarget }) =>
+						setSearchQuery({ query: currentTarget.value })
+					}
+					showClearIcon
+					onClear={() => setSearchQuery({ query: "" })}
+				/>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="text"
+							size="icon"
+							className={cn(showCommercialOnly && "text-primary")}
+						>
+							<ListFilter />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" className="w-56">
+						<DropdownMenuCheckboxItem
+							checked={showCommercialOnly}
+							onCheckedChange={() => toggleCommercialFilter()}
+						>
+							Show only commercially licensed
+						</DropdownMenuCheckboxItem>
+						<div className="text-muted-foreground px-2 py-1.5 text-xs">
+							{showCommercialOnly
+								? "Only showing sounds licensed for commercial use"
+								: "Showing all sounds regardless of license"}
+						</div>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</div>
+
+			<div className="relative h-full overflow-hidden">
+				<ScrollArea
+					className="h-full flex-1"
+					ref={scrollAreaRef}
+					onScrollCapture={handleScrollWithPosition}
+				>
+					<div className="flex flex-col gap-4">
+						{isLoading && !searchQuery && (
+							<div className="text-muted-foreground text-sm">
+								Loading sounds...
+							</div>
+						)}
+						{isSearching && searchQuery && (
+							<div className="text-muted-foreground text-sm">Searching...</div>
+						)}
+						{displayedSounds.map((sound) => (
+							<AudioItem
+								key={sound.id}
+								sound={sound}
+								isPlaying={playingId === sound.id}
+								onPlay={playSound}
+							/>
+						))}
+						{!isLoading && !isSearching && displayedSounds.length === 0 && (
+							<div className="text-muted-foreground text-sm">
+								{searchQuery ? "No sounds found" : "No sounds available"}
+							</div>
+						)}
+						{isLoadingMore && (
+							<div className="text-muted-foreground py-4 text-center text-sm">
+								Loading more sounds...
+							</div>
+						)}
+					</div>
+				</ScrollArea>
+			</div>
+		</div>
+	);
 }
 
 function SavedSoundsView() {
-  const {
-    savedSounds,
-    isLoadingSavedSounds,
-    savedSoundsError,
-    loadSavedSounds,
-    isSoundSaved,
-    toggleSavedSound,
-    clearSavedSounds,
-  } = useSoundsStore();
+	const {
+		savedSounds,
+		isLoadingSavedSounds,
+		savedSoundsError,
+		loadSavedSounds,
+		clearSavedSounds,
+	} = useSoundsStore();
 
-  // Audio playback state
-  const [playingId, setPlayingId] = useState<number | null>(null);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
-    null,
-  );
+	const [playingId, setPlayingId] = useState<number | null>(null);
+	const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
+		null,
+	);
 
-  // Clear confirmation dialog state
-  const [showClearDialog, setShowClearDialog] = useState(false);
+	const [showClearDialog, setShowClearDialog] = useState(false);
 
-  // Load saved sounds when tab becomes active
-  useEffect(() => {
-    loadSavedSounds();
-  }, [loadSavedSounds]);
+	useEffect(() => {
+		loadSavedSounds();
+	}, [loadSavedSounds]);
 
-  const playSound = (sound: SavedSound) => {
-    if (playingId === sound.id) {
-      audioElement?.pause();
-      setPlayingId(null);
-      return;
-    }
+	const playSound = ({ sound }: { sound: SoundEffect }) => {
+		if (playingId === sound.id) {
+			audioElement?.pause();
+			setPlayingId(null);
+			return;
+		}
 
-    // Stop previous sound
-    audioElement?.pause();
+		audioElement?.pause();
 
-    if (sound.previewUrl) {
-      const audio = new Audio(sound.previewUrl);
-      audio.addEventListener("ended", () => {
-        setPlayingId(null);
-      });
-      audio.addEventListener("error", (e) => {
-        setPlayingId(null);
-      });
-      audio.play().catch((error) => {
-        setPlayingId(null);
-      });
+		if (sound.previewUrl) {
+			const audio = new Audio(sound.previewUrl);
+			audio.addEventListener("ended", () => {
+				setPlayingId(null);
+			});
+			audio.addEventListener("error", () => {
+				setPlayingId(null);
+			});
+			audio.play().catch((error) => {
+				console.error("Failed to play sound preview:", error);
+				setPlayingId(null);
+			});
 
-      setAudioElement(audio);
-      setPlayingId(sound.id);
-    }
-  };
+			setAudioElement(audio);
+			setPlayingId(sound.id);
+		}
+	};
 
-  // Convert SavedSound to SoundEffect for compatibility with AudioItem
-  const convertToSoundEffect = (savedSound: SavedSound): SoundEffect => ({
-    id: savedSound.id,
-    name: savedSound.name,
-    description: "",
-    url: "",
-    previewUrl: savedSound.previewUrl,
-    downloadUrl: savedSound.downloadUrl,
-    duration: savedSound.duration,
-    filesize: 0,
-    type: "audio",
-    channels: 0,
-    bitrate: 0,
-    bitdepth: 0,
-    samplerate: 0,
-    username: savedSound.username,
-    tags: savedSound.tags,
-    license: savedSound.license,
-    created: savedSound.savedAt,
-    downloads: 0,
-    rating: 0,
-    ratingCount: 0,
-  });
+	const convertToSoundEffect = ({
+		savedSound,
+	}: {
+		savedSound: SavedSound;
+	}): SoundEffect => ({
+		id: savedSound.id,
+		name: savedSound.name,
+		description: "",
+		url: "",
+		previewUrl: savedSound.previewUrl,
+		downloadUrl: savedSound.downloadUrl,
+		duration: savedSound.duration,
+		filesize: 0,
+		type: "audio",
+		channels: 0,
+		bitrate: 0,
+		bitdepth: 0,
+		samplerate: 0,
+		username: savedSound.username,
+		tags: savedSound.tags,
+		license: savedSound.license,
+		created: savedSound.savedAt,
+		downloads: 0,
+		rating: 0,
+		ratingCount: 0,
+	});
 
-  if (isLoadingSavedSounds) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-muted-foreground text-sm">
-          Loading saved sounds...
-        </div>
-      </div>
-    );
-  }
+	if (isLoadingSavedSounds) {
+		return (
+			<div className="flex h-full items-center justify-center">
+				<div className="text-muted-foreground text-sm">
+					Loading saved sounds...
+				</div>
+			</div>
+		);
+	}
 
-  if (savedSoundsError) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-destructive text-sm">
-          Error: {savedSoundsError}
-        </div>
-      </div>
-    );
-  }
+	if (savedSoundsError) {
+		return (
+			<div className="flex h-full items-center justify-center">
+				<div className="text-destructive text-sm">
+					Error: {savedSoundsError}
+				</div>
+			</div>
+		);
+	}
 
-  if (savedSounds.length === 0) {
-    return (
-      <div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
-        <HeartIcon
-          className="text-muted-foreground h-10 w-10"
-          strokeWidth={1.5}
-        />
-        <div className="flex flex-col gap-2 text-center">
-          <p className="text-lg font-medium">No saved sounds</p>
-          <p className="text-muted-foreground text-sm text-balance">
-            Click the heart icon on any sound to save it here
-          </p>
-        </div>
-      </div>
-    );
-  }
+	if (savedSounds.length === 0) {
+		return (
+			<div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
+				<HeartIcon
+					className="text-muted-foreground h-10 w-10"
+					strokeWidth={1.5}
+				/>
+				<div className="flex flex-col gap-2 text-center">
+					<p className="text-lg font-medium">No saved sounds</p>
+					<p className="text-muted-foreground text-sm text-balance">
+						Click the heart icon on any sound to save it here
+					</p>
+				</div>
+			</div>
+		);
+	}
 
-  return (
-    <div className="mt-1 flex h-full flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          {savedSounds.length} saved{" "}
-          {savedSounds.length === 1 ? "sound" : "sounds"}
-        </p>
-        <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
-          <DialogTrigger asChild>
-            <Button
-              variant="text"
-              size="sm"
-              className="text-muted-foreground hover:text-destructive h-auto !opacity-100"
-            >
-              Clear all
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Clear all saved sounds?</DialogTitle>
-              <DialogDescription>
-                This will permanently remove all {savedSounds.length} saved
-                sounds from your collection. This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="text" onClick={() => setShowClearDialog(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={async () => {
-                  await clearSavedSounds();
-                  setShowClearDialog(false);
-                }}
-              >
-                Clear all sounds
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+	return (
+		<div className="mt-1 flex h-full flex-col gap-5">
+			<div className="flex items-center justify-between">
+				<p className="text-muted-foreground text-sm">
+					{savedSounds.length} saved{" "}
+					{savedSounds.length === 1 ? "sound" : "sounds"}
+				</p>
+				<Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+					<DialogTrigger asChild>
+						<Button
+							variant="text"
+							size="sm"
+							className="text-muted-foreground hover:text-destructive h-auto !opacity-100"
+						>
+							Clear all
+						</Button>
+					</DialogTrigger>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Clear all saved sounds?</DialogTitle>
+							<DialogDescription>
+								This will permanently remove all {savedSounds.length} saved
+								sounds from your collection. This action cannot be undone.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter>
+							<Button variant="text" onClick={() => setShowClearDialog(false)}>
+								Cancel
+							</Button>
+							<Button
+								variant="destructive"
+								onClick={async ({
+									stopPropagation,
+								}: React.MouseEvent<HTMLButtonElement>) => {
+									stopPropagation();
+									await clearSavedSounds();
+									setShowClearDialog(false);
+								}}
+							>
+								Clear all sounds
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+			</div>
 
-      <div className="relative h-full overflow-hidden">
-        <ScrollArea className="h-full flex-1">
-          <div className="flex flex-col gap-4">
-            {savedSounds.map((sound) => (
-              <AudioItem
-                key={sound.id}
-                sound={convertToSoundEffect(sound)}
-                isPlaying={playingId === sound.id}
-                onPlay={() => playSound(sound)}
-                isSaved={isSoundSaved({ soundId: sound.id })}
-                onToggleSaved={() =>
-                  toggleSavedSound({ soundEffect: convertToSoundEffect(sound) })
-                }
-              />
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
-    </div>
-  );
+			<div className="relative h-full overflow-hidden">
+				<ScrollArea className="h-full flex-1">
+					<div className="flex flex-col gap-4">
+						{savedSounds.map((sound) => (
+							<AudioItem
+								key={sound.id}
+								sound={convertToSoundEffect({ savedSound: sound })}
+								isPlaying={playingId === sound.id}
+								onPlay={playSound}
+							/>
+						))}
+					</div>
+				</ScrollArea>
+			</div>
+		</div>
+	);
 }
 
 function SongsView() {
-  return <div>Songs</div>;
+	return <div>Songs</div>;
 }
 
 interface AudioItemProps {
-  sound: SoundEffect;
-  isPlaying: boolean;
-  onPlay: () => void;
-  isSaved: boolean;
-  onToggleSaved: () => void;
+	sound: SoundEffect;
+	isPlaying: boolean;
+	onPlay: ({ sound }: { sound: SoundEffect }) => void;
 }
 
-function AudioItem({
-  sound,
-  isPlaying,
-  onPlay,
-  isSaved,
-  onToggleSaved,
-}: AudioItemProps) {
-  const { addSoundToTimeline } = useSoundsStore();
+function AudioItem({ sound, isPlaying, onPlay }: AudioItemProps) {
+	const { addSoundToTimeline, isSoundSaved, toggleSavedSound } =
+		useSoundsStore();
+	const isSaved = isSoundSaved({ soundId: sound.id });
 
-  const handleClick = () => {
-    onPlay();
-  };
+	const handleClick = () => {
+		onPlay({ sound });
+	};
 
-  const handleSaveClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onToggleSaved();
-  };
+	const handleSaveClick = ({
+		stopPropagation,
+	}: React.MouseEvent<HTMLButtonElement>) => {
+		stopPropagation();
+		toggleSavedSound({ soundEffect: sound });
+	};
 
-  const handleAddToTimeline = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    await addSoundToTimeline({ sound });
-  };
+	const handleAddToTimeline = async ({
+		stopPropagation,
+	}: React.MouseEvent<HTMLButtonElement>) => {
+		stopPropagation();
+		await addSoundToTimeline({ sound });
+	};
 
-  return (
-    <div
-      className="group flex cursor-pointer items-center gap-3 opacity-100 transition-opacity hover:opacity-75"
-      onClick={handleClick}
-    >
-      <div className="bg-accent relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md">
-        <div className="from-primary/20 absolute inset-0 bg-gradient-to-br to-transparent" />
-        {isPlaying ? (
-          <PauseIcon className="size-5" />
-        ) : (
-          <PlayIcon className="size-5" />
-        )}
-      </div>
+	return (
+		<div className="group flex items-center gap-3 opacity-100 transition-opacity hover:opacity-75">
+			<button
+				type="button"
+				className="flex min-w-0 flex-1 items-center gap-3 text-left"
+				onClick={handleClick}
+			>
+				<div className="bg-accent relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md">
+					<div className="from-primary/20 absolute inset-0 bg-gradient-to-br to-transparent" />
+					{isPlaying ? (
+						<PauseIcon className="size-5" />
+					) : (
+						<PlayIcon className="size-5" />
+					)}
+				</div>
 
-      <div className="min-w-0 flex-1 overflow-hidden">
-        <p className="truncate text-sm font-medium">{sound.name}</p>
-        <span className="text-muted-foreground block truncate text-xs">
-          {sound.username}
-        </span>
-      </div>
+				<div className="min-w-0 flex-1 overflow-hidden">
+					<p className="truncate text-sm font-medium">{sound.name}</p>
+					<span className="text-muted-foreground block truncate text-xs">
+						{sound.username}
+					</span>
+				</div>
+			</button>
 
-      <div className="flex items-center gap-3 pr-2">
-        <Button
-          variant="text"
-          size="icon"
-          className="text-muted-foreground hover:text-foreground w-auto !opacity-100"
-          onClick={handleAddToTimeline}
-          title="Add to timeline"
-        >
-          <PlusIcon />
-        </Button>
-        <Button
-          variant="text"
-          size="icon"
-          className={`hover:text-foreground w-auto !opacity-100 ${
-            isSaved
-              ? "text-red-500 hover:text-red-600"
-              : "text-muted-foreground"
-          }`}
-          onClick={handleSaveClick}
-          title={isSaved ? "Remove from saved" : "Save sound"}
-        >
-          <HeartIcon className={`${isSaved ? "fill-current" : ""}`} />
-        </Button>
-      </div>
-    </div>
-  );
+			<div className="flex items-center gap-3 pr-2">
+				<Button
+					variant="text"
+					size="icon"
+					className="text-muted-foreground hover:text-foreground w-auto !opacity-100"
+					onClick={handleAddToTimeline}
+					title="Add to timeline"
+				>
+					<PlusIcon />
+				</Button>
+				<Button
+					variant="text"
+					size="icon"
+					className={`hover:text-foreground w-auto !opacity-100 ${
+						isSaved
+							? "text-red-500 hover:text-red-600"
+							: "text-muted-foreground"
+					}`}
+					onClick={handleSaveClick}
+					title={isSaved ? "Remove from saved" : "Save sound"}
+				>
+					<HeartIcon className={`${isSaved ? "fill-current" : ""}`} />
+				</Button>
+			</div>
+		</div>
+	);
 }

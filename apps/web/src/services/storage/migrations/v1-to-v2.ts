@@ -1,8 +1,8 @@
 import {
-  DEFAULT_BLUR_INTENSITY,
-  DEFAULT_CANVAS_SIZE,
-  DEFAULT_COLOR,
-  DEFAULT_FPS,
+	DEFAULT_BLUR_INTENSITY,
+	DEFAULT_CANVAS_SIZE,
+	DEFAULT_COLOR,
+	DEFAULT_FPS,
 } from "@/constants/project-constants";
 import { IndexedDBAdapter } from "@/services/storage/indexeddb-adapter";
 import { StorageMigration } from "./base";
@@ -10,330 +10,330 @@ import { StorageMigration } from "./base";
 type ProjectRecord = Record<string, unknown>;
 
 export class V1toV2Migration extends StorageMigration {
-  from = 1;
-  to = 2;
+	from = 1;
+	to = 2;
 
-  async run(): Promise<void> {
-    const projectsAdapter = new IndexedDBAdapter<unknown>(
-      "video-editor-projects",
-      "projects",
-      1,
-    );
-    const projects = await projectsAdapter.getAll();
+	async run(): Promise<void> {
+		const projectsAdapter = new IndexedDBAdapter<unknown>(
+			"video-editor-projects",
+			"projects",
+			1,
+		);
+		const projects = await projectsAdapter.getAll();
 
-    for (const project of projects) {
-      if (!isRecord(project)) {
-        continue;
-      }
+		for (const project of projects) {
+			if (!isRecord(project)) {
+				continue;
+			}
 
-      const projectId = getProjectId({ project });
-      if (!projectId) {
-        continue;
-      }
+			const projectId = getProjectId({ project });
+			if (!projectId) {
+				continue;
+			}
 
-      if (isV2Project({ project })) {
-        continue;
-      }
+			if (isV2Project({ project })) {
+				continue;
+			}
 
-      const migratedProject = migrateProject({ project, projectId });
-      await projectsAdapter.set(projectId, migratedProject);
-    }
-  }
+			const migratedProject = migrateProject({ project, projectId });
+			await projectsAdapter.set(projectId, migratedProject);
+		}
+	}
 }
 
 function migrateProject({
-  project,
-  projectId,
+	project,
+	projectId,
 }: {
-  project: ProjectRecord;
-  projectId: string;
+	project: ProjectRecord;
+	projectId: string;
 }): ProjectRecord {
-  const createdAt = normalizeDateString({ value: project.createdAt });
-  const updatedAt = normalizeDateString({ value: project.updatedAt });
-  const metadataValue = project.metadata;
+	const createdAt = normalizeDateString({ value: project.createdAt });
+	const updatedAt = normalizeDateString({ value: project.updatedAt });
+	const metadataValue = project.metadata;
 
-  const metadata = isRecord(metadataValue)
-    ? {
-        id: getStringValue({ value: metadataValue.id, fallback: projectId }),
-        name: getStringValue({ value: metadataValue.name, fallback: "" }),
-        thumbnail: getStringValue({ value: metadataValue.thumbnail }),
-        createdAt: normalizeDateString({ value: metadataValue.createdAt }),
-        updatedAt: normalizeDateString({ value: metadataValue.updatedAt }),
-      }
-    : {
-        id: projectId,
-        name: getStringValue({ value: project.name, fallback: "" }),
-        thumbnail: getStringValue({ value: project.thumbnail }),
-        createdAt,
-        updatedAt,
-      };
+	const metadata = isRecord(metadataValue)
+		? {
+				id: getStringValue({ value: metadataValue.id, fallback: projectId }),
+				name: getStringValue({ value: metadataValue.name, fallback: "" }),
+				thumbnail: getStringValue({ value: metadataValue.thumbnail }),
+				createdAt: normalizeDateString({ value: metadataValue.createdAt }),
+				updatedAt: normalizeDateString({ value: metadataValue.updatedAt }),
+			}
+		: {
+				id: projectId,
+				name: getStringValue({ value: project.name, fallback: "" }),
+				thumbnail: getStringValue({ value: project.thumbnail }),
+				createdAt,
+				updatedAt,
+			};
 
-  const scenesValue = project.scenes;
-  const scenes = Array.isArray(scenesValue) ? scenesValue : [];
-  const legacyBookmarks = Array.isArray(project.bookmarks)
-    ? project.bookmarks
-    : null;
-  const normalizedScenes = applyLegacyBookmarks({
-    scenes,
-    legacyBookmarks,
-  });
+	const scenesValue = project.scenes;
+	const scenes = Array.isArray(scenesValue) ? scenesValue : [];
+	const legacyBookmarks = Array.isArray(project.bookmarks)
+		? project.bookmarks
+		: null;
+	const normalizedScenes = applyLegacyBookmarks({
+		scenes,
+		legacyBookmarks,
+	});
 
-  const settingsValue = project.settings;
-  const settings = isRecord(settingsValue)
-    ? {
-        fps: getNumberValue({
-          value: settingsValue.fps,
-          fallback: DEFAULT_FPS,
-        }),
-        canvasSize: getCanvasSizeValue({
-          value: settingsValue.canvasSize,
-          fallback: DEFAULT_CANVAS_SIZE,
-        }),
-        background: getBackgroundValue({
-          value: settingsValue.background,
-        }),
-      }
-    : {
-        fps: getNumberValue({ value: project.fps, fallback: DEFAULT_FPS }),
-        canvasSize: getCanvasSizeValue({
-          value: project.canvasSize,
-          fallback: DEFAULT_CANVAS_SIZE,
-        }),
-        background: getBackgroundValue({
-          value: project.background,
-          backgroundType: project.backgroundType,
-          backgroundColor: project.backgroundColor,
-          blurIntensity: project.blurIntensity,
-        }),
-      };
+	const settingsValue = project.settings;
+	const settings = isRecord(settingsValue)
+		? {
+				fps: getNumberValue({
+					value: settingsValue.fps,
+					fallback: DEFAULT_FPS,
+				}),
+				canvasSize: getCanvasSizeValue({
+					value: settingsValue.canvasSize,
+					fallback: DEFAULT_CANVAS_SIZE,
+				}),
+				background: getBackgroundValue({
+					value: settingsValue.background,
+				}),
+			}
+		: {
+				fps: getNumberValue({ value: project.fps, fallback: DEFAULT_FPS }),
+				canvasSize: getCanvasSizeValue({
+					value: project.canvasSize,
+					fallback: DEFAULT_CANVAS_SIZE,
+				}),
+				background: getBackgroundValue({
+					value: project.background,
+					backgroundType: project.backgroundType,
+					backgroundColor: project.backgroundColor,
+					blurIntensity: project.blurIntensity,
+				}),
+			};
 
-  const currentSceneId = getCurrentSceneId({
-    value: project.currentSceneId,
-    scenes: normalizedScenes,
-  });
+	const currentSceneId = getCurrentSceneId({
+		value: project.currentSceneId,
+		scenes: normalizedScenes,
+	});
 
-  return {
-    ...project,
-    metadata,
-    scenes: normalizedScenes,
-    currentSceneId,
-    settings,
-    version: 2,
-  };
+	return {
+		...project,
+		metadata,
+		scenes: normalizedScenes,
+		currentSceneId,
+		settings,
+		version: 2,
+	};
 }
 
 function getProjectId({ project }: { project: ProjectRecord }): string | null {
-  const idValue = project.id;
-  if (typeof idValue === "string" && idValue.length > 0) {
-    return idValue;
-  }
+	const idValue = project.id;
+	if (typeof idValue === "string" && idValue.length > 0) {
+		return idValue;
+	}
 
-  const metadataValue = project.metadata;
-  if (!isRecord(metadataValue)) {
-    return null;
-  }
+	const metadataValue = project.metadata;
+	if (!isRecord(metadataValue)) {
+		return null;
+	}
 
-  const metadataId = metadataValue.id;
-  if (typeof metadataId === "string" && metadataId.length > 0) {
-    return metadataId;
-  }
+	const metadataId = metadataValue.id;
+	if (typeof metadataId === "string" && metadataId.length > 0) {
+		return metadataId;
+	}
 
-  return null;
+	return null;
 }
 
 function getCurrentSceneId({
-  value,
-  scenes,
+	value,
+	scenes,
 }: {
-  value: unknown;
-  scenes: unknown[];
+	value: unknown;
+	scenes: unknown[];
 }): string {
-  if (typeof value === "string" && value.length > 0) {
-    return value;
-  }
+	if (typeof value === "string" && value.length > 0) {
+		return value;
+	}
 
-  const mainSceneId = findMainSceneId({ scenes });
-  if (mainSceneId) {
-    return mainSceneId;
-  }
+	const mainSceneId = findMainSceneId({ scenes });
+	if (mainSceneId) {
+		return mainSceneId;
+	}
 
-  return "";
+	return "";
 }
 
 function findMainSceneId({ scenes }: { scenes: unknown[] }): string | null {
-  for (const scene of scenes) {
-    if (!isRecord(scene)) {
-      continue;
-    }
+	for (const scene of scenes) {
+		if (!isRecord(scene)) {
+			continue;
+		}
 
-    if (scene.isMain === true && typeof scene.id === "string") {
-      return scene.id;
-    }
-  }
+		if (scene.isMain === true && typeof scene.id === "string") {
+			return scene.id;
+		}
+	}
 
-  for (const scene of scenes) {
-    if (!isRecord(scene)) {
-      continue;
-    }
+	for (const scene of scenes) {
+		if (!isRecord(scene)) {
+			continue;
+		}
 
-    if (typeof scene.id === "string") {
-      return scene.id;
-    }
-  }
+		if (typeof scene.id === "string") {
+			return scene.id;
+		}
+	}
 
-  return null;
+	return null;
 }
 
 function applyLegacyBookmarks({
-  scenes,
-  legacyBookmarks,
+	scenes,
+	legacyBookmarks,
 }: {
-  scenes: unknown[];
-  legacyBookmarks: unknown[] | null;
+	scenes: unknown[];
+	legacyBookmarks: unknown[] | null;
 }): unknown[] {
-  if (!legacyBookmarks || legacyBookmarks.length === 0) {
-    return scenes;
-  }
+	if (!legacyBookmarks || legacyBookmarks.length === 0) {
+		return scenes;
+	}
 
-  const mainSceneId = findMainSceneId({ scenes });
+	const mainSceneId = findMainSceneId({ scenes });
 
-  return scenes.map((scene) => {
-    if (!isRecord(scene)) {
-      return scene;
-    }
+	return scenes.map((scene) => {
+		if (!isRecord(scene)) {
+			return scene;
+		}
 
-    if (mainSceneId && scene.id !== mainSceneId) {
-      return scene;
-    }
+		if (mainSceneId && scene.id !== mainSceneId) {
+			return scene;
+		}
 
-    if (Array.isArray(scene.bookmarks) && scene.bookmarks.length > 0) {
-      return scene;
-    }
+		if (Array.isArray(scene.bookmarks) && scene.bookmarks.length > 0) {
+			return scene;
+		}
 
-    return {
-      ...scene,
-      bookmarks: legacyBookmarks,
-    };
-  });
+		return {
+			...scene,
+			bookmarks: legacyBookmarks,
+		};
+	});
 }
 
 function getBackgroundValue({
-  value,
-  backgroundType,
-  backgroundColor,
-  blurIntensity,
+	value,
+	backgroundType,
+	backgroundColor,
+	blurIntensity,
 }: {
-  value: unknown;
-  backgroundType?: unknown;
-  backgroundColor?: unknown;
-  blurIntensity?: unknown;
+	value: unknown;
+	backgroundType?: unknown;
+	backgroundColor?: unknown;
+	blurIntensity?: unknown;
 }): {
-  type: "color" | "blur";
-  color?: string;
-  blurIntensity?: number;
+	type: "color" | "blur";
+	color?: string;
+	blurIntensity?: number;
 } {
-  if (isRecord(value)) {
-    const typeValue = value.type;
-    if (typeValue === "blur") {
-      return {
-        type: "blur",
-        blurIntensity: getNumberValue({
-          value: value.blurIntensity,
-          fallback: DEFAULT_BLUR_INTENSITY,
-        }),
-      };
-    }
+	if (isRecord(value)) {
+		const typeValue = value.type;
+		if (typeValue === "blur") {
+			return {
+				type: "blur",
+				blurIntensity: getNumberValue({
+					value: value.blurIntensity,
+					fallback: DEFAULT_BLUR_INTENSITY,
+				}),
+			};
+		}
 
-    return {
-      type: "color",
-      color: getStringValue({ value: value.color, fallback: DEFAULT_COLOR }),
-    };
-  }
+		return {
+			type: "color",
+			color: getStringValue({ value: value.color, fallback: DEFAULT_COLOR }),
+		};
+	}
 
-  if (backgroundType === "blur") {
-    return {
-      type: "blur",
-      blurIntensity: getNumberValue({
-        value: blurIntensity,
-        fallback: DEFAULT_BLUR_INTENSITY,
-      }),
-    };
-  }
+	if (backgroundType === "blur") {
+		return {
+			type: "blur",
+			blurIntensity: getNumberValue({
+				value: blurIntensity,
+				fallback: DEFAULT_BLUR_INTENSITY,
+			}),
+		};
+	}
 
-  return {
-    type: "color",
-    color: getStringValue({ value: backgroundColor, fallback: DEFAULT_COLOR }),
-  };
+	return {
+		type: "color",
+		color: getStringValue({ value: backgroundColor, fallback: DEFAULT_COLOR }),
+	};
 }
 
 function getCanvasSizeValue({
-  value,
-  fallback,
+	value,
+	fallback,
 }: {
-  value: unknown;
-  fallback: { width: number; height: number };
+	value: unknown;
+	fallback: { width: number; height: number };
 }): { width: number; height: number } {
-  if (isRecord(value)) {
-    const width = getNumberValue({
-      value: value.width,
-      fallback: fallback.width,
-    });
-    const height = getNumberValue({
-      value: value.height,
-      fallback: fallback.height,
-    });
+	if (isRecord(value)) {
+		const width = getNumberValue({
+			value: value.width,
+			fallback: fallback.width,
+		});
+		const height = getNumberValue({
+			value: value.height,
+			fallback: fallback.height,
+		});
 
-    return { width, height };
-  }
+		return { width, height };
+	}
 
-  return fallback;
+	return fallback;
 }
 
 function getNumberValue({
-  value,
-  fallback,
+	value,
+	fallback,
 }: {
-  value: unknown;
-  fallback: number;
+	value: unknown;
+	fallback: number;
 }): number {
-  return typeof value === "number" ? value : fallback;
+	return typeof value === "number" ? value : fallback;
 }
 
 function getStringValue({
-  value,
-  fallback,
+	value,
+	fallback,
 }: {
-  value: unknown;
-  fallback?: string;
+	value: unknown;
+	fallback?: string;
 }): string | undefined {
-  if (typeof value === "string") {
-    return value;
-  }
+	if (typeof value === "string") {
+		return value;
+	}
 
-  return fallback;
+	return fallback;
 }
 
 function normalizeDateString({ value }: { value: unknown }): string {
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
+	if (value instanceof Date) {
+		return value.toISOString();
+	}
 
-  if (typeof value === "string") {
-    return value;
-  }
+	if (typeof value === "string") {
+		return value;
+	}
 
-  return new Date().toISOString();
+	return new Date().toISOString();
 }
 
 function isV2Project({ project }: { project: ProjectRecord }): boolean {
-  const versionValue = project.version;
-  if (typeof versionValue === "number" && versionValue >= 2) {
-    return true;
-  }
+	const versionValue = project.version;
+	if (typeof versionValue === "number" && versionValue >= 2) {
+		return true;
+	}
 
-  return isRecord(project.metadata) && isRecord(project.settings);
+	return isRecord(project.metadata) && isRecord(project.settings);
 }
 
 function isRecord(value: unknown): value is ProjectRecord {
-  return typeof value === "object" && value !== null;
+	return typeof value === "object" && value !== null;
 }

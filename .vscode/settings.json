@@ -6,11 +6,15 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
+  },
   "emmet.showExpandedAbbreviation": "never",
   "[typescriptreact]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": "biomejs.biome"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "biomejs.biome"
   }
 }

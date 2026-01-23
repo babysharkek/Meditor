@@ -1,65 +1,52 @@
-import { useEffect, useRef, useCallback } from "react";
-import {
-  TAction,
-  TActionFunc,
-  TActionHandlerOptions,
-  TInvocationTrigger,
-  bindAction,
-  unbindAction,
+import { useCallback, useEffect, useRef } from "react";
+import type {
+	TAction,
+	TActionFunc,
+	TActionHandlerOptions,
+	TArgOfAction,
+	TInvocationTrigger,
 } from "@/lib/actions";
+import { bindAction, unbindAction } from "@/lib/actions";
 
 export function useActionHandler<A extends TAction>(
-  action: A,
-  handler: TActionFunc<A>,
-  isActive: TActionHandlerOptions,
+	action: A,
+	handler: TActionFunc<A>,
+	isActive: TActionHandlerOptions,
 ) {
-  const handlerRef = useRef(handler);
-  const isBoundRef = useRef(false);
+	const handlerRef = useRef<TActionFunc<A>>(handler);
+	const isBoundRef = useRef(false);
 
-  useEffect(() => {
-    handlerRef.current = handler;
-  }, [handler]);
+	useEffect(() => {
+		handlerRef.current = handler;
+	}, [handler]);
 
-  const stableHandler = useCallback(
-    (args: any, trigger?: TInvocationTrigger) => {
-      (handlerRef.current as any)(args, trigger);
-    },
-    [],
-  ) as TActionFunc<A>;
+	const stableHandler = useCallback(
+		(...parameters: [TArgOfAction<A>, TInvocationTrigger?]) => {
+			(
+				handlerRef.current as (
+					...handlerParameters: [TArgOfAction<A>, TInvocationTrigger?]
+				) => void
+			)(...parameters);
+		},
+		[],
+	) as TActionFunc<A>;
 
-  useEffect(() => {
-    const shouldBind =
-      isActive === undefined ||
-      (typeof isActive === "boolean" ? isActive : isActive.current);
+	useEffect(() => {
+		const shouldBind =
+			isActive === undefined ||
+			(typeof isActive === "boolean" ? isActive : isActive.current);
 
-    if (shouldBind && !isBoundRef.current) {
-      bindAction(action, stableHandler);
-      isBoundRef.current = true;
-    } else if (!shouldBind && isBoundRef.current) {
-      unbindAction(action, stableHandler);
-      isBoundRef.current = false;
-    }
+		if (shouldBind && !isBoundRef.current) {
+			bindAction(action, stableHandler);
+			isBoundRef.current = true;
+		} else if (!shouldBind && isBoundRef.current) {
+			unbindAction(action, stableHandler);
+			isBoundRef.current = false;
+		}
 
-    return () => {
-      unbindAction(action, stableHandler);
-      isBoundRef.current = false;
-    };
-  }, [action, stableHandler, isActive]);
-
-  useEffect(() => {
-    if (isActive && typeof isActive === "object" && "current" in isActive) {
-      const interval = setInterval(() => {
-        const shouldBind = isActive.current;
-        if (shouldBind !== isBoundRef.current) {
-          if (shouldBind) {
-            bindAction(action, stableHandler);
-          } else {
-            unbindAction(action, stableHandler);
-          }
-          isBoundRef.current = shouldBind;
-        }
-      }, 100);
-      return () => clearInterval(interval);
-    }
-  }, [action, stableHandler, isActive]);
+		return () => {
+			unbindAction(action, stableHandler);
+			isBoundRef.current = false;
+		};
+	}, [action, stableHandler, isActive]);
 }

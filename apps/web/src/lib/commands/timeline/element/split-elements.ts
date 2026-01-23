@@ -4,122 +4,122 @@ import { generateUUID } from "@/utils/id";
 import { EditorCore } from "@/core";
 
 export class SplitElementsCommand extends Command {
-  private savedState: TimelineTrack[] | null = null;
-  private newElementIds: string[] = [];
-  private affectedElementIds: Set<string> = new Set();
+	private savedState: TimelineTrack[] | null = null;
+	private newElementIds: string[] = [];
+	private affectedElementIds: Set<string> = new Set();
 
-  constructor(
-    private elements: { trackId: string; elementId: string }[],
-    private splitTime: number,
-    private retainSide: "both" | "left" | "right" = "both",
-  ) {
-    super();
-  }
+	constructor(
+		private elements: { trackId: string; elementId: string }[],
+		private splitTime: number,
+		private retainSide: "both" | "left" | "right" = "both",
+	) {
+		super();
+	}
 
-  get splitElementIds(): string[] {
-    return Array.from(this.affectedElementIds);
-  }
+	get splitElementIds(): string[] {
+		return Array.from(this.affectedElementIds);
+	}
 
-  execute(): void {
-    const editor = EditorCore.getInstance();
-    this.savedState = editor.timeline.getTracks();
-    this.newElementIds = [];
-    this.affectedElementIds.clear();
+	execute(): void {
+		const editor = EditorCore.getInstance();
+		this.savedState = editor.timeline.getTracks();
+		this.newElementIds = [];
+		this.affectedElementIds.clear();
 
-    const updatedTracks = this.savedState.map((track) => {
-      const elementsToSplit = this.elements.filter(
-        (el) => el.trackId === track.id,
-      );
+		const updatedTracks = this.savedState.map((track) => {
+			const elementsToSplit = this.elements.filter(
+				(el) => el.trackId === track.id,
+			);
 
-      if (elementsToSplit.length === 0) {
-        return track;
-      }
+			if (elementsToSplit.length === 0) {
+				return track;
+			}
 
-      return {
-        ...track,
-        elements: track.elements.flatMap((element) => {
-          const shouldSplit = elementsToSplit.some(
-            (el) => el.elementId === element.id,
-          );
+			return {
+				...track,
+				elements: track.elements.flatMap((element) => {
+					const shouldSplit = elementsToSplit.some(
+						(el) => el.elementId === element.id,
+					);
 
-          if (!shouldSplit) {
-            return [element];
-          }
+					if (!shouldSplit) {
+						return [element];
+					}
 
-          const effectiveStart = element.startTime;
-          const effectiveEnd = element.startTime + element.duration;
+					const effectiveStart = element.startTime;
+					const effectiveEnd = element.startTime + element.duration;
 
-          if (
-            this.splitTime <= effectiveStart ||
-            this.splitTime >= effectiveEnd
-          ) {
-            return [element];
-          }
+					if (
+						this.splitTime <= effectiveStart ||
+						this.splitTime >= effectiveEnd
+					) {
+						return [element];
+					}
 
-          const relativeTime = this.splitTime - element.startTime;
-          const leftVisibleDuration = relativeTime;
-          const rightVisibleDuration = element.duration - relativeTime;
+					const relativeTime = this.splitTime - element.startTime;
+					const leftVisibleDuration = relativeTime;
+					const rightVisibleDuration = element.duration - relativeTime;
 
-          if (this.retainSide === "left") {
-            this.affectedElementIds.add(element.id);
-            return [
-              {
-                ...element,
-                duration: leftVisibleDuration,
-                trimEnd: element.trimEnd + rightVisibleDuration,
-                name: `${element.name} (left)`,
-              },
-            ];
-          }
+					if (this.retainSide === "left") {
+						this.affectedElementIds.add(element.id);
+						return [
+							{
+								...element,
+								duration: leftVisibleDuration,
+								trimEnd: element.trimEnd + rightVisibleDuration,
+								name: `${element.name} (left)`,
+							},
+						];
+					}
 
-          if (this.retainSide === "right") {
-            const newId = generateUUID();
-            this.affectedElementIds.add(newId);
-            return [
-              {
-                ...element,
-                id: newId,
-                startTime: this.splitTime,
-                duration: rightVisibleDuration,
-                trimStart: element.trimStart + leftVisibleDuration,
-                name: `${element.name} (right)`,
-              },
-            ];
-          }
+					if (this.retainSide === "right") {
+						const newId = generateUUID();
+						this.affectedElementIds.add(newId);
+						return [
+							{
+								...element,
+								id: newId,
+								startTime: this.splitTime,
+								duration: rightVisibleDuration,
+								trimStart: element.trimStart + leftVisibleDuration,
+								name: `${element.name} (right)`,
+							},
+						];
+					}
 
-          // "both" - split into two pieces
-          const secondElementId = generateUUID();
-          this.affectedElementIds.add(element.id);
-          this.affectedElementIds.add(secondElementId);
-          this.newElementIds.push(secondElementId);
+					// "both" - split into two pieces
+					const secondElementId = generateUUID();
+					this.affectedElementIds.add(element.id);
+					this.affectedElementIds.add(secondElementId);
+					this.newElementIds.push(secondElementId);
 
-          return [
-            {
-              ...element,
-              duration: leftVisibleDuration,
-              trimEnd: element.trimEnd + rightVisibleDuration,
-              name: `${element.name} (left)`,
-            },
-            {
-              ...element,
-              id: secondElementId,
-              startTime: this.splitTime,
-              duration: rightVisibleDuration,
-              trimStart: element.trimStart + leftVisibleDuration,
-              name: `${element.name} (right)`,
-            },
-          ];
-        }),
-      } as typeof track;
-    });
+					return [
+						{
+							...element,
+							duration: leftVisibleDuration,
+							trimEnd: element.trimEnd + rightVisibleDuration,
+							name: `${element.name} (left)`,
+						},
+						{
+							...element,
+							id: secondElementId,
+							startTime: this.splitTime,
+							duration: rightVisibleDuration,
+							trimStart: element.trimStart + leftVisibleDuration,
+							name: `${element.name} (right)`,
+						},
+					];
+				}),
+			} as typeof track;
+		});
 
-    editor.timeline.updateTracks(updatedTracks);
-  }
+		editor.timeline.updateTracks(updatedTracks);
+	}
 
-  undo(): void {
-    if (this.savedState) {
-      const editor = EditorCore.getInstance();
-      editor.timeline.updateTracks(this.savedState);
-    }
-  }
+	undo(): void {
+		if (this.savedState) {
+			const editor = EditorCore.getInstance();
+			editor.timeline.updateTracks(this.savedState);
+		}
+	}
 }

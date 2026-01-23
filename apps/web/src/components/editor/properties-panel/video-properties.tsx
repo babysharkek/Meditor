@@ -1,9 +1,9 @@
-import { VideoElement, ImageElement } from "@/types/timeline";
+import type { ImageElement, VideoElement } from "@/types/timeline";
 
 export function VideoProperties({
-  element,
+	_element,
 }: {
-  element: VideoElement | ImageElement;
+	_element: VideoElement | ImageElement;
 }) {
-  return <div className="space-y-4 p-5">Video properties</div>;
+	return <div className="space-y-4 p-5">Video properties</div>;
 }

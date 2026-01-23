@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropdown Options</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --brand-blue: #00A3FF;
+        }
+
+        /* Utility to hide/show */
+        .dropdown-menu { display: none; }
+        .dropdown-menu.open { display: block; }
+        
+        /* Custom scrollbar for dropdowns if needed */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-[#ffffff] text-slate-900 min-h-screen p-12">
+
+    <div class="max-w-6xl mx-auto space-y-4 mb-12">
+        <h1 class="text-2xl font-bold">Dropdown Design Explorations</h1>
+        <p class="text-slate-500">Single interaction for the same brand language. Click the button to toggle.</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-16 items-start max-w-6xl mx-auto">
+
+        <!-- Option 1: The "Soft & Minimal" -->
+        <!-- Characteristics: Extra rounded corners, blue text on hover, very subtle dividers -->
+        <div class="space-y-4">
+            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Option 1: Soft & Minimal</h2>
+            <div class="relative w-72">
+                <button onclick="toggle(1)" class="w-72 bg-white border border-slate-200 px-3 py-2 rounded-2xl flex items-center justify-between font-medium text-slate-700 hover:border-slate-300 hover:text-slate-900 shadow-sm">
+                    <span>Sort by</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                </button>
+
+                <div id="menu-1" class="dropdown-menu absolute top-full left-0 mt-2 w-72 bg-white rounded-[20px] shadow-lg border border-slate-200 overflow-hidden py-2 z-10">
+                    <div class="flex flex-col gap-0.5">
+                        <div class="px-2 pb-2 mb-2 border-b border-slate-50">
+                            <p class="text-[11px] font-bold text-slate-400 uppercase px-3 pt-2 pb-1">Order</p>
+                        </div>
+                        
+                        <a href="#" class="block px-4 py-2.5 mx-2 text-sm text-[#00A3FF] bg-blue-50 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center justify-between group">
+                            <span>Date created</span>
+                            <i data-lucide="check" class="w-4 h-4 text-[#00A3FF]"></i>
+                        </a>
+                        <a href="#" class="block px-4 py-2.5 mx-2 text-sm text-slate-600 rounded-xl hover:bg-slate-50 flex items-center justify-between group">
+                            <span>Last modified</span>
+                        </a>
+                        <a href="#" class="block px-4 py-2.5 mx-2 text-sm text-slate-600 rounded-xl hover:bg-slate-50 flex items-center justify-between group">
+                            <span>Alphabetical</span>
+                        </a>
+                        
+                        <div class="h-px bg-slate-50 my-2 mx-2"></div>
+                        
+                        <a href="#" class="block px-4 py-2.5 mx-2 text-sm text-red-500 rounded-xl hover:bg-red-50 flex items-center gap-2">
+                            <i data-lucide="trash" class="w-4 h-4"></i>
+                            <span>Reset sort</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function toggle(id) {
+            const menu = document.getElementById(`menu-${id}`);
+            if (menu) {
+                menu.classList.toggle('open');
+            }
+        }
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('button') && !e.target.closest('.dropdown-menu')) {
+                document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('open'));
+            }
+        });
+
+        // Open all by default for the demo view so user doesn't have to click
+        // toggle(1);
+    </script>
+</body>
+</html>

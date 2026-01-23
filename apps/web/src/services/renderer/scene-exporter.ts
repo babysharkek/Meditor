@@ -1,143 +1,143 @@
 import EventEmitter from "eventemitter3";
 
 import {
-  Output,
-  Mp4OutputFormat,
-  WebMOutputFormat,
-  BufferTarget,
-  CanvasSource,
-  AudioBufferSource,
-  QUALITY_LOW,
-  QUALITY_MEDIUM,
-  QUALITY_HIGH,
-  QUALITY_VERY_HIGH,
+	Output,
+	Mp4OutputFormat,
+	WebMOutputFormat,
+	BufferTarget,
+	CanvasSource,
+	AudioBufferSource,
+	QUALITY_LOW,
+	QUALITY_MEDIUM,
+	QUALITY_HIGH,
+	QUALITY_VERY_HIGH,
 } from "mediabunny";
-import { RootNode } from "./nodes/root-node";
+import type { RootNode } from "./nodes/root-node";
 import { CanvasRenderer } from "./canvas-renderer";
 
 export type ExportFormat = "mp4" | "webm";
 export type ExportQuality = "low" | "medium" | "high" | "very_high";
 
 type ExportParams = {
-  width: number;
-  height: number;
-  fps: number;
-  format: ExportFormat;
-  quality: ExportQuality;
-  includeAudio?: boolean;
-  audioBuffer?: AudioBuffer;
+	width: number;
+	height: number;
+	fps: number;
+	format: ExportFormat;
+	quality: ExportQuality;
+	includeAudio?: boolean;
+	audioBuffer?: AudioBuffer;
 };
 
 const qualityMap = {
-  low: QUALITY_LOW,
-  medium: QUALITY_MEDIUM,
-  high: QUALITY_HIGH,
-  very_high: QUALITY_VERY_HIGH,
+	low: QUALITY_LOW,
+	medium: QUALITY_MEDIUM,
+	high: QUALITY_HIGH,
+	very_high: QUALITY_VERY_HIGH,
 };
 
 export type SceneExporterEvents = {
-  progress: [progress: number];
-  complete: [buffer: ArrayBuffer];
-  error: [error: Error];
-  cancelled: [];
+	progress: [progress: number];
+	complete: [buffer: ArrayBuffer];
+	error: [error: Error];
+	cancelled: [];
 };
 
 export class SceneExporter extends EventEmitter<SceneExporterEvents> {
-  private renderer: CanvasRenderer;
-  private format: ExportFormat;
-  private quality: ExportQuality;
-  private includeAudio: boolean;
-  private audioBuffer?: AudioBuffer;
+	private renderer: CanvasRenderer;
+	private format: ExportFormat;
+	private quality: ExportQuality;
+	private includeAudio: boolean;
+	private audioBuffer?: AudioBuffer;
 
-  private cancelled = false;
+	private cancelled = false;
 
-  constructor(params: ExportParams) {
-    super();
-    this.renderer = new CanvasRenderer({
-      width: params.width,
-      height: params.height,
-      fps: params.fps,
-    });
+	constructor(params: ExportParams) {
+		super();
+		this.renderer = new CanvasRenderer({
+			width: params.width,
+			height: params.height,
+			fps: params.fps,
+		});
 
-    this.format = params.format;
-    this.quality = params.quality;
-    this.includeAudio = params.includeAudio ?? false;
-    this.audioBuffer = params.audioBuffer;
-  }
+		this.format = params.format;
+		this.quality = params.quality;
+		this.includeAudio = params.includeAudio ?? false;
+		this.audioBuffer = params.audioBuffer;
+	}
 
-  cancel() {
-    this.cancelled = true;
-  }
+	cancel() {
+		this.cancelled = true;
+	}
 
-  async export(rootNode: RootNode) {
-    const { fps } = this.renderer;
-    const frameCount = Math.ceil(rootNode.duration * fps);
+	async export(rootNode: RootNode) {
+		const { fps } = this.renderer;
+		const frameCount = Math.ceil(rootNode.duration * fps);
 
-    const outputFormat =
-      this.format === "webm" ? new WebMOutputFormat() : new Mp4OutputFormat();
+		const outputFormat =
+			this.format === "webm" ? new WebMOutputFormat() : new Mp4OutputFormat();
 
-    const output = new Output({
-      format: outputFormat,
-      target: new BufferTarget(),
-    });
+		const output = new Output({
+			format: outputFormat,
+			target: new BufferTarget(),
+		});
 
-    const videoSource = new CanvasSource(this.renderer.canvas as any, {
-      codec: this.format === "webm" ? "vp9" : "avc",
-      bitrate: qualityMap[this.quality],
-    });
+		const videoSource = new CanvasSource(this.renderer.canvas as any, {
+			codec: this.format === "webm" ? "vp9" : "avc",
+			bitrate: qualityMap[this.quality],
+		});
 
-    output.addVideoTrack(videoSource, { frameRate: fps });
+		output.addVideoTrack(videoSource, { frameRate: fps });
 
-    // Add audio track if requested
-    let audioSource: AudioBufferSource | null = null;
-    if (this.includeAudio && this.audioBuffer) {
-      audioSource = new AudioBufferSource({
-        codec: this.format === "webm" ? "opus" : "aac",
-        bitrate: qualityMap[this.quality],
-      });
-      output.addAudioTrack(audioSource);
-    }
+		// Add audio track if requested
+		let audioSource: AudioBufferSource | null = null;
+		if (this.includeAudio && this.audioBuffer) {
+			audioSource = new AudioBufferSource({
+				codec: this.format === "webm" ? "opus" : "aac",
+				bitrate: qualityMap[this.quality],
+			});
+			output.addAudioTrack(audioSource);
+		}
 
-    await output.start();
+		await output.start();
 
-    // Add audio data after starting
-    if (audioSource && this.audioBuffer) {
-      await audioSource.add(this.audioBuffer);
-      audioSource.close();
-    }
+		// Add audio data after starting
+		if (audioSource && this.audioBuffer) {
+			await audioSource.add(this.audioBuffer);
+			audioSource.close();
+		}
 
-    // Render video frames
-    for (let i = 0; i < frameCount; i++) {
-      if (this.cancelled) {
-        await output.cancel();
-        this.emit("cancelled");
-        return null;
-      }
+		// Render video frames
+		for (let i = 0; i < frameCount; i++) {
+			if (this.cancelled) {
+				await output.cancel();
+				this.emit("cancelled");
+				return null;
+			}
 
-      const time = i / fps;
-      await this.renderer.render({ node: rootNode, time });
-      await videoSource.add(time, 1 / fps);
+			const time = i / fps;
+			await this.renderer.render({ node: rootNode, time });
+			await videoSource.add(time, 1 / fps);
 
-      this.emit("progress", i / frameCount);
-    }
+			this.emit("progress", i / frameCount);
+		}
 
-    if (this.cancelled) {
-      await output.cancel();
-      this.emit("cancelled");
-      return null;
-    }
+		if (this.cancelled) {
+			await output.cancel();
+			this.emit("cancelled");
+			return null;
+		}
 
-    videoSource.close();
-    await output.finalize();
-    this.emit("progress", 1);
+		videoSource.close();
+		await output.finalize();
+		this.emit("progress", 1);
 
-    const buffer = output.target.buffer;
-    if (!buffer) {
-      this.emit("error", new Error("Failed to export video"));
-      return null;
-    }
+		const buffer = output.target.buffer;
+		if (!buffer) {
+			this.emit("error", new Error("Failed to export video"));
+			return null;
+		}
 
-    this.emit("complete", buffer);
-    return buffer;
-  }
+		this.emit("complete", buffer);
+		return buffer;
+	}
 }

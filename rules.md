@@ -1,6 +1,6 @@
 Review every point below carefully for files to ensure they follow consistent code style and best practices.
 
-1. Every single function must use a destructured props object for parameters, regardless of whether there's one or multiple parameters. This applies to all functions, not just react components. Even zustand stores. exception: tiny one-liner callbacks (e.g. `array.find(x => ...)`, `map`, `filter`, `sort`) do not need destructuring if it hurts readability or adds noise.
+1. Every single function must accept a single object parameter and destructure it in the signature (for readability and future extensibility), if there's 1 or more values. This applies to all functions, not just react components. Even zustand stores. exception: tiny one-liner callbacks (e.g. `array.find(x => ...)`, `map`, `filter`, `sort`) do not need destructuring if it hurts readability or adds noise.
 2. No `any` references.
 3. JSX is clean; No comments in there explaining what each part does. Must extract JSX into sub-components (always placed below the main component). A part only needs to be extracted if it's either used in multiple places of the file OR is complex enough to be worth extracting. If a component is used acrosss multiple files, it should be extracted to a separate file.
 4. General interfaces must be placed in the `types` folder. Example: `src/components/timeline/index.tsx` defining a `TimelineTrack` interface is wrong and should be moved to `src/types/timeline.ts`.

@@ -5,42 +5,42 @@ import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
 import { buildTextElement } from "@/lib/timeline/element-utils";
 
 export function TextView() {
-  const editor = useEditor();
+	const editor = useEditor();
 
-  const handleAddToTimeline = ({ currentTime }: { currentTime: number }) => {
-    const activeScene = editor.scenes.getActiveScene();
-    if (!activeScene) return;
+	const handleAddToTimeline = ({ currentTime }: { currentTime: number }) => {
+		const activeScene = editor.scenes.getActiveScene();
+		if (!activeScene) return;
 
-    const element = buildTextElement({
-      raw: DEFAULT_TEXT_ELEMENT,
-      startTime: currentTime,
-    });
+		const element = buildTextElement({
+			raw: DEFAULT_TEXT_ELEMENT,
+			startTime: currentTime,
+		});
 
-    editor.timeline.insertElement({
-      element,
-      placement: { mode: "auto" },
-    });
-  };
+		editor.timeline.insertElement({
+			element,
+			placement: { mode: "auto" },
+		});
+	};
 
-  return (
-    <BaseView>
-      <DraggableItem
-        name="Default text"
-        preview={
-          <div className="bg-panel-accent flex size-full items-center justify-center rounded">
-            <span className="text-xs select-none">Default text</span>
-          </div>
-        }
-        dragData={{
-          id: "temp-text-id",
-          type: DEFAULT_TEXT_ELEMENT.type,
-          name: DEFAULT_TEXT_ELEMENT.name,
-          content: DEFAULT_TEXT_ELEMENT.content,
-        }}
-        aspectRatio={1}
-        onAddToTimeline={handleAddToTimeline}
-        shouldShowLabel={false}
-      />
-    </BaseView>
-  );
+	return (
+		<BaseView>
+			<DraggableItem
+				name="Default text"
+				preview={
+					<div className="bg-panel-accent flex size-full items-center justify-center rounded">
+						<span className="text-xs select-none">Default text</span>
+					</div>
+				}
+				dragData={{
+					id: "temp-text-id",
+					type: DEFAULT_TEXT_ELEMENT.type,
+					name: DEFAULT_TEXT_ELEMENT.name,
+					content: DEFAULT_TEXT_ELEMENT.content,
+				}}
+				aspectRatio={1}
+				onAddToTimeline={handleAddToTimeline}
+				shouldShowLabel={false}
+			/>
+		</BaseView>
+	);
 }

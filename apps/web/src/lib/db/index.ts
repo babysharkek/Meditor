@@ -6,12 +6,12 @@ import { webEnv } from "@opencut/env/web";
 let _db: ReturnType<typeof drizzle> | null = null;
 
 function getDb() {
-  if (!_db) {
-    const client = postgres(webEnv.DATABASE_URL);
-    _db = drizzle(client, { schema });
-  }
+	if (!_db) {
+		const client = postgres(webEnv.DATABASE_URL);
+		_db = drizzle(client, { schema });
+	}
 
-  return _db;
+	return _db;
 }
 
 export const db = getDb();

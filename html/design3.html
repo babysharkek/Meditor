@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Design 3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Space Grotesk', sans-serif; }
+        .border-b-1 { border-bottom-width: 1px; }
+        
+        /* Brutalist hover effect */
+        .project-row:hover {
+            background-color: #000;
+            color: #fff;
+        }
+        .project-row:hover .meta-text { color: #9ca3af; }
+        .project-row:hover .icon-btn { color: #fff; border-color: #fff; }
+        
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #000;
+            cursor: pointer;
+            position: relative;
+        }
+        .custom-checkbox:checked {
+            background-color: #000;
+        }
+        .custom-checkbox:checked::after {
+            content: '✓';
+            color: #fff;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+        }
+        .project-row:hover .custom-checkbox { border-color: #fff; }
+        .project-row:hover .custom-checkbox:checked { background-color: #fff; }
+        .project-row:hover .custom-checkbox:checked::after { color: #000; }
+    </style>
+</head>
+<body class="bg-white text-black min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="border-b-2 border-black h-20 flex items-center justify-between px-8 sticky top-0 bg-white z-50">
+        <div class="flex items-center gap-12">
+            <a href="#" class="text-3xl font-bold tracking-tighter uppercase">Editor<span class="text-gray-400">.</span></a>
+            <div class="hidden md:flex gap-8 text-sm font-medium tracking-wide">
+                <a href="#" class="uppercase border-b-2 border-black pb-1">Projects</a>
+                <a href="#" class="uppercase text-gray-400 hover:text-black transition-colors">Assets</a>
+                <a href="#" class="uppercase text-gray-400 hover:text-black transition-colors">Team</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="relative group">
+                <input type="text" placeholder="SEARCH" class="border-b-2 border-gray-200 focus:border-black outline-none py-1 w-48 text-sm uppercase placeholder-gray-300 transition-all">
+                <i data-lucide="search" class="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-black"></i>
+            </div>
+            <button class="w-10 h-10 border-2 border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-colors">
+                <span class="font-bold text-sm">JD</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col max-w-7xl mx-auto w-full px-8 py-12">
+        
+        <!-- Header Actions -->
+        <div class="flex items-end justify-between mb-16">
+            <div>
+                <h1 class="text-6xl font-bold tracking-tighter mb-4">WORK</h1>
+                <p class="text-xl text-gray-500 max-w-md leading-relaxed">Manage your creative output. Organize, edit, and publish your stories.</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="px-8 py-4 border-2 border-black font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-all flex items-center gap-3">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    New Project
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters / Sort -->
+        <div class="flex items-center justify-between border-b-2 border-black pb-4 mb-0">
+            <div class="flex gap-8 text-sm font-bold uppercase tracking-wider">
+                <button class="text-black">All (12)</button>
+                <button class="text-gray-400 hover:text-black">Drafts (4)</button>
+                <button class="text-gray-400 hover:text-black">Published (8)</button>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 hover:bg-gray-100 rounded">
+                    <i data-lucide="layout-list" class="w-5 h-5"></i>
+                </button>
+                <button class="p-2 text-gray-400 hover:text-black">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- List View (Table-ish) -->
+        <div class="flex flex-col">
+            <!-- Header Row -->
+            <div class="grid grid-cols-12 gap-4 py-4 border-b border-gray-200 text-xs font-bold uppercase text-gray-400 tracking-wider">
+                <div class="col-span-1 flex justify-center">
+                    <input type="checkbox" class="custom-checkbox">
+                </div>
+                <div class="col-span-5">Project Name</div>
+                <div class="col-span-2">Last Edited</div>
+                <div class="col-span-2">Duration</div>
+                <div class="col-span-2 text-right">Actions</div>
+            </div>
+
+            <!-- Row 1 -->
+            <div class="project-row group grid grid-cols-12 gap-4 py-6 border-b border-gray-200 items-center transition-colors cursor-pointer">
+                <div class="col-span-1 flex justify-center">
+                    <input type="checkbox" class="custom-checkbox">
+                </div>
+                <div class="col-span-5 flex items-center gap-6">
+                    <div class="w-24 h-16 bg-gray-100 overflow-hidden relative border border-gray-200 group-hover:border-white/20">
+                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" alt="Thumb">
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold uppercase tracking-tight">Nike Commercial_V3</h3>
+                        <span class="text-xs text-gray-400 meta-text uppercase tracking-wider">Client: Nike</span>
+                    </div>
+                </div>
+                <div class="col-span-2 font-mono text-sm text-gray-500 meta-text">Today, 10:23 AM</div>
+                <div class="col-span-2 font-mono text-sm text-gray-500 meta-text">00:30:00</div>
+                <div class="col-span-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="icon-btn w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors">
+                        <i data-lucide="pencil" class="w-3 h-3"></i>
+                    </button>
+                    <button class="icon-btn w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="project-row group grid grid-cols-12 gap-4 py-6 border-b border-gray-200 items-center transition-colors cursor-pointer bg-gray-50">
+                <div class="col-span-1 flex justify-center">
+                    <input type="checkbox" class="custom-checkbox" checked>
+                </div>
+                <div class="col-span-5 flex items-center gap-6">
+                    <div class="w-24 h-16 bg-gray-100 overflow-hidden relative border border-gray-200 group-hover:border-white/20">
+                        <img src="https://images.unsplash.com/photo-1558655146-d09347e0b7a8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" alt="Thumb">
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold uppercase tracking-tight">Fashion Week Recap</h3>
+                        <span class="text-xs text-gray-400 meta-text uppercase tracking-wider">Personal</span>
+                    </div>
+                </div>
+                <div class="col-span-2 font-mono text-sm text-gray-500 meta-text">Yesterday</div>
+                <div class="col-span-2 font-mono text-sm text-gray-500 meta-text">02:15:00</div>
+                <div class="col-span-2 flex justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <button class="icon-btn w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors">
+                        <i data-lucide="pencil" class="w-3 h-3"></i>
+                    </button>
+                    <button class="icon-btn w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="project-row group grid grid-cols-12 gap-4 py-6 border-b border-gray-200 items-center transition-colors cursor-pointer">
+                <div class="col-span-1 flex justify-center">
+                    <input type="checkbox" class="custom-checkbox">
+                </div>
+                <div class="col-span-5 flex items-center gap-6">
+                    <div class="w-24 h-16 bg-gray-100 overflow-hidden relative border border-gray-200 group-hover:border-white/20">
+                         <div class="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
+                            <i data-lucide="film" class="w-6 h-6"></i>
+                         </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold uppercase tracking-tight">Untitled Project 04</h3>
+                        <span class="text-xs text-gray-400 meta-text uppercase tracking-wider">Draft</span>
+                    </div>
+                </div>
+                <div class="col-span-2 font-mono text-sm text-gray-500 meta-text">Oct 24, 2025</div>
+                <div class="col-span-2 font-mono text-sm text-gray-500 meta-text">--:--:--</div>
+                <div class="col-span-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="icon-btn w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors">
+                        <i data-lucide="pencil" class="w-3 h-3"></i>
+                    </button>
+                    <button class="icon-btn w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Selection Action Bar (Sticky Bottom) -->
+        <div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-black text-white px-8 py-4 flex items-center gap-8 shadow-2xl z-50">
+            <span class="font-mono text-sm uppercase tracking-wider">1 Selected</span>
+            <div class="h-4 w-px bg-gray-700"></div>
+            <div class="flex gap-6">
+                <button class="hover:text-gray-300 uppercase text-sm font-bold tracking-wider">Delete</button>
+                <button class="hover:text-gray-300 uppercase text-sm font-bold tracking-wider">Duplicate</button>
+                <button class="hover:text-gray-300 uppercase text-sm font-bold tracking-wider">Archive</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

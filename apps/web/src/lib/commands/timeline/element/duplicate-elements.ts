@@ -3,97 +3,97 @@ import type { TimelineElement, TimelineTrack } from "@/types/timeline";
 import { generateUUID } from "@/utils/id";
 import { EditorCore } from "@/core";
 import {
-  buildEmptyTrack,
-  getHighestInsertIndexForTrack,
+	buildEmptyTrack,
+	getHighestInsertIndexForTrack,
 } from "@/lib/timeline/track-utils";
 
 interface DuplicateElementsParams {
-  elements: { trackId: string; elementId: string }[];
+	elements: { trackId: string; elementId: string }[];
 }
 
 export class DuplicateElementsCommand extends Command {
-  private duplicatedIds: string[] = [];
-  private savedState: TimelineTrack[] | null = null;
-  private elements: DuplicateElementsParams["elements"];
+	private duplicatedIds: string[] = [];
+	private savedState: TimelineTrack[] | null = null;
+	private elements: DuplicateElementsParams["elements"];
 
-  constructor({ elements }: DuplicateElementsParams) {
-    super();
-    this.elements = elements;
-  }
+	constructor({ elements }: DuplicateElementsParams) {
+		super();
+		this.elements = elements;
+	}
 
-  execute(): void {
-    const editor = EditorCore.getInstance();
-    this.savedState = editor.timeline.getTracks();
-    this.duplicatedIds = [];
+	execute(): void {
+		const editor = EditorCore.getInstance();
+		this.savedState = editor.timeline.getTracks();
+		this.duplicatedIds = [];
 
-    const updatedTracks = [...this.savedState];
+		const updatedTracks = [...this.savedState];
 
-    for (const track of this.savedState) {
-      const elementsToDuplicate = this.elements.filter(
-        (el) => el.trackId === track.id,
-      );
+		for (const track of this.savedState) {
+			const elementsToDuplicate = this.elements.filter(
+				(el) => el.trackId === track.id,
+			);
 
-      if (elementsToDuplicate.length === 0) {
-        continue;
-      }
+			if (elementsToDuplicate.length === 0) {
+				continue;
+			}
 
-      const elementIdsToDuplicate = new Set(
-        elementsToDuplicate.map((element) => element.elementId),
-      );
-      const newTrackElements: TimelineElement[] = [];
+			const elementIdsToDuplicate = new Set(
+				elementsToDuplicate.map((element) => element.elementId),
+			);
+			const newTrackElements: TimelineElement[] = [];
 
-      for (const element of track.elements) {
-        if (!elementIdsToDuplicate.has(element.id)) {
-          continue;
-        }
+			for (const element of track.elements) {
+				if (!elementIdsToDuplicate.has(element.id)) {
+					continue;
+				}
 
-        const newId = generateUUID();
-        this.duplicatedIds.push(newId);
-        newTrackElements.push(
-          buildDuplicateElement({
-            element,
-            id: newId,
-            startTime: element.startTime,
-          }),
-        );
-      }
+				const newId = generateUUID();
+				this.duplicatedIds.push(newId);
+				newTrackElements.push(
+					buildDuplicateElement({
+						element,
+						id: newId,
+						startTime: element.startTime,
+					}),
+				);
+			}
 
-      const newTrackId = generateUUID();
-      const newTrackBase = buildEmptyTrack({
-        id: newTrackId,
-        type: track.type,
-      });
-      const newTrack = {
-        ...newTrackBase,
-        elements: newTrackElements,
-      } as TimelineTrack;
+			const newTrackId = generateUUID();
+			const newTrackBase = buildEmptyTrack({
+				id: newTrackId,
+				type: track.type,
+			});
+			const newTrack = {
+				...newTrackBase,
+				elements: newTrackElements,
+			} as TimelineTrack;
 
-      const insertIndex = getHighestInsertIndexForTrack({
-        tracks: updatedTracks,
-        trackType: track.type,
-      });
-      updatedTracks.splice(insertIndex, 0, newTrack);
-    }
+			const insertIndex = getHighestInsertIndexForTrack({
+				tracks: updatedTracks,
+				trackType: track.type,
+			});
+			updatedTracks.splice(insertIndex, 0, newTrack);
+		}
 
-    editor.timeline.updateTracks(updatedTracks);
-  }
+		editor.timeline.updateTracks(updatedTracks);
+	}
 
-  undo(): void {
-    if (this.savedState) {
-      const editor = EditorCore.getInstance();
-      editor.timeline.updateTracks(this.savedState);
-    }
-  }
+	undo(): void {
+		if (this.savedState) {
+			const editor = EditorCore.getInstance();
+			editor.timeline.updateTracks(this.savedState);
+		}
+	}
 }
 
 function buildDuplicateElement({
-  element,
-  id,
-  startTime,
+	element,
+	id,
+	startTime,
 }: {
-  element: TimelineElement;
-  id: string;
-  startTime: number;
+	element: TimelineElement;
+	id: string;
+	startTime: number;
 }): TimelineElement {
-  return { ...element, id, name: `${element.name} (copy)`, startTime };
+	return { ...element, id, name: `${element.name} (copy)`, startTime };
 }

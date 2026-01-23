@@ -1,687 +1,712 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  ArrowDown01,
-  CloudUpload,
-  Grid2X2,
-  Image,
-  List,
-  Loader2,
-  Music,
-  Video,
-} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import {
+	ArrowDown01,
+	CloudUpload,
+	Grid2X2,
+	ImageIcon,
+	List,
+	Loader2,
+	Music,
+	Video,
+} from "lucide-react";
+import Image from "next/image";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { MediaDragOverlay } from "@/components/editor/assets-panel/drag-overlay";
+import { DraggableItem } from "@/components/editor/draggable-item";
+import { Button } from "@/components/ui/button";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { useEditor } from "@/hooks/use-editor";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useRevealItem } from "@/hooks/use-reveal-item";
 import { processMediaAssets } from "@/lib/media/processing";
-import { cn } from "@/utils/ui";
-import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
+import { useAssetsPanelStore } from "@/stores/assets-panel-store";
 import type { MediaAsset } from "@/types/assets";
 import type { CreateTimelineElement } from "@/types/timeline";
-import { Button } from "@/components/ui/button";
-import { MediaDragOverlay } from "@/components/editor/assets-panel/drag-overlay";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DraggableItem } from "@/components/editor/draggable-item";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useAssetsPanelStore } from "@/stores/assets-panel-store";
+import { cn } from "@/utils/ui";
 
 export function MediaView() {
-  const editor = useEditor();
-  const mediaFiles = editor.media.getAssets();
-  const activeProject = editor.project.getActive();
+	const editor = useEditor();
+	const mediaFiles = editor.media.getAssets();
+	const activeProject = editor.project.getActive();
 
-  const { mediaViewMode, setMediaViewMode, highlightMediaId, clearHighlight } =
-    useAssetsPanelStore();
-  const { highlightedId, registerElement } = useRevealItem(
-    highlightMediaId,
-    clearHighlight,
-  );
+	const { mediaViewMode, setMediaViewMode, highlightMediaId, clearHighlight } =
+		useAssetsPanelStore();
+	const { highlightedId, registerElement } = useRevealItem(
+		highlightMediaId,
+		clearHighlight,
+	);
 
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [sortBy, setSortBy] = useState<"name" | "type" | "duration" | "size">(
-    "name",
-  );
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+	const [isProcessing, setIsProcessing] = useState(false);
+	const [progress, setProgress] = useState(0);
+	const [sortBy, setSortBy] = useState<"name" | "type" | "duration" | "size">(
+		"name",
+	);
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const processFiles = async ({ files }: { files: FileList }) => {
-    if (!files || files.length === 0) return;
-    if (!activeProject) {
-      toast.error("No active project");
-      return;
-    }
+	const processFiles = async ({ files }: { files: FileList }) => {
+		if (!files || files.length === 0) return;
+		if (!activeProject) {
+			toast.error("No active project");
+			return;
+		}
 
-    setIsProcessing(true);
-    setProgress(0);
-    try {
-      const processedAssets = await processMediaAssets({
-        files,
-        onProgress: (progress: { progress: number }) =>
-          setProgress(progress.progress),
-      });
-      for (const asset of processedAssets) {
-        await editor.media.addMediaAsset({
-          projectId: activeProject.metadata.id,
-          asset,
-        });
-      }
-    } catch (error) {
-      console.error("Error processing files:", error);
-      toast.error("Failed to process files");
-    } finally {
-      setIsProcessing(false);
-      setProgress(0);
-    }
-  };
+		setIsProcessing(true);
+		setProgress(0);
+		try {
+			const processedAssets = await processMediaAssets({
+				files,
+				onProgress: (progress: { progress: number }) =>
+					setProgress(progress.progress),
+			});
+			for (const asset of processedAssets) {
+				await editor.media.addMediaAsset({
+					projectId: activeProject.metadata.id,
+					asset,
+				});
+			}
+		} catch (error) {
+			console.error("Error processing files:", error);
+			toast.error("Failed to process files");
+		} finally {
+			setIsProcessing(false);
+			setProgress(0);
+		}
+	};
 
-  const { isDragOver, dragProps, openFilePicker, fileInputProps } =
-    useFileUpload({
-      accept: "image/*,video/*,audio/*",
-      multiple: true,
-      onFilesSelected: (files) => processFiles({ files }),
-    });
+	const { isDragOver, dragProps, openFilePicker, fileInputProps } =
+		useFileUpload({
+			accept: "image/*,video/*,audio/*",
+			multiple: true,
+			onFilesSelected: (files) => processFiles({ files }),
+		});
 
-  const handleRemove = async ({
-    event,
-    id,
-  }: {
-    event: React.MouseEvent;
-    id: string;
-  }) => {
-    event.stopPropagation();
+	const handleRemove = async ({
+		event,
+		id,
+	}: {
+		event: React.MouseEvent;
+		id: string;
+	}) => {
+		event.stopPropagation();
 
-    if (!activeProject) {
-      toast.error("No active project");
-      return;
-    }
+		if (!activeProject) {
+			toast.error("No active project");
+			return;
+		}
 
-    await editor.media.removeMediaAsset({
-      projectId: activeProject.metadata.id,
-      id,
-    });
-  };
+		await editor.media.removeMediaAsset({
+			projectId: activeProject.metadata.id,
+			id,
+		});
+	};
 
-  const addElementAtTime = ({
-    asset,
-    startTime,
-  }: {
-    asset: MediaAsset;
-    startTime: number;
-  }): boolean => {
-    const element = createElementFromMedia({ asset, startTime });
-    editor.timeline.insertElement({
-      element,
-      placement: { mode: "auto" },
-    });
-    return true;
-  };
+	const addElementAtTime = ({
+		asset,
+		startTime,
+	}: {
+		asset: MediaAsset;
+		startTime: number;
+	}): boolean => {
+		const element = createElementFromMedia({ asset, startTime });
+		editor.timeline.insertElement({
+			element,
+			placement: { mode: "auto" },
+		});
+		return true;
+	};
 
-  const filteredMediaItems = useMemo(() => {
-    const filtered = mediaFiles.filter((item) => !item.ephemeral);
+	const filteredMediaItems = useMemo(() => {
+		const filtered = mediaFiles.filter((item) => !item.ephemeral);
 
-    filtered.sort((a, b) => {
-      let valueA: string | number;
-      let valueB: string | number;
+		filtered.sort((a, b) => {
+			let valueA: string | number;
+			let valueB: string | number;
 
-      switch (sortBy) {
-        case "name":
-          valueA = a.name.toLowerCase();
-          valueB = b.name.toLowerCase();
-          break;
-        case "type":
-          valueA = a.type;
-          valueB = b.type;
-          break;
-        case "duration":
-          valueA = a.duration || 0;
-          valueB = b.duration || 0;
-          break;
-        case "size":
-          valueA = a.file.size;
-          valueB = b.file.size;
-          break;
-        default:
-          return 0;
-      }
+			switch (sortBy) {
+				case "name":
+					valueA = a.name.toLowerCase();
+					valueB = b.name.toLowerCase();
+					break;
+				case "type":
+					valueA = a.type;
+					valueB = b.type;
+					break;
+				case "duration":
+					valueA = a.duration || 0;
+					valueB = b.duration || 0;
+					break;
+				case "size":
+					valueA = a.file.size;
+					valueB = b.file.size;
+					break;
+				default:
+					return 0;
+			}
 
-      if (valueA < valueB) return sortOrder === "asc" ? -1 : 1;
-      if (valueA > valueB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
+			if (valueA < valueB) return sortOrder === "asc" ? -1 : 1;
+			if (valueA > valueB) return sortOrder === "asc" ? 1 : -1;
+			return 0;
+		});
 
-    return filtered;
-  }, [mediaFiles, sortBy, sortOrder]);
+		return filtered;
+	}, [mediaFiles, sortBy, sortOrder]);
 
-  const previewComponents = useMemo(() => {
-    const previews = new Map<string, React.ReactNode>();
+	const previewComponents = useMemo(() => {
+		const previews = new Map<string, React.ReactNode>();
 
-    filteredMediaItems.forEach((item) => {
-      previews.set(item.id, <MediaPreview item={item} />);
-    });
+		filteredMediaItems.forEach((item) => {
+			previews.set(item.id, <MediaPreview item={item} />);
+			previews.set(
+				`compact-${item.id}`,
+				<MediaPreview item={item} variant="compact" />,
+			);
+		});
 
-    return previews;
-  }, [filteredMediaItems]);
+		return previews;
+	}, [filteredMediaItems]);
 
-  const renderPreview = (item: MediaAsset) => previewComponents.get(item.id);
+	const renderPreview = (item: MediaAsset) => previewComponents.get(item.id);
+	const renderCompactPreview = (item: MediaAsset) =>
+		previewComponents.get(`compact-${item.id}`);
 
-  return (
-    <>
-      <input {...fileInputProps} />
+	return (
+		<>
+			<input {...fileInputProps} />
 
-      <div
-        className={`relative flex h-full flex-col gap-1 transition-colors ${isDragOver ? "bg-accent/30" : ""}`}
-        {...dragProps}
-      >
-        <div className="bg-panel p-3 pb-2">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="foreground"
-              onClick={openFilePicker}
-              disabled={isProcessing}
-              className="w-full"
-            >
-              {isProcessing ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <CloudUpload />
-              )}
-              <span>Upload</span>
-            </Button>
-            <div className="flex items-center gap-0">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon"
-                      variant="text"
-                      onClick={() =>
-                        setMediaViewMode(
-                          mediaViewMode === "grid" ? "list" : "grid",
-                        )
-                      }
-                      disabled={isProcessing}
-                      className="items-center justify-center"
-                    >
-                      {mediaViewMode === "grid" ? (
-                        <List strokeWidth={1.5} className="!size-[1.05rem]" />
-                      ) : (
-                        <Grid2X2
-                          strokeWidth={1.5}
-                          className="!size-[1.05rem]"
-                        />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {mediaViewMode === "grid"
-                        ? "Switch to list view"
-                        : "Switch to grid view"}
-                    </p>
-                  </TooltipContent>
-                  <Tooltip>
-                    <DropdownMenu>
-                      <TooltipTrigger asChild>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="text"
-                            disabled={isProcessing}
-                            className="items-center justify-center"
-                          >
-                            <ArrowDown01
-                              strokeWidth={1.5}
-                              className="!size-[1.05rem]"
-                            />
-                          </Button>
-                        </DropdownMenuTrigger>
-                      </TooltipTrigger>
-                      <DropdownMenuContent align="end">
-                        <SortMenuItem
-                          label="Name"
-                          sortKey="name"
-                          currentSortBy={sortBy}
-                          currentSortOrder={sortOrder}
-                          onSort={({ key }) => {
-                            if (sortBy === key) {
-                              setSortOrder(
-                                sortOrder === "asc" ? "desc" : "asc",
-                              );
-                            } else {
-                              setSortBy(key);
-                              setSortOrder("asc");
-                            }
-                          }}
-                        />
-                        <SortMenuItem
-                          label="Type"
-                          sortKey="type"
-                          currentSortBy={sortBy}
-                          currentSortOrder={sortOrder}
-                          onSort={({ key }) => {
-                            if (sortBy === key) {
-                              setSortOrder(
-                                sortOrder === "asc" ? "desc" : "asc",
-                              );
-                            } else {
-                              setSortBy(key);
-                              setSortOrder("asc");
-                            }
-                          }}
-                        />
-                        <SortMenuItem
-                          label="Duration"
-                          sortKey="duration"
-                          currentSortBy={sortBy}
-                          currentSortOrder={sortOrder}
-                          onSort={({ key }) => {
-                            if (sortBy === key) {
-                              setSortOrder(
-                                sortOrder === "asc" ? "desc" : "asc",
-                              );
-                            } else {
-                              setSortBy(key);
-                              setSortOrder("asc");
-                            }
-                          }}
-                        />
-                        <SortMenuItem
-                          label="File size"
-                          sortKey="size"
-                          currentSortBy={sortBy}
-                          currentSortOrder={sortOrder}
-                          onSort={({ key }) => {
-                            if (sortBy === key) {
-                              setSortOrder(
-                                sortOrder === "asc" ? "desc" : "asc",
-                              );
-                            } else {
-                              setSortBy(key);
-                              setSortOrder("asc");
-                            }
-                          }}
-                        />
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <TooltipContent>
-                      <p>
-                        Sort by {sortBy} (
-                        {sortOrder === "asc" ? "ascending" : "descending"})
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-        </div>
+			<div
+				className={`relative flex h-full flex-col gap-1 transition-colors ${isDragOver ? "bg-accent/30" : ""}`}
+				{...dragProps}
+			>
+				<div className="bg-panel p-3 pb-2">
+					<div className="flex items-center gap-2">
+						<Button
+							variant="foreground"
+							onClick={openFilePicker}
+							disabled={isProcessing}
+							className="w-full"
+						>
+							{isProcessing ? (
+								<Loader2 className="animate-spin" />
+							) : (
+								<CloudUpload />
+							)}
+							<span>Upload</span>
+						</Button>
+						<div className="flex items-center gap-0">
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											size="icon"
+											variant="text"
+											onClick={() =>
+												setMediaViewMode(
+													mediaViewMode === "grid" ? "list" : "grid",
+												)
+											}
+											disabled={isProcessing}
+											className="items-center justify-center"
+										>
+											{mediaViewMode === "grid" ? (
+												<List strokeWidth={1.5} className="!size-[1.05rem]" />
+											) : (
+												<Grid2X2
+													strokeWidth={1.5}
+													className="!size-[1.05rem]"
+												/>
+											)}
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>
+											{mediaViewMode === "grid"
+												? "Switch to list view"
+												: "Switch to grid view"}
+										</p>
+									</TooltipContent>
+									<Tooltip>
+										<DropdownMenu>
+											<TooltipTrigger asChild>
+												<DropdownMenuTrigger asChild>
+													<Button
+														size="icon"
+														variant="text"
+														disabled={isProcessing}
+														className="items-center justify-center"
+													>
+														<ArrowDown01
+															strokeWidth={1.5}
+															className="!size-[1.05rem]"
+														/>
+													</Button>
+												</DropdownMenuTrigger>
+											</TooltipTrigger>
+											<DropdownMenuContent align="end">
+												<SortMenuItem
+													label="Name"
+													sortKey="name"
+													currentSortBy={sortBy}
+													currentSortOrder={sortOrder}
+													onSort={({ key }) => {
+														if (sortBy === key) {
+															setSortOrder(
+																sortOrder === "asc" ? "desc" : "asc",
+															);
+														} else {
+															setSortBy(key);
+															setSortOrder("asc");
+														}
+													}}
+												/>
+												<SortMenuItem
+													label="Type"
+													sortKey="type"
+													currentSortBy={sortBy}
+													currentSortOrder={sortOrder}
+													onSort={({ key }) => {
+														if (sortBy === key) {
+															setSortOrder(
+																sortOrder === "asc" ? "desc" : "asc",
+															);
+														} else {
+															setSortBy(key);
+															setSortOrder("asc");
+														}
+													}}
+												/>
+												<SortMenuItem
+													label="Duration"
+													sortKey="duration"
+													currentSortBy={sortBy}
+													currentSortOrder={sortOrder}
+													onSort={({ key }) => {
+														if (sortBy === key) {
+															setSortOrder(
+																sortOrder === "asc" ? "desc" : "asc",
+															);
+														} else {
+															setSortBy(key);
+															setSortOrder("asc");
+														}
+													}}
+												/>
+												<SortMenuItem
+													label="File size"
+													sortKey="size"
+													currentSortBy={sortBy}
+													currentSortOrder={sortOrder}
+													onSort={({ key }) => {
+														if (sortBy === key) {
+															setSortOrder(
+																sortOrder === "asc" ? "desc" : "asc",
+															);
+														} else {
+															setSortBy(key);
+															setSortOrder("asc");
+														}
+													}}
+												/>
+											</DropdownMenuContent>
+										</DropdownMenu>
+										<TooltipContent>
+											<p>
+												Sort by {sortBy} (
+												{sortOrder === "asc" ? "ascending" : "descending"})
+											</p>
+										</TooltipContent>
+									</Tooltip>
+								</Tooltip>
+							</TooltipProvider>
+						</div>
+					</div>
+				</div>
 
-        <div className="scrollbar-thin h-full w-full overflow-y-auto pt-1">
-          <div className="w-full flex-1 p-3 pt-0">
-            {isDragOver || filteredMediaItems.length === 0 ? (
-              <MediaDragOverlay
-                isVisible={true}
-                isProcessing={isProcessing}
-                progress={progress}
-                onClick={openFilePicker}
-                isEmptyState={filteredMediaItems.length === 0 && !isDragOver}
-              />
-            ) : mediaViewMode === "grid" ? (
-              <GridView
-                items={filteredMediaItems}
-                renderPreview={renderPreview}
-                onRemove={handleRemove}
-                onAddToTimeline={addElementAtTime}
-                highlightedId={highlightedId}
-                registerElement={registerElement}
-              />
-            ) : (
-              <ListView
-                items={filteredMediaItems}
-                renderPreview={renderPreview}
-                onRemove={handleRemove}
-                onAddToTimeline={addElementAtTime}
-                highlightedId={highlightedId}
-                registerElement={registerElement}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-    </>
-  );
+				<div className="scrollbar-thin h-full w-full overflow-y-auto pt-1">
+					<div className="w-full flex-1 p-3 pt-0">
+						{isDragOver || filteredMediaItems.length === 0 ? (
+							<MediaDragOverlay
+								isVisible={true}
+								isProcessing={isProcessing}
+								progress={progress}
+								onClick={openFilePicker}
+							/>
+						) : mediaViewMode === "grid" ? (
+							<GridView
+								items={filteredMediaItems}
+								renderPreview={renderPreview}
+								onRemove={handleRemove}
+								onAddToTimeline={addElementAtTime}
+								highlightedId={highlightedId}
+								registerElement={registerElement}
+							/>
+						) : (
+							<ListView
+								items={filteredMediaItems}
+								renderPreview={renderCompactPreview}
+								onRemove={handleRemove}
+								onAddToTimeline={addElementAtTime}
+								highlightedId={highlightedId}
+								registerElement={registerElement}
+							/>
+						)}
+					</div>
+				</div>
+			</div>
+		</>
+	);
 }
 
 function MediaItemWithContextMenu({
-  item,
-  children,
-  onRemove,
+	item,
+	children,
+	onRemove,
 }: {
-  item: MediaAsset;
-  children: React.ReactNode;
-  onRemove: ({ event, id }: { event: React.MouseEvent; id: string }) => void;
+	item: MediaAsset;
+	children: React.ReactNode;
+	onRemove: ({ event, id }: { event: React.MouseEvent; id: string }) => void;
 }) {
-  return (
-    <ContextMenu>
-      <ContextMenuTrigger>{children}</ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem>Export clips</ContextMenuItem>
-        <ContextMenuItem
-          variant="destructive"
-          onClick={(event) => onRemove({ event, id: item.id })}
-        >
-          Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
-  );
+	return (
+		<ContextMenu>
+			<ContextMenuTrigger>{children}</ContextMenuTrigger>
+			<ContextMenuContent>
+				<ContextMenuItem>Export clips</ContextMenuItem>
+				<ContextMenuItem
+					variant="destructive"
+					onClick={(event) => onRemove({ event, id: item.id })}
+				>
+					Delete
+				</ContextMenuItem>
+			</ContextMenuContent>
+		</ContextMenu>
+	);
 }
 
 function GridView({
-  items,
-  renderPreview,
-  onRemove,
-  onAddToTimeline,
-  highlightedId,
-  registerElement,
+	items,
+	renderPreview,
+	onRemove,
+	onAddToTimeline,
+	highlightedId,
+	registerElement,
 }: {
-  items: MediaAsset[];
-  renderPreview: (item: MediaAsset) => React.ReactNode;
-  onRemove: ({ event, id }: { event: React.MouseEvent; id: string }) => void;
-  onAddToTimeline: ({
-    asset,
-    startTime,
-  }: {
-    asset: MediaAsset;
-    startTime: number;
-  }) => boolean;
-  highlightedId: string | null;
-  registerElement: (id: string, element: HTMLElement | null) => void;
+	items: MediaAsset[];
+	renderPreview: (item: MediaAsset) => React.ReactNode;
+	onRemove: ({ event, id }: { event: React.MouseEvent; id: string }) => void;
+	onAddToTimeline: ({
+		asset,
+		startTime,
+	}: {
+		asset: MediaAsset;
+		startTime: number;
+	}) => boolean;
+	highlightedId: string | null;
+	registerElement: (id: string, element: HTMLElement | null) => void;
 }) {
-  return (
-    <div
-      className="grid gap-2"
-      style={{
-        gridTemplateColumns: "repeat(auto-fill, 160px)",
-      }}
-    >
-      {items.map((item) => (
-        <div key={item.id} ref={(el) => registerElement(item.id, el)}>
-          <MediaItemWithContextMenu item={item} onRemove={onRemove}>
-            <DraggableItem
-              name={item.name}
-              preview={renderPreview(item)}
-              dragData={{
-                id: item.id,
-                type: "media",
-                mediaType: item.type,
-                name: item.name,
-              }}
-              shouldShowPlusOnDrag={false}
-              onAddToTimeline={({ currentTime }) =>
-                onAddToTimeline({ asset: item, startTime: currentTime })
-              }
-              isRounded={false}
-              variant="card"
-              isHighlighted={highlightedId === item.id}
-            />
-          </MediaItemWithContextMenu>
-        </div>
-      ))}
-    </div>
-  );
+	return (
+		<div
+			className="grid gap-2"
+			style={{
+				gridTemplateColumns: "repeat(auto-fill, 160px)",
+			}}
+		>
+			{items.map((item) => (
+				<div key={item.id} ref={(el) => registerElement(item.id, el)}>
+					<MediaItemWithContextMenu item={item} onRemove={onRemove}>
+						<DraggableItem
+							name={item.name}
+							preview={renderPreview(item)}
+							dragData={{
+								id: item.id,
+								type: "media",
+								mediaType: item.type,
+								name: item.name,
+							}}
+							shouldShowPlusOnDrag={false}
+							onAddToTimeline={({ currentTime }) =>
+								onAddToTimeline({ asset: item, startTime: currentTime })
+							}
+							isRounded={false}
+							variant="card"
+							isHighlighted={highlightedId === item.id}
+						/>
+					</MediaItemWithContextMenu>
+				</div>
+			))}
+		</div>
+	);
 }
 
 function ListView({
-  items,
-  renderPreview,
-  onRemove,
-  onAddToTimeline,
-  highlightedId,
-  registerElement,
+	items,
+	renderPreview,
+	onRemove,
+	onAddToTimeline,
+	highlightedId,
+	registerElement,
 }: {
-  items: MediaAsset[];
-  renderPreview: (item: MediaAsset) => React.ReactNode;
-  onRemove: ({ event, id }: { event: React.MouseEvent; id: string }) => void;
-  onAddToTimeline: ({
-    asset,
-    startTime,
-  }: {
-    asset: MediaAsset;
-    startTime: number;
-  }) => boolean;
-  highlightedId: string | null;
-  registerElement: (id: string, element: HTMLElement | null) => void;
+	items: MediaAsset[];
+	renderPreview: (item: MediaAsset) => React.ReactNode;
+	onRemove: ({ event, id }: { event: React.MouseEvent; id: string }) => void;
+	onAddToTimeline: ({
+		asset,
+		startTime,
+	}: {
+		asset: MediaAsset;
+		startTime: number;
+	}) => boolean;
+	highlightedId: string | null;
+	registerElement: (id: string, element: HTMLElement | null) => void;
 }) {
-  return (
-    <div className="space-y-1">
-      {items.map((item) => (
-        <div key={item.id} ref={(el) => registerElement(item.id, el)}>
-          <MediaItemWithContextMenu item={item} onRemove={onRemove}>
-            <DraggableItem
-              name={item.name}
-              preview={renderPreview(item)}
-              dragData={{
-                id: item.id,
-                type: "media",
-                mediaType: item.type,
-                name: item.name,
-              }}
-              shouldShowPlusOnDrag={false}
-              onAddToTimeline={({ currentTime }) =>
-                onAddToTimeline({ asset: item, startTime: currentTime })
-              }
-              variant="compact"
-              isHighlighted={highlightedId === item.id}
-            />
-          </MediaItemWithContextMenu>
-        </div>
-      ))}
-    </div>
-  );
+	return (
+		<div className="space-y-1">
+			{items.map((item) => (
+				<div key={item.id} ref={(el) => registerElement(item.id, el)}>
+					<MediaItemWithContextMenu item={item} onRemove={onRemove}>
+						<DraggableItem
+							name={item.name}
+							preview={renderPreview(item)}
+							dragData={{
+								id: item.id,
+								type: "media",
+								mediaType: item.type,
+								name: item.name,
+							}}
+							shouldShowPlusOnDrag={false}
+							onAddToTimeline={({ currentTime }) =>
+								onAddToTimeline({ asset: item, startTime: currentTime })
+							}
+							variant="compact"
+							isHighlighted={highlightedId === item.id}
+						/>
+					</MediaItemWithContextMenu>
+				</div>
+			))}
+		</div>
+	);
 }
 
 const formatDuration = ({ duration }: { duration: number }) => {
-  const min = Math.floor(duration / 60);
-  const sec = Math.floor(duration % 60);
-  return `${min}:${sec.toString().padStart(2, "0")}`;
+	const min = Math.floor(duration / 60);
+	const sec = Math.floor(duration % 60);
+	return `${min}:${sec.toString().padStart(2, "0")}`;
 };
 
 function MediaDurationBadge({ duration }: { duration?: number }) {
-  if (!duration) return null;
+	if (!duration) return null;
 
-  return (
-    <div className="absolute right-1 bottom-1 rounded bg-black/70 px-1 text-xs text-white">
-      {formatDuration({ duration })}
-    </div>
-  );
+	return (
+		<div className="absolute right-1 bottom-1 rounded bg-black/70 px-1 text-xs text-white">
+			{formatDuration({ duration })}
+		</div>
+	);
 }
 
 function MediaDurationLabel({ duration }: { duration?: number }) {
-  if (!duration) return null;
+	if (!duration) return null;
 
-  return (
-    <span className="text-xs opacity-70">{formatDuration({ duration })}</span>
-  );
+	return (
+		<span className="text-xs opacity-70">{formatDuration({ duration })}</span>
+	);
 }
 
 function MediaTypePlaceholder({
-  icon: Icon,
-  label,
-  duration,
-  variant,
+	icon: Icon,
+	label,
+	duration,
+	variant,
 }: {
-  icon: LucideIcon;
-  label: string;
-  duration?: number;
-  variant: "muted" | "bordered";
+	icon: LucideIcon;
+	label: string;
+	duration?: number;
+	variant: "muted" | "bordered";
 }) {
-  const iconClassName = cn("size-6", variant === "bordered" && "mb-1");
+	const iconClassName = cn("size-6", variant === "bordered" && "mb-1");
 
-  return (
-    <div
-      className={cn(
-        "text-muted-foreground flex size-full flex-col items-center justify-center rounded",
-        variant === "muted" ? "bg-muted/30" : "border",
-      )}
-    >
-      <Icon className={iconClassName} aria-hidden="true" />
-      <span className="text-xs">{label}</span>
-      <MediaDurationLabel duration={duration} />
-    </div>
-  );
+	return (
+		<div
+			className={cn(
+				"text-muted-foreground flex size-full flex-col items-center justify-center rounded",
+				variant === "muted" ? "bg-muted/30" : "border",
+			)}
+		>
+			<Icon className={iconClassName} aria-hidden="true" />
+			<span className="text-xs">{label}</span>
+			<MediaDurationLabel duration={duration} />
+		</div>
+	);
 }
 
-function MediaPreview({ item }: { item: MediaAsset }) {
-  if (item.type === "image") {
-    return (
-      <div className="flex size-full items-center justify-center">
-        <img
-          src={item.url}
-          alt={item.name}
-          className="max-h-full w-full object-cover"
-          loading="lazy"
-        />
-      </div>
-    );
-  }
+function MediaPreview({
+	item,
+	variant = "grid",
+}: {
+	item: MediaAsset;
+	variant?: "grid" | "compact";
+}) {
+	const shouldShowVideoOverlay = variant === "grid";
+	const shouldShowDurationBadge = variant === "grid";
 
-  if (item.type === "video") {
-    if (item.thumbnailUrl) {
-      return (
-        <div className="relative size-full">
-          <img
-            src={item.thumbnailUrl}
-            alt={item.name}
-            className="size-full rounded object-cover"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 flex items-center justify-center rounded bg-black/20">
-            <Video className="size-6 text-white drop-shadow-md" />
-          </div>
-          <MediaDurationBadge duration={item.duration} />
-        </div>
-      );
-    }
+	if (item.type === "image") {
+		return (
+			<div className="flex size-full items-center justify-center">
+				<Image
+					src={item.url ?? ""}
+					alt={item.name}
+					className="max-h-full w-full object-cover"
+					loading="lazy"
+					width={item.width}
+					height={item.height}
+					unoptimized
+				/>
+			</div>
+		);
+	}
 
-    return (
-      <MediaTypePlaceholder
-        icon={Video}
-        label="Video"
-        duration={item.duration}
-        variant="muted"
-      />
-    );
-  }
+	if (item.type === "video") {
+		if (item.thumbnailUrl) {
+			return (
+				<div className="relative size-full">
+					<Image
+						src={item.thumbnailUrl}
+						alt={item.name}
+						className="size-full rounded object-cover"
+						loading="lazy"
+						unoptimized
+					/>
+					{shouldShowVideoOverlay ? (
+						<div className="absolute inset-0 flex items-center justify-center rounded bg-black/20">
+							<Video className="size-6 text-white drop-shadow-md" />
+						</div>
+					) : null}
+					{shouldShowDurationBadge ? (
+						<MediaDurationBadge duration={item.duration} />
+					) : null}
+				</div>
+			);
+		}
 
-  if (item.type === "audio") {
-    return (
-      <MediaTypePlaceholder
-        icon={Music}
-        label="Audio"
-        duration={item.duration}
-        variant="bordered"
-      />
-    );
-  }
+		return (
+			<MediaTypePlaceholder
+				icon={Video}
+				label="Video"
+				duration={item.duration}
+				variant="muted"
+			/>
+		);
+	}
 
-  return <MediaTypePlaceholder icon={Image} label="Unknown" variant="muted" />;
+	if (item.type === "audio") {
+		return (
+			<MediaTypePlaceholder
+				icon={Music}
+				label="Audio"
+				duration={item.duration}
+				variant="bordered"
+			/>
+		);
+	}
+
+	return (
+		<MediaTypePlaceholder icon={ImageIcon} label="Unknown" variant="muted" />
+	);
 }
 
 function SortMenuItem({
-  label,
-  sortKey,
-  currentSortBy,
-  currentSortOrder,
-  onSort,
+	label,
+	sortKey,
+	currentSortBy,
+	currentSortOrder,
+	onSort,
 }: {
-  label: string;
-  sortKey: "name" | "type" | "duration" | "size";
-  currentSortBy: string;
-  currentSortOrder: "asc" | "desc";
-  onSort: ({ key }: { key: "name" | "type" | "duration" | "size" }) => void;
+	label: string;
+	sortKey: "name" | "type" | "duration" | "size";
+	currentSortBy: string;
+	currentSortOrder: "asc" | "desc";
+	onSort: ({ key }: { key: "name" | "type" | "duration" | "size" }) => void;
 }) {
-  const isActive = currentSortBy === sortKey;
-  const arrow = isActive ? (currentSortOrder === "asc" ? "↑" : "↓") : "";
+	const isActive = currentSortBy === sortKey;
+	const arrow = isActive ? (currentSortOrder === "asc" ? "↑" : "↓") : "";
 
-  return (
-    <DropdownMenuItem onClick={() => onSort({ key: sortKey })}>
-      {label} {arrow}
-    </DropdownMenuItem>
-  );
+	return (
+		<DropdownMenuItem onClick={() => onSort({ key: sortKey })}>
+			{label} {arrow}
+		</DropdownMenuItem>
+	);
 }
 
 function createElementFromMedia({
-  asset,
-  startTime,
+	asset,
+	startTime,
 }: {
-  asset: MediaAsset;
-  startTime: number;
+	asset: MediaAsset;
+	startTime: number;
 }): CreateTimelineElement {
-  const duration =
-    asset.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
+	const duration =
+		asset.duration ?? TIMELINE_CONSTANTS.DEFAULT_ELEMENT_DURATION;
 
-  switch (asset.type) {
-    case "video":
-      return {
-        type: "video",
-        name: asset.name,
-        mediaId: asset.id,
-        startTime,
-        duration,
-        trimStart: 0,
-        trimEnd: 0,
-        muted: false,
-        hidden: false,
-        transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
-        opacity: 1,
-      };
-    case "image":
-      return {
-        type: "image",
-        name: asset.name,
-        mediaId: asset.id,
-        startTime,
-        duration,
-        trimStart: 0,
-        trimEnd: 0,
-        hidden: false,
-        transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
-        opacity: 1,
-      };
-    case "audio":
-      return {
-        type: "audio",
-        sourceType: "upload",
-        name: asset.name,
-        mediaId: asset.id,
-        startTime,
-        duration,
-        trimStart: 0,
-        trimEnd: 0,
-        volume: 1,
-        muted: false,
-      };
-    default:
-      throw new Error(`Unsupported media type: ${asset.type}`);
-  }
+	switch (asset.type) {
+		case "video":
+			return {
+				type: "video",
+				name: asset.name,
+				mediaId: asset.id,
+				startTime,
+				duration,
+				trimStart: 0,
+				trimEnd: 0,
+				muted: false,
+				hidden: false,
+				transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
+				opacity: 1,
+			};
+		case "image":
+			return {
+				type: "image",
+				name: asset.name,
+				mediaId: asset.id,
+				startTime,
+				duration,
+				trimStart: 0,
+				trimEnd: 0,
+				hidden: false,
+				transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
+				opacity: 1,
+			};
+		case "audio":
+			return {
+				type: "audio",
+				sourceType: "upload",
+				name: asset.name,
+				mediaId: asset.id,
+				startTime,
+				duration,
+				trimStart: 0,
+				trimEnd: 0,
+				volume: 1,
+				muted: false,
+			};
+		default:
+			throw new Error(`Unsupported media type: ${asset.type}`);
+	}
 }

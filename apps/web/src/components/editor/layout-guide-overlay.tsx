@@ -4,24 +4,24 @@ import { useEditorStore } from "@/stores/editor-store";
 import Image from "next/image";
 
 function TikTokGuide() {
-  return (
-    <div className="pointer-events-none absolute inset-0">
-      <Image
-        src="/platform-guides/tiktok-blueprint.png"
-        alt="TikTok layout guide"
-        className="absolute inset-0 h-full w-full object-contain"
-        draggable={false}
-        fill
-      />
-    </div>
-  );
+	return (
+		<div className="pointer-events-none absolute inset-0">
+			<Image
+				src="/platform-guides/tiktok-blueprint.png"
+				alt="TikTok layout guide"
+				className="absolute inset-0 h-full w-full object-contain"
+				draggable={false}
+				fill
+			/>
+		</div>
+	);
 }
 
 export function LayoutGuideOverlay() {
-  const { layoutGuide } = useEditorStore();
+	const { layoutGuide } = useEditorStore();
 
-  if (layoutGuide.platform === null) return null;
-  if (layoutGuide.platform === "tiktok") return <TikTokGuide />;
+	if (layoutGuide.platform === null) return null;
+	if (layoutGuide.platform === "tiktok") return <TikTokGuide />;
 
-  return null;
+	return null;
 }

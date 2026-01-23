@@ -7,50 +7,50 @@ import { create } from "zustand";
 import type { ClipboardItem } from "@/types/timeline";
 
 interface TimelineStore {
-  selectedElements: { trackId: string; elementId: string }[];
-  setSelectedElements: ({
-    elements,
-  }: {
-    elements: { trackId: string; elementId: string }[];
-  }) => void;
-  snappingEnabled: boolean;
-  toggleSnapping: () => void;
-  rippleEditingEnabled: boolean;
-  toggleRippleEditing: () => void;
-  clipboard: {
-    items: ClipboardItem[];
-  } | null;
-  setClipboard: (
-    clipboard: {
-      items: ClipboardItem[];
-    } | null,
-  ) => void;
+	selectedElements: { trackId: string; elementId: string }[];
+	setSelectedElements: ({
+		elements,
+	}: {
+		elements: { trackId: string; elementId: string }[];
+	}) => void;
+	snappingEnabled: boolean;
+	toggleSnapping: () => void;
+	rippleEditingEnabled: boolean;
+	toggleRippleEditing: () => void;
+	clipboard: {
+		items: ClipboardItem[];
+	} | null;
+	setClipboard: (
+		clipboard: {
+			items: ClipboardItem[];
+		} | null,
+	) => void;
 }
 
 export const useTimelineStore = create<TimelineStore>((set) => ({
-  selectedElements: [],
+	selectedElements: [],
 
-  setSelectedElements: ({ elements }) => {
-    set({ selectedElements: elements });
-  },
+	setSelectedElements: ({ elements }) => {
+		set({ selectedElements: elements });
+	},
 
-  snappingEnabled: true,
+	snappingEnabled: true,
 
-  toggleSnapping: () => {
-    set((state) => ({ snappingEnabled: !state.snappingEnabled }));
-  },
+	toggleSnapping: () => {
+		set((state) => ({ snappingEnabled: !state.snappingEnabled }));
+	},
 
-  rippleEditingEnabled: false,
+	rippleEditingEnabled: false,
 
-  toggleRippleEditing: () => {
-    set((state) => ({
-      rippleEditingEnabled: !state.rippleEditingEnabled,
-    }));
-  },
+	toggleRippleEditing: () => {
+		set((state) => ({
+			rippleEditingEnabled: !state.rippleEditingEnabled,
+		}));
+	},
 
-  clipboard: null,
+	clipboard: null,
 
-  setClipboard: (clipboard) => {
-    set({ clipboard });
-  },
+	setClipboard: (clipboard) => {
+		set({ clipboard });
+	},
 }));

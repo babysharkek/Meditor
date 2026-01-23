@@ -1,17 +1,17 @@
 export function isTypableDOMElement({
-  element,
+	element,
 }: {
-  element: HTMLElement;
+	element: HTMLElement;
 }): boolean {
-  if (element.isContentEditable) return true;
+	if (element.isContentEditable) return true;
 
-  if (element.tagName === "INPUT") {
-    return !(element as HTMLInputElement).disabled;
-  }
+	if (element.tagName === "INPUT") {
+		return !(element as HTMLInputElement).disabled;
+	}
 
-  if (element.tagName === "TEXTAREA") {
-    return !(element as HTMLTextAreaElement).disabled;
-  }
+	if (element.tagName === "TEXTAREA") {
+		return !(element as HTMLTextAreaElement).disabled;
+	}
 
-  return false;
+	return false;
 }
