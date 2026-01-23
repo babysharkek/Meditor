@@ -62,6 +62,10 @@ export class SaveManager {
 		await this.saveNow();
 	}
 
+	getIsDirty(): boolean {
+		return this.hasPendingSave || this.isSaving;
+	}
+
 	private queueSave(): void {
 		if (this.isSaving) return;
 		if (this.saveTimer) {
