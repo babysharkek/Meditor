@@ -9,7 +9,6 @@ import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 
 interface UseTimelineZoomProps {
 	containerRef: RefObject<HTMLDivElement>;
-	isInTimeline?: boolean;
 	minZoom?: number;
 }
 
@@ -21,7 +20,6 @@ interface UseTimelineZoomReturn {
 
 export function useTimelineZoom({
 	containerRef,
-	isInTimeline = false,
 	minZoom = TIMELINE_CONSTANTS.ZOOM_MIN,
 }: UseTimelineZoomProps): UseTimelineZoomReturn {
 	const [zoomLevel, setZoomLevel] = useState(1);
@@ -65,9 +63,9 @@ export function useTimelineZoom({
 			const isInContainer = containerRef.current?.contains(
 				event.target as Node,
 			);
-			const shouldPrevent =
-				isInTimeline && isZoomKeyPressed && Boolean(isInContainer);
-			if (shouldPrevent) {
+			// only check isInContainer, not isInTimeline state - the state check
+			// causes race conditions where the closure captures stale state
+			if (isZoomKeyPressed && isInContainer) {
 				event.preventDefault();
 			}
 		};
@@ -80,7 +78,7 @@ export function useTimelineZoom({
 		return () => {
 			document.removeEventListener("wheel", preventZoom, { capture: true });
 		};
-	}, [isInTimeline, containerRef]);
+	}, [containerRef]);
 
 	return {
 		zoomLevel,

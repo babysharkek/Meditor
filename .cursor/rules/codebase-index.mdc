@@ -281,7 +281,6 @@ use-timeline-snapping.ts
 use-timeline-zoom.ts
   export function useTimelineZoom({
   	containerRef,
-  	isInTimeline = false,
   	minZoom = TIMELINE_CONSTANTS.ZOOM_MIN,
   }: UseTimelineZoomProps): UseTimelineZoomReturn
 

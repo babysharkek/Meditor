@@ -30,6 +30,7 @@ interface TimelineTrackContentProps {
 		element: TimelineElementType;
 		track: TimelineTrack;
 	}) => void;
+	onTrackMouseDown?: (event: React.MouseEvent) => void;
 }
 
 export function TimelineTrackContent({
@@ -43,6 +44,7 @@ export function TimelineTrackContent({
 	onResizeStateChange,
 	onElementMouseDown,
 	onElementClick,
+	onTrackMouseDown,
 }: TimelineTrackContentProps) {
 	const editor = useEditor();
 	const { isElementSelected, clearElementSelection } = useElementSelection();
@@ -65,6 +67,9 @@ export function TimelineTrackContent({
 		<button
 			className={cn("size-full", hasSelectedElements && "bg-panel-accent/35")}
 			onClick={clearElementSelection}
+			onMouseDown={(event) => {
+				onTrackMouseDown?.(event);
+			}}
 			type="button"
 		>
 			<div className="relative h-full min-w-full">

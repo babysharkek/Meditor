@@ -71,7 +71,6 @@ export function Timeline() {
 	const bookmarksScrollRef = useRef<HTMLDivElement>(null);
 
 	// state
-	const [isInTimeline, setIsInTimeline] = useState(false);
 	const [isResizing, setIsResizing] = useState(false);
 	const [currentSnapPoint, setCurrentSnapPoint] = useState<SnapPoint | null>(
 		null,
@@ -98,7 +97,6 @@ export function Timeline() {
 
 	const { zoomLevel, setZoomLevel, handleWheel } = useTimelineZoom({
 		containerRef: timelineRef,
-		isInTimeline,
 		minZoom: minZoomLevel,
 	});
 
@@ -187,8 +185,6 @@ export function Timeline() {
 			}
 			{...dragProps}
 			aria-label="Timeline"
-			onMouseEnter={() => setIsInTimeline(true)}
-			onMouseLeave={() => setIsInTimeline(false)}
 		>
 			<TimelineToolbar
 				zoomLevel={zoomLevel}
@@ -400,6 +396,7 @@ export function Timeline() {
 														onResizeStateChange={handleResizeStateChange}
 														onElementMouseDown={handleElementMouseDown}
 														onElementClick={handleElementClick}
+														onTrackMouseDown={handleSelectionMouseDown}
 													/>
 												</div>
 											</ContextMenuTrigger>
