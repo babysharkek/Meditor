@@ -144,6 +144,17 @@ interface AudioMixSource {
 	trimEnd: number;
 }
 
+export interface AudioClipSource {
+	id: string;
+	sourceKey: string;
+	file: File;
+	startTime: number;
+	duration: number;
+	trimStart: number;
+	trimEnd: number;
+	muted: boolean;
+}
+
 async function fetchLibraryAudioSource({
 	element,
 }: {
@@ -173,6 +184,40 @@ async function fetchLibraryAudioSource({
 	}
 }
 
+async function fetchLibraryAudioClip({
+	element,
+	muted,
+}: {
+	element: LibraryAudioElement;
+	muted: boolean;
+}): Promise<AudioClipSource | null> {
+	try {
+		const response = await fetch(element.sourceUrl);
+		if (!response.ok) {
+			throw new Error(`Library audio fetch failed: ${response.status}`);
+		}
+
+		const blob = await response.blob();
+		const file = new File([blob], `${element.name}.mp3`, {
+			type: "audio/mpeg",
+		});
+
+		return {
+			id: element.id,
+			sourceKey: element.id,
+			file,
+			startTime: element.startTime,
+			duration: element.duration,
+			trimStart: element.trimStart,
+			trimEnd: element.trimEnd,
+			muted,
+		};
+	} catch (error) {
+		console.warn("Failed to fetch library audio:", error);
+		return null;
+	}
+}
+
 function collectMediaAudioSource({
 	element,
 	mediaAsset,
@@ -186,6 +231,27 @@ function collectMediaAudioSource({
 		duration: element.duration,
 		trimStart: element.trimStart,
 		trimEnd: element.trimEnd,
+	};
+}
+
+function collectMediaAudioClip({
+	element,
+	mediaAsset,
+	muted,
+}: {
+	element: TimelineElement;
+	mediaAsset: MediaAsset;
+	muted: boolean;
+}): AudioClipSource {
+	return {
+		id: element.id,
+		sourceKey: mediaAsset.id,
+		file: mediaAsset.file,
+		startTime: element.startTime,
+		duration: element.duration,
+		trimStart: element.trimStart,
+		trimEnd: element.trimEnd,
+		muted,
 	};
 }
 
@@ -243,30 +309,98 @@ export async function collectAudioMixSources({
 	return audioMixSources;
 }
 
+export async function collectAudioClips({
+	tracks,
+	mediaAssets,
+}: {
+	tracks: TimelineTrack[];
+	mediaAssets: MediaAsset[];
+}): Promise<AudioClipSource[]> {
+	const clips: AudioClipSource[] = [];
+	const mediaMap = new Map<string, MediaAsset>(
+		mediaAssets.map((asset) => [asset.id, asset]),
+	);
+	const pendingLibraryClips: Array<Promise<AudioClipSource | null>> = [];
+
+	for (const track of tracks) {
+		const isTrackMuted = canTracktHaveAudio(track) && track.muted;
+
+		for (const element of track.elements) {
+			if (!canElementHaveAudio(element)) continue;
+
+			const isElementMuted =
+				"muted" in element ? (element.muted ?? false) : false;
+			const muted = isTrackMuted || isElementMuted;
+
+			if (element.type === "audio") {
+				if (element.sourceType === "upload") {
+					const mediaAsset = mediaMap.get(element.mediaId);
+					if (!mediaAsset) continue;
+
+					clips.push(
+						collectMediaAudioClip({
+							element,
+							mediaAsset,
+							muted,
+						}),
+					);
+				} else {
+					pendingLibraryClips.push(fetchLibraryAudioClip({ element, muted }));
+				}
+				continue;
+			}
+
+			if (element.type === "video") {
+				const mediaAsset = mediaMap.get(element.mediaId);
+				if (!mediaAsset) continue;
+
+				if (mediaSupportsAudio({ media: mediaAsset })) {
+					clips.push(
+						collectMediaAudioClip({
+							element,
+							mediaAsset,
+							muted,
+						}),
+					);
+				}
+			}
+		}
+	}
+
+	const resolvedLibraryClips = await Promise.all(pendingLibraryClips);
+	for (const clip of resolvedLibraryClips) {
+		if (clip) clips.push(clip);
+	}
+
+	return clips;
+}
+
 export async function createTimelineAudioBuffer({
 	tracks,
 	mediaAssets,
 	duration,
 	sampleRate = 44100,
+	audioContext,
 }: {
 	tracks: TimelineTrack[];
 	mediaAssets: MediaAsset[];
 	duration: number;
 	sampleRate?: number;
+	audioContext?: AudioContext;
 }): Promise<AudioBuffer | null> {
-	const audioContext = createAudioContext();
+	const context = audioContext ?? createAudioContext();
 
 	const audioElements = await collectAudioElements({
 		tracks,
 		mediaAssets,
-		audioContext,
+		audioContext: context,
 	});
 
 	if (audioElements.length === 0) return null;
 
 	const outputChannels = 2;
 	const outputLength = Math.ceil(duration * sampleRate);
-	const outputBuffer = audioContext.createBuffer(
+	const outputBuffer = context.createBuffer(
 		outputChannels,
 		outputLength,
 		sampleRate,

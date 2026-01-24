@@ -24,7 +24,7 @@ type ExportParams = {
 	fps: number;
 	format: ExportFormat;
 	quality: ExportQuality;
-	includeAudio?: boolean;
+	shouldIncludeAudio?: boolean;
 	audioBuffer?: AudioBuffer;
 };
 
@@ -46,30 +46,38 @@ export class SceneExporter extends EventEmitter<SceneExporterEvents> {
 	private renderer: CanvasRenderer;
 	private format: ExportFormat;
 	private quality: ExportQuality;
-	private includeAudio: boolean;
+	private shouldIncludeAudio: boolean;
 	private audioBuffer?: AudioBuffer;
 
-	private cancelled = false;
+	private isCancelled = false;
 
-	constructor(params: ExportParams) {
+	constructor({
+		width,
+		height,
+		fps,
+		format,
+		quality,
+		shouldIncludeAudio,
+		audioBuffer,
+	}: ExportParams) {
 		super();
 		this.renderer = new CanvasRenderer({
-			width: params.width,
-			height: params.height,
-			fps: params.fps,
+			width,
+			height,
+			fps,
 		});
 
-		this.format = params.format;
-		this.quality = params.quality;
-		this.includeAudio = params.includeAudio ?? false;
-		this.audioBuffer = params.audioBuffer;
+		this.format = format;
+		this.quality = quality;
+		this.shouldIncludeAudio = shouldIncludeAudio ?? false;
+		this.audioBuffer = audioBuffer;
 	}
 
-	cancel() {
-		this.cancelled = true;
+	cancel(): void {
+		this.isCancelled = true;
 	}
 
-	async export(rootNode: RootNode) {
+	async export({ rootNode }: { rootNode: RootNode }): Promise<ArrayBuffer | null> {
 		const { fps } = this.renderer;
 		const frameCount = Math.ceil(rootNode.duration * fps);
 
@@ -88,9 +96,8 @@ export class SceneExporter extends EventEmitter<SceneExporterEvents> {
 
 		output.addVideoTrack(videoSource, { frameRate: fps });
 
-		// Add audio track if requested
 		let audioSource: AudioBufferSource | null = null;
-		if (this.includeAudio && this.audioBuffer) {
+		if (this.shouldIncludeAudio && this.audioBuffer) {
 			audioSource = new AudioBufferSource({
 				codec: this.format === "webm" ? "opus" : "aac",
 				bitrate: qualityMap[this.quality],
@@ -100,15 +107,13 @@ export class SceneExporter extends EventEmitter<SceneExporterEvents> {
 
 		await output.start();
 
-		// Add audio data after starting
 		if (audioSource && this.audioBuffer) {
 			await audioSource.add(this.audioBuffer);
 			audioSource.close();
 		}
 
-		// Render video frames
 		for (let i = 0; i < frameCount; i++) {
-			if (this.cancelled) {
+			if (this.isCancelled) {
 				await output.cancel();
 				this.emit("cancelled");
 				return null;
@@ -121,7 +126,7 @@ export class SceneExporter extends EventEmitter<SceneExporterEvents> {
 			this.emit("progress", i / frameCount);
 		}
 
-		if (this.cancelled) {
+		if (this.isCancelled) {
 			await output.cancel();
 			this.emit("cancelled");
 			return null;

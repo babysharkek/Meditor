@@ -6,7 +6,6 @@ export class PlaybackManager {
 	private volume = 1;
 	private muted = false;
 	private previousVolume = 1;
-	private speed = 1.0;
 	private listeners = new Set<() => void>();
 	private playbackTimer: number | null = null;
 	private lastUpdate = 0;
@@ -68,17 +67,6 @@ export class PlaybackManager {
 		this.notify();
 	}
 
-	setSpeed({ speed }: { speed: number }): void {
-		this.speed = Math.max(0.1, Math.min(2.0, speed));
-		this.notify();
-
-		window.dispatchEvent(
-			new CustomEvent("playback-speed", {
-				detail: { speed: this.speed },
-			}),
-		);
-	}
-
 	mute(): void {
 		if (this.volume > 0) {
 			this.previousVolume = this.volume;
@@ -118,10 +106,6 @@ export class PlaybackManager {
 		return this.muted;
 	}
 
-	getSpeed(): number {
-		return this.speed;
-	}
-
 	subscribe(listener: () => void): () => void {
 		this.listeners.add(listener);
 		return () => this.listeners.delete(listener);
@@ -154,7 +138,7 @@ export class PlaybackManager {
 		const delta = (now - this.lastUpdate) / 1000;
 		this.lastUpdate = now;
 
-		const newTime = this.currentTime + delta * this.speed;
+		const newTime = this.currentTime + delta;
 		const duration = this.editor.timeline.getTotalDuration();
 
 		if (duration > 0 && newTime >= duration) {

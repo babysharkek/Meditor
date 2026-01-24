@@ -6,6 +6,7 @@ import { MediaManager } from "./managers/media-manager";
 import { RendererManager } from "./managers/renderer-manager";
 import { CommandManager } from "./managers/commands";
 import { SaveManager } from "./managers/save-manager";
+import { AudioManager } from "./managers/audio-manager";
 
 export class EditorCore {
 	private static instance: EditorCore | null = null;
@@ -18,6 +19,7 @@ export class EditorCore {
 	public readonly media: MediaManager;
 	public readonly renderer: RendererManager;
 	public readonly save: SaveManager;
+	public readonly audio: AudioManager;
 
 	private constructor() {
 		this.command = new CommandManager();
@@ -28,6 +30,7 @@ export class EditorCore {
 		this.media = new MediaManager(this);
 		this.renderer = new RendererManager(this);
 		this.save = new SaveManager(this);
+		this.audio = new AudioManager(this);
 		this.save.start();
 	}
 

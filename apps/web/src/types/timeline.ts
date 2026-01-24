@@ -69,6 +69,8 @@ export interface LibraryAudioElement extends BaseAudioElement {
 	sourceUrl: string;
 }
 
+export type AudioElement = UploadAudioElement | LibraryAudioElement;
+
 interface BaseTimelineElement {
 	id: string;
 	name: string;
@@ -77,8 +79,6 @@ interface BaseTimelineElement {
 	trimStart: number;
 	trimEnd: number;
 }
-
-export type AudioElement = UploadAudioElement | LibraryAudioElement;
 
 export interface VideoElement extends BaseTimelineElement {
 	type: "video";

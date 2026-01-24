@@ -69,7 +69,7 @@ export class RendererManager {
 				fps: exportFps,
 				format,
 				quality,
-				includeAudio: !!includeAudio,
+				shouldIncludeAudio: !!includeAudio,
 				audioBuffer: audioBuffer || undefined,
 			});
 
@@ -91,7 +91,7 @@ export class RendererManager {
 			const cancelInterval = setInterval(checkCancel, 100);
 
 			try {
-				const buffer = await exporter.export(scene);
+				const buffer = await exporter.export({ rootNode: scene });
 				clearInterval(cancelInterval);
 
 				if (cancelled) {

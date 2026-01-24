@@ -112,6 +112,7 @@ index.ts
     media: MediaManager
     renderer: RendererManager
     save: SaveManager
+    audio: AudioManager
     static getInstance(): EditorCore
     static reset(): void
   }
@@ -227,18 +228,18 @@ use-snap-indicator-position.ts
   }: UseSnapIndicatorPositionParams): SnapIndicatorPosition
 
 use-timeline-drag-drop.ts
-  export function useTimelineDragDrop({
-  	containerRef,
-  	zoomLevel,
+  export function useTimelineDragDrop({
+  	containerRef,
+  	zoomLevel,
   }: UseTimelineDragDropProps)
 
 use-timeline-playhead.ts
-  export function useTimelinePlayhead({
-  	zoomLevel,
-  	rulerRef,
-  	rulerScrollRef,
-  	tracksScrollRef,
-  	playheadRef,
+  export function useTimelinePlayhead({
+  	zoomLevel,
+  	rulerRef,
+  	rulerScrollRef,
+  	tracksScrollRef,
+  	playheadRef,
   }: UseTimelinePlayheadProps)
 
 use-timeline-seek.ts
@@ -306,12 +307,12 @@ use-element-resize.ts
     initialStartTime: number
     initialDuration: number
   }
-  export function useTimelineElementResize({
-  	element,
-  	track,
-  	zoomLevel,
-  	onSnapPointChange,
-  	onResizeStateChange,
+  export function useTimelineElementResize({
+  	element,
+  	track,
+  	zoomLevel,
+  	onSnapPointChange,
+  	onResizeStateChange,
   }: UseTimelineElementResizeProps)
 
 use-element-selection.ts
@@ -676,6 +677,16 @@ audio.ts
   	mediaAssets: MediaAsset[];
   	audioContext: AudioContext;
   }): Promise<CollectedAudioElement[]>
+  export interface AudioClipSource {
+    id: string
+    sourceKey: string
+    file: File
+    startTime: number
+    duration: number
+    trimStart: number
+    trimEnd: number
+    muted: boolean
+  }
   export function collectAudioMixSources({
   	tracks,
   	mediaAssets,
@@ -683,16 +694,25 @@ audio.ts
   	tracks: TimelineTrack[];
   	mediaAssets: MediaAsset[];
   }): Promise<AudioMixSource[]>
+  export function collectAudioClips({
+  	tracks,
+  	mediaAssets,
+  }: {
+  	tracks: TimelineTrack[];
+  	mediaAssets: MediaAsset[];
+  }): Promise<AudioClipSource[]>
   export function createTimelineAudioBuffer({
   	tracks,
   	mediaAssets,
   	duration,
   	sampleRate = 44100,
+  	audioContext,
   }: {
   	tracks: TimelineTrack[];
   	mediaAssets: MediaAsset[];
   	duration: number;
   	sampleRate?: number;
+  	audioContext?: AudioContext;
   }): Promise<AudioBuffer | null>
 
 media-utils.ts
@@ -1047,21 +1067,29 @@ scene-builder.ts
 scene-exporter.ts
   export type ExportFormat = "mp4" | "webm"
   export type ExportQuality = "low" | "medium" | "high" | "very_high"
-  export type SceneExporterEvents = {
-  	progress: [progress: number];
-  	complete: [buffer: ArrayBuffer];
-  	error: [error: Error];
-  	c...
+  export type SceneExporterEvents = {
+  	progress: [progress: number];
+  	complete: [buffer: ArrayBuffer];
+  	error: [error: Error];
+  	cance...
   export class SceneExporter extends EventEmitter<SceneExporterEvents> {
     renderer: CanvasRenderer
     format: ExportFormat
     quality: ExportQuality
-    includeAudio: boolean
+    shouldIncludeAudio: boolean
     audioBuffer: AudioBuffer
-    cancelled
-    constructor(params: ExportParams)
-    cancel()
-    async export(rootNode: RootNode)
+    isCancelled
+    constructor({
+  		width,
+  		height,
+  		fps,
+  		format,
+  		quality,
+  		shouldIncludeAudio,
+  		audioBuffer,
+  	}: ExportParams)
+    cancel(): void
+    async export({ rootNode }: { rootNode: RootNode }): Promise<ArrayBuffer | null>
   }
 
 ## apps/web/src/services/storage
@@ -1669,9 +1697,6 @@ brand.tsx
   	size?: number;
   })
 
-create-icon.tsx
-  export function createIcon({ definition }: CreateIconParams)
-
 editor.tsx
   export function OcBackgroundIcon({ className }: { className?: string })
   export function OcSocialsIcon({
@@ -1688,22 +1713,6 @@ editor.tsx
   	className?: string;
   	size?: number;
   })
-
-types.ts
-  export type IconProps = Omit<
-  	SVGProps<SVGSVGElement>,
-  	"children" | "width" | "height"
-  > & {
-  	size?: number;
-  	title?: s...
-  export type IconNode = Array<{
-  	element: keyof JSX.IntrinsicElements;
-  	props: Record<string, string | number | undefined...
-  export type IconDefinition = {
-  	title: string;
-  	viewBox?: string;
-  	nodes: IconNode;
-  }
 
 ui.tsx
   export function OcMenuIcon({
@@ -1734,17 +1743,6 @@ ui.tsx
   	className?: string;
   	size?: number;
   })
-
-## packages/ui/src/icons/registry
-
-editor.ts
-  export const EDITOR_ICONS
-
-index.ts
-  export const ICON_DEFINITIONS
-
-ui.ts
-  export const UI_ICONS
 
 ```
 
