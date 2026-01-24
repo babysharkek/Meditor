@@ -1,16 +1,5 @@
 "use client";
 
-import {
-	ArrowRight,
-	Clock,
-	Grid3X3,
-	Hash,
-	Loader2,
-	Smile,
-	Sparkles,
-	StickerIcon,
-	X,
-} from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -37,6 +26,17 @@ import {
 import { useStickersStore } from "@/stores/stickers-store";
 import type { StickerCategory } from "@/types/stickers";
 import { cn } from "@/utils/ui";
+import {
+	ArrowRightIcon,
+	HappyIcon,
+	ClockIcon,
+	LayoutGridIcon,
+	MultiplicationSignIcon,
+	SparklesIcon,
+	HashtagIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Spinner } from "@/components/ui/spinner";
 
 function isStickerCategory(value: string): value is StickerCategory {
 	return STICKER_CATEGORIES.includes(value as StickerCategory);
@@ -57,25 +57,25 @@ export function StickersView() {
 				{
 					value: "all",
 					label: "All",
-					icon: <Grid3X3 className="size-3" />,
+					icon: <HugeiconsIcon icon={LayoutGridIcon} className="size-3" />,
 					content: <StickersContentView category="all" />,
 				},
 				{
 					value: "general",
 					label: "Icons",
-					icon: <Sparkles className="size-3" />,
+					icon: <HugeiconsIcon icon={SparklesIcon} className="size-3" />,
 					content: <StickersContentView category="general" />,
 				},
 				{
 					value: "brands",
 					label: "Brands",
-					icon: <Hash className="size-3" />,
+					icon: <HugeiconsIcon icon={HashtagIcon} className="size-3" />,
 					content: <StickersContentView category="brands" />,
 				},
 				{
 					value: "emoji",
 					label: "Emoji",
-					icon: <Smile className="size-3" />,
+					icon: <HugeiconsIcon icon={HappyIcon} className="size-3" />,
 					content: <StickersContentView category="emoji" />,
 				},
 			]}
@@ -150,9 +150,9 @@ function CollectionGrid({
 function EmptyView({ message }: { message: string }) {
 	return (
 		<div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
-			<StickerIcon
+			<HugeiconsIcon
+				icon={HappyIcon}
 				className="text-muted-foreground size-10"
-				strokeWidth={1.5}
 			/>
 			<div className="flex flex-col gap-2 text-center">
 				<p className="text-lg font-medium">No stickers found</p>
@@ -334,7 +334,10 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 						{recentStickers.length > 0 && viewMode === "browse" && (
 							<div className="h-full">
 								<div className="mb-2 flex items-center gap-2">
-									<Clock className="text-muted-foreground size-4" />
+									<HugeiconsIcon
+										icon={ClockIcon}
+										className="text-muted-foreground size-4"
+									/>
 									<span className="text-sm font-medium">Recent</span>
 									<TooltipProvider>
 										<Tooltip>
@@ -344,7 +347,10 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 													onClick={clearRecentStickers}
 													className="hover:bg-accent ml-auto flex size-5 items-center justify-center rounded p-0"
 												>
-													<X className="text-muted-foreground size-3" />
+													<HugeiconsIcon
+														icon={MultiplicationSignIcon}
+														className="text-muted-foreground size-3"
+													/>
 												</button>
 											</TooltipTrigger>
 											<TooltipContent>
@@ -366,7 +372,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 							<div className="h-full">
 								{isLoadingCollection ? (
 									<div className="flex items-center justify-center py-8">
-										<Loader2 className="text-muted-foreground size-6 animate-spin" />
+										<Spinner className="text-muted-foreground size-6" />
 									</div>
 								) : showCollectionItems ? (
 									<StickerGrid
@@ -376,7 +382,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 									/>
 								) : (
 									<div className="flex items-center justify-center py-8">
-										<Loader2 className="text-muted-foreground size-6 animate-spin" />
+										<Spinner className="text-muted-foreground size-6" />
 									</div>
 								)}
 							</div>
@@ -386,7 +392,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 							<div className="h-full">
 								{isSearching ? (
 									<div className="flex items-center justify-center py-8">
-										<Loader2 className="text-muted-foreground size-6 animate-spin" />
+										<Spinner className="text-muted-foreground size-6" />
 									</div>
 								) : searchResults?.icons.length ? (
 									<>
@@ -433,7 +439,7 @@ function StickersContentView({ category }: { category: StickerCategory }) {
 							<div className="h-full space-y-4">
 								{isLoadingCollections ? (
 									<div className="flex items-center justify-center py-8">
-										<Loader2 className="text-muted-foreground size-6 animate-spin" />
+										<Spinner className="text-muted-foreground size-6" />
 									</div>
 								) : (
 									<>
@@ -489,7 +495,7 @@ function CollectionItem({ title, subtitle, onClick }: CollectionItemProps) {
 				<p className="font-medium">{title}</p>
 				<p className="text-muted-foreground text-xs">{subtitle}</p>
 			</div>
-			<ArrowRight />
+			<HugeiconsIcon icon={ArrowRightIcon} className="size-4" />
 		</Button>
 	);
 }
@@ -593,7 +599,7 @@ function StickerItem({
 					/>
 					{isAdding && (
 						<div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-black/60">
-							<Loader2 className="size-6 animate-spin text-white" />
+							<Spinner className="size-6 text-white" />
 						</div>
 					)}
 				</div>

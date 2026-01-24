@@ -1,8 +1,11 @@
 import { Button } from "./ui/button";
-import { OcGithubIcon } from "@opencut/ui/icons";
-import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { SOCIAL_LINKS } from "@/constants/site-constants";
+import {
+	GithubIcon,
+	Link04Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 export function GitHubContributeSection({
 	title,
@@ -24,7 +27,7 @@ export function GitHubContributeSection({
 					rel="noopener noreferrer"
 				>
 					<Button className="w-full" size="lg">
-						<OcGithubIcon className="size-4" />
+						<HugeiconsIcon icon={GithubIcon} />
 						Start contributing
 					</Button>
 				</Link>
@@ -34,7 +37,7 @@ export function GitHubContributeSection({
 					rel="noopener noreferrer"
 				>
 					<Button variant="outline" className="w-full" size="lg">
-						<ExternalLink className="size-4" />
+						<HugeiconsIcon icon={Link04Icon} />
 						Report issues
 					</Button>
 				</Link>

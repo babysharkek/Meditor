@@ -13,7 +13,8 @@ import { extractTimelineAudio } from "@/lib/media/mediabunny";
 import { useEditor } from "@/hooks/use-editor";
 import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
 import { TRANSCRIPTION_LANGUAGES } from "@/constants/transcription-constants";
-import { Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Loading03Icon } from "@hugeicons/core-free-icons";
 import type {
 	TranscriptionLanguage,
 	TranscriptionProgress,
@@ -21,6 +22,7 @@ import type {
 import { transcriptionService } from "@/services/transcription";
 import { decodeAudioToFloat32 } from "@/lib/media/audio";
 import { buildCaptionChunks } from "@/lib/transcription/caption";
+import { Spinner } from "@/components/ui/spinner";
 
 export function Captions() {
 	const [selectedLanguage, setSelectedLanguage] =
@@ -143,7 +145,7 @@ export function Captions() {
 					onClick={handleGenerateTranscript}
 					disabled={isProcessing}
 				>
-					{isProcessing && <Loader2 className="mr-1 animate-spin" />}
+					{isProcessing && <Spinner className="mr-1" />}
 					{isProcessing ? processingStep : "Generate transcript"}
 				</Button>
 			</div>

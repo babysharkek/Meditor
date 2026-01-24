@@ -8,7 +8,7 @@ import {
 	useKeyboardShortcutsHelp,
 } from "@/hooks/use-keyboard-shortcuts-help";
 import { useKeybindingsStore } from "@/stores/keybindings-store";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -16,11 +16,15 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
-} from "./ui/dialog";
+} from "../ui/dialog";
 
-export function KeyboardShortcutsHelp() {
-	const [open, setOpen] = useState(false);
+export function ShortcutsDialog({
+	isOpen,
+	onOpenChange,
+}: {
+	isOpen: boolean;
+	onOpenChange: (open: boolean) => void;
+}) {
 	const [recordingShortcut, setRecordingShortcut] =
 		useState<KeyboardShortcut | null>(null);
 
@@ -35,7 +39,6 @@ export function KeyboardShortcutsHelp() {
 		isRecording,
 	} = useKeybindingsStore();
 
-	// Get shortcuts from centralized hook
 	const { shortcuts } = useKeyboardShortcutsHelp();
 
 	const categories = Array.from(new Set(shortcuts.map((s) => s.category)));
@@ -49,7 +52,6 @@ export function KeyboardShortcutsHelp() {
 
 			const keyString = getKeybindingString(e);
 			if (keyString) {
-				// Auto-save the new keybinding
 				const conflict = validateKeybinding(
 					keyString,
 					recordingShortcut.action,
@@ -62,11 +64,11 @@ export function KeyboardShortcutsHelp() {
 					return;
 				}
 
-				// Remove old keybindings for this action
 				const oldKeys = getKeybindingsForAction(recordingShortcut.action);
-				oldKeys.forEach((key) => removeKeybinding(key));
+				for (const key of oldKeys) {
+					removeKeybinding(key);
+				}
 
-				// Add new keybinding
 				updateKeybinding(keyString, recordingShortcut.action);
 
 				setIsRecording(false);
@@ -103,18 +105,12 @@ export function KeyboardShortcutsHelp() {
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button variant="text" size="sm" className="gap-2">
-					<Keyboard />
-					Shortcuts
-				</Button>
-			</DialogTrigger>
+		<Dialog open={isOpen} onOpenChange={onOpenChange}>
 			<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col p-0">
-				<DialogHeader className="flex-shrink-0 p-6 pb-0">
+				<DialogHeader className="flex-shrink-0 gap-2 p-6 pb-0">
 					<DialogTitle className="flex items-center gap-2">
 						<Keyboard className="size-5" />
-						Keyboard Shortcuts
+						Keyboard shortcuts
 					</DialogTitle>
 					<DialogDescription>
 						Speed up your video editing workflow with these keyboard shortcuts.
@@ -123,13 +119,13 @@ export function KeyboardShortcutsHelp() {
 				</DialogHeader>
 
 				<div className="scrollbar-thin flex-grow overflow-y-auto">
-					<div className="space-y-6 p-6 pt-2">
+					<div className="flex flex-col gap-6 p-6 pt-2">
 						{categories.map((category) => (
 							<div key={category} className="flex flex-col gap-1">
 								<h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
 									{category}
 								</h3>
-								<div className="space-y-1">
+								<div className="flex flex-col gap-1">
 									{shortcuts
 										.filter((shortcut) => shortcut.category === category)
 										.map((shortcut) => (
@@ -139,7 +135,7 @@ export function KeyboardShortcutsHelp() {
 												isRecording={
 													shortcut.action === recordingShortcut?.action
 												}
-												onStartRecording={handleStartRecording}
+												onStartRecording={() => handleStartRecording(shortcut)}
 											/>
 										))}
 								</div>
@@ -164,9 +160,8 @@ function ShortcutItem({
 }: {
 	shortcut: KeyboardShortcut;
 	isRecording: boolean;
-	onStartRecording: (shortcut: KeyboardShortcut) => void;
+	onStartRecording: (params: { shortcut: KeyboardShortcut }) => void;
 }) {
-	// Filter out lowercase duplicates for display - if both "j" and "J" exist, only show "J"
 	const displayKeys = shortcut.keys.filter((key: string) => {
 		if (
 			key.includes("Cmd") &&
@@ -195,7 +190,7 @@ function ShortcutItem({
 									<EditableShortcutKey
 										key={keyId}
 										isRecording={isRecording}
-										onStartRecording={() => onStartRecording(shortcut)}
+										onStartRecording={() => onStartRecording({ shortcut })}
 									>
 										{keyPart}
 									</EditableShortcutKey>

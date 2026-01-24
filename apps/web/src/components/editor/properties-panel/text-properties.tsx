@@ -21,7 +21,8 @@ import { ColorPicker } from "@/components/ui/color-picker";
 import { cn } from "@/utils/ui";
 import { capitalizeFirstLetter, uppercase } from "@/utils/strings";
 import { clamp } from "@/utils/math";
-import { Grid2x2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LayoutGridIcon } from "@hugeicons/core-free-icons";
 import {
 	Tooltip,
 	TooltipContent,
@@ -386,7 +387,7 @@ export function TextProperties({
 													}
 													className="bg-panel-accent size-9 overflow-hidden rounded-full p-0"
 												>
-													<Grid2x2
+													<HugeiconsIcon icon={LayoutGridIcon}
 														className={cn(
 															"text-foreground",
 															element.backgroundColor === "transparent" &&

@@ -213,10 +213,6 @@ export function TimelineElement({
 						Duplicate {element.type === "text" ? "text" : "clip"}
 					</ContextMenuItem>
 				)}
-				<ContextMenuItem disabled>
-					<ArrowUpDown className="mr-2 size-4" />
-					Move to track (Coming soon)
-				</ContextMenuItem>
 				{selectedElements.length === 1 && hasMediaId(element) && (
 					<>
 						<ContextMenuItem
@@ -289,7 +285,6 @@ function ElementInner({
 				className="absolute inset-0 size-full cursor-pointer"
 				onClick={(e) => onElementClick(e, element)}
 				onMouseDown={(e) => onElementMouseDown(e, element)}
-				onContextMenu={(e) => onElementMouseDown(e, element)}
 			>
 				<div className="absolute inset-0 flex h-full items-center">
 					<ElementContent
@@ -300,7 +295,9 @@ function ElementInner({
 					/>
 				</div>
 
-				{(hasAudio ? isMuted : canElementBeHidden(element) && element.hidden) && (
+				{(hasAudio
+					? isMuted
+					: canElementBeHidden(element) && element.hidden) && (
 					<div className="bg-opacity-50 pointer-events-none absolute inset-0 flex items-center justify-center bg-black">
 						{hasAudio ? (
 							<VolumeX className="size-6 text-white" />
@@ -381,8 +378,8 @@ function ElementContent({
 					src={`https://api.iconify.design/${element.iconName}.svg?width=20&height=20`}
 					alt={element.name}
 					className="size-5 shrink-0"
-          width={20}
-          height={20}
+					width={20}
+					height={20}
 					unoptimized
 				/>
 				<span className="truncate text-xs text-white">{element.name}</span>

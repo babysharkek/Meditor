@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { getCumulativeHeightBefore, getTrackHeight } from "@/lib/timeline";
 import { useEditor } from "../use-editor";
@@ -98,6 +98,7 @@ export function useSelectionBox({
 	const [selectionBox, setSelectionBox] = useState<SelectionBoxState | null>(
 		null,
 	);
+	const justFinishedSelectingRef = useRef(false);
 
 	const handleMouseDown = useCallback(
 		({ clientX, clientY }: React.MouseEvent) => {
@@ -195,6 +196,12 @@ export function useSelectionBox({
 		};
 
 		const handleMouseUp = () => {
+			if (selectionBox?.isActive) {
+				justFinishedSelectingRef.current = true;
+				requestAnimationFrame(() => {
+					justFinishedSelectingRef.current = false;
+				});
+			}
 			setSelectionBox(null);
 		};
 
@@ -223,9 +230,14 @@ export function useSelectionBox({
 		};
 	}, [selectionBox, containerRef]);
 
+	const shouldIgnoreClick = useCallback(() => {
+		return justFinishedSelectingRef.current;
+	}, []);
+
 	return {
 		selectionBox,
 		handleMouseDown,
 		isSelecting: selectionBox?.isActive || false,
+		shouldIgnoreClick,
 	};
 }

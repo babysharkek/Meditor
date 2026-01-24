@@ -7,21 +7,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
-	Pause,
-	Play,
 	SkipBack,
-	Bookmark,
-	Magnet,
-	Link,
-	ZoomOut,
-	ZoomIn,
-	Copy,
-	Trash2,
-	Snowflake,
-	ArrowLeftToLine,
-	ArrowRightToLine,
 	SplitSquareHorizontal,
-	Scissors,
 	LayersIcon,
 } from "lucide-react";
 import {
@@ -38,6 +25,28 @@ import { ScenesView } from "../scenes-view";
 import { type TAction, invokeAction } from "@/lib/actions";
 import { cn } from "@/utils/ui";
 import { useTimelineStore } from "@/stores/timeline-store";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+	Bookmark02Icon,
+	Delete02Icon,
+	SnowIcon,
+	ScissorIcon,
+	MagnetIcon,
+	Link04Icon,
+	SearchAddIcon,
+	SearchMinusIcon,
+	PauseIcon,
+	PlayIcon,
+	Copy01Icon,
+	ArrowLeft03Icon,
+	ArrowRight03Icon,
+	LayoutAlignLeftIcon,
+	LayoutAlignRightIcon,
+	AlignLeftIcon,
+	AlignRightIcon,
+	Layers01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 export function TimelineToolbar({
 	zoomLevel,
@@ -60,18 +69,20 @@ export function TimelineToolbar({
 	};
 
 	return (
-		<div className="flex h-10 items-center justify-between border-b px-2 py-1">
-			<ToolbarLeftSection />
+		<ScrollArea className="scrollbar-hidden">
+			<div className="flex h-10 items-center justify-between border-b px-2 py-1">
+				<ToolbarLeftSection />
 
-			<SceneSelector />
+				<SceneSelector />
 
-			<ToolbarRightSection
-				zoomLevel={zoomLevel}
-				minZoom={minZoom}
-				onZoomChange={(zoom) => setZoomLevel({ zoom })}
-				onZoom={handleZoom}
-			/>
-		</div>
+				<ToolbarRightSection
+					zoomLevel={zoomLevel}
+					minZoom={minZoom}
+					onZoomChange={(zoom) => setZoomLevel({ zoom })}
+					onZoom={handleZoom}
+				/>
+			</div>
+		</ScrollArea>
 	);
 }
 
@@ -96,7 +107,13 @@ function ToolbarLeftSection() {
 		<div className="flex items-center gap-1">
 			<TooltipProvider delayDuration={500}>
 				<ToolbarButton
-					icon={isPlaying ? <Pause /> : <Play />}
+					icon={
+						isPlaying ? (
+							<HugeiconsIcon icon={PauseIcon} />
+						) : (
+							<HugeiconsIcon icon={PlayIcon} />
+						)
+					}
 					tooltip={isPlaying ? "Pause" : "Play"}
 					onClick={({ event }) =>
 						handleAction({ action: "toggle-play", event })
@@ -109,14 +126,14 @@ function ToolbarLeftSection() {
 					onClick={({ event }) => handleAction({ action: "goto-start", event })}
 				/>
 
-				<div className="bg-border mx-2 h-10 w-px" />
+				<div className="bg-border mx-1 h-6 w-px" />
 
 				<TimeDisplay />
 
-				<div className="bg-border mx-1 h-10 w-px" />
+				<div className="bg-border mx-1 h-6 w-px" />
 
 				<ToolbarButton
-					icon={<Scissors />}
+					icon={<HugeiconsIcon icon={ScissorIcon} />}
 					tooltip="Split element"
 					onClick={({ event }) =>
 						handleAction({ action: "split-selected", event })
@@ -124,18 +141,18 @@ function ToolbarLeftSection() {
 				/>
 
 				<ToolbarButton
-					icon={<ArrowLeftToLine />}
-					tooltip="Split and keep left"
+					icon={<HugeiconsIcon icon={AlignLeftIcon} />}
+					tooltip="Split left"
 					onClick={({ event }) =>
-						handleAction({ action: "split-selected-left", event })
+						handleAction({ action: "split-selected-right", event })
 					}
 				/>
 
 				<ToolbarButton
-					icon={<ArrowRightToLine />}
-					tooltip="Split and keep right"
+					icon={<HugeiconsIcon icon={AlignRightIcon} />}
+					tooltip="Split right"
 					onClick={({ event }) =>
-						handleAction({ action: "split-selected-right", event })
+						handleAction({ action: "split-selected-left", event })
 					}
 				/>
 
@@ -147,7 +164,7 @@ function ToolbarLeftSection() {
 				/>
 
 				<ToolbarButton
-					icon={<Copy />}
+					icon={<HugeiconsIcon icon={Copy01Icon} />}
 					tooltip="Duplicate element"
 					onClick={({ event }) =>
 						handleAction({ action: "duplicate-selected", event })
@@ -155,14 +172,14 @@ function ToolbarLeftSection() {
 				/>
 
 				<ToolbarButton
-					icon={<Snowflake />}
+					icon={<HugeiconsIcon icon={SnowIcon} />}
 					tooltip="Coming soon" /* freeze frame */
 					disabled={true}
 					onClick={({ event: _event }) => {}}
 				/>
 
 				<ToolbarButton
-					icon={<Trash2 />}
+					icon={<HugeiconsIcon icon={Delete02Icon} />}
 					tooltip="Delete element"
 					onClick={({ event }) =>
 						handleAction({ action: "delete-selected", event })
@@ -174,7 +191,8 @@ function ToolbarLeftSection() {
 				<Tooltip>
 					<ToolbarButton
 						icon={
-							<Bookmark
+							<HugeiconsIcon
+								icon={Bookmark02Icon}
 								className={currentBookmarked ? "fill-primary text-primary" : ""}
 							/>
 						}
@@ -228,7 +246,7 @@ function SceneSelector() {
 				<SplitButtonSeparator />
 				<ScenesView>
 					<SplitButtonRight onClick={() => {}} type="button">
-						<LayersIcon className="size-4" />
+						<HugeiconsIcon icon={Layers01Icon} className="size-4" />
 					</SplitButtonRight>
 				</ScenesView>
 			</SplitButton>
@@ -259,7 +277,10 @@ function ToolbarRightSection({
 			<TooltipProvider delayDuration={500}>
 				<ToolbarButton
 					icon={
-						<Magnet className={cn(snappingEnabled ? "text-primary" : "")} />
+						<HugeiconsIcon
+							icon={MagnetIcon}
+							className={cn(snappingEnabled ? "text-primary" : "")}
+						/>
 					}
 					tooltip="Auto snapping"
 					onClick={() => toggleSnapping()}
@@ -267,7 +288,13 @@ function ToolbarRightSection({
 
 				<ToolbarButton
 					icon={
-						<Link className={cn(rippleEditingEnabled ? "text-primary" : "")} />
+						<HugeiconsIcon
+							icon={Link04Icon}
+							className={cn(
+								rippleEditingEnabled ? "text-primary" : "",
+								"scale-110",
+							)}
+						/>
 					}
 					tooltip="Ripple editing"
 					onClick={() => toggleRippleEditing()}
@@ -283,7 +310,7 @@ function ToolbarRightSection({
 					type="button"
 					onClick={() => onZoom({ direction: "out" })}
 				>
-					<ZoomOut />
+					<HugeiconsIcon icon={SearchAddIcon} />
 				</Button>
 				<Slider
 					className="w-24"
@@ -299,7 +326,7 @@ function ToolbarRightSection({
 					type="button"
 					onClick={() => onZoom({ direction: "in" })}
 				>
-					<ZoomIn />
+					<HugeiconsIcon icon={SearchMinusIcon} />
 				</Button>
 			</div>
 		</div>

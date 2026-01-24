@@ -1,6 +1,7 @@
-import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/utils/ui";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowDownIcon } from "@hugeicons/core-free-icons";
 
 interface PropertyItemProps {
 	direction?: "row" | "column";
@@ -79,7 +80,10 @@ export function PropertyGroup({
 				<PropertyItemLabel className={cn("cursor-pointer", titleClassName)}>
 					{title}
 				</PropertyItemLabel>
-				<ChevronDown className={cn("size-3", !isExpanded && "-rotate-90")} />
+				<HugeiconsIcon
+					icon={ArrowDownIcon}
+					className={cn("size-3", !isExpanded && "-rotate-90")}
+				/>
 			</button>
 			{isExpanded && <PropertyItemValue>{children}</PropertyItemValue>}
 		</PropertyItem>

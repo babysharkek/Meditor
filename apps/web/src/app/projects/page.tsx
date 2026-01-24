@@ -1,17 +1,18 @@
 "use client";
 
-import {
-	ArrowDown,
-	Clock3,
-	Folder,
-	LayoutGrid,
-	List,
-	MoreHorizontal,
-	Plus,
-	Search,
-} from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+	ArrowHorizontalIcon,
+	Clock03Icon,
+	Folder03Icon,
+	GridViewIcon,
+	LeftToRightListDashIcon,
+	PlusSignIcon,
+	SearchIcon,
+	SortingNineOneIcon,
+} from "@hugeicons/core-free-icons";
 
 const projects = [
 	{
@@ -110,7 +111,7 @@ export default function ProjectsPage() {
 						href="/projects"
 						className="flex items-center gap-3 rounded-2xl bg-blue-50/50 px-4 py-3 text-sm font-medium text-[#00A3FF]"
 					>
-						<LayoutGrid className="size-5" />
+						<HugeiconsIcon icon={GridViewIcon} className="size-5" />
 						Projects
 					</a>
 					<div className="px-4 pt-6 pb-2">
@@ -122,14 +123,20 @@ export default function ProjectsPage() {
 						href="/projects"
 						className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
 					>
-						<Folder className="size-5 text-slate-400" />
+						<HugeiconsIcon
+							icon={Folder03Icon}
+							className="size-5 text-slate-400"
+						/>
 						Marketing
 					</a>
 					<a
 						href="/projects"
 						className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
 					>
-						<Folder className="size-5 text-slate-400" />
+						<HugeiconsIcon
+							icon={Folder03Icon}
+							className="size-5 text-slate-400"
+						/>
 						Social media
 					</a>
 				</nav>
@@ -143,7 +150,10 @@ export default function ProjectsPage() {
 
 					<div className="flex items-center gap-4">
 						<div className="group relative">
-							<Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" />
+							<HugeiconsIcon
+								icon={SearchIcon}
+								className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400"
+							/>
 							<input
 								type="text"
 								placeholder="Search..."
@@ -157,18 +167,22 @@ export default function ProjectsPage() {
 								className="rounded-full bg-slate-100 p-2 text-slate-900"
 								aria-label="Grid view"
 							>
-								<LayoutGrid className="size-4" aria-hidden="true">
-									<title>Grid view</title>
-								</LayoutGrid>
+								<HugeiconsIcon
+									icon={GridViewIcon}
+									className="size-4"
+									aria-hidden="true"
+								/>
 							</button>
 							<button
 								type="button"
 								className="rounded-full p-2 text-slate-400 hover:text-slate-600"
 								aria-label="List view"
 							>
-								<List className="size-4" aria-hidden="true">
-									<title>List view</title>
-								</List>
+								<HugeiconsIcon
+									icon={LeftToRightListDashIcon}
+									className="size-4"
+									aria-hidden="true"
+								/>
 							</button>
 						</div>
 
@@ -176,7 +190,7 @@ export default function ProjectsPage() {
 							type="button"
 							className="flex items-center gap-2 rounded-full bg-[#00A3FF] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#008BE0] active:scale-95"
 						>
-							<Plus className="size-4" />
+							<HugeiconsIcon icon={PlusSignIcon} className="size-4" />
 							New project
 						</button>
 					</div>
@@ -210,7 +224,7 @@ export default function ProjectsPage() {
 							className="inline-flex items-center gap-1.5 rounded-lg p-1 text-sm font-medium text-slate-500 hover:text-slate-900"
 						>
 							Name
-							<ArrowDown className="size-3.5" />
+							<HugeiconsIcon icon={SortingNineOneIcon} className="size-3.5" />
 						</button>
 					</div>
 
@@ -243,9 +257,11 @@ export default function ProjectsPage() {
 											className="rounded-full bg-white/90 p-2 text-slate-600 backdrop-blur-sm hover:bg-white hover:text-[#00A3FF]"
 											aria-label="Project menu"
 										>
-											<MoreHorizontal className="size-4" aria-hidden="true">
-												<title>Project menu</title>
-											</MoreHorizontal>
+											<HugeiconsIcon
+												icon={ArrowHorizontalIcon}
+												className="size-4"
+												aria-hidden="true"
+											/>
 										</button>
 									</div>
 
@@ -268,7 +284,11 @@ export default function ProjectsPage() {
 												{name}
 											</h3>
 											<div className="mt-2 flex items-center gap-2 text-slate-400">
-												<Clock3 className="size-4" aria-hidden="true" />
+												<HugeiconsIcon
+													icon={Clock03Icon}
+													className="size-4"
+													aria-hidden="true"
+												/>
 												<p className="text-xs font-medium">{createdAtLabel}</p>
 											</div>
 										</div>
@@ -281,42 +301,33 @@ export default function ProjectsPage() {
 			</main>
 
 			<style jsx global>{`
-        .project-card:hover .card-actions {
+        .project-card:hover .card-actions 
           opacity: 1;
-        }
-        .checkbox-wrapper:checked + div {
+        .checkbox-wrapper:checked + div 
           border-color: var(--brand-blue);
           background-color: #eff6ff;
-        }
-        .controls-row.has-selection .controls-select {
+        .controls-row.has-selection .controls-select 
           opacity: 1;
-        }
-        .project-select-wrapper {
+        .project-select-wrapper 
           opacity: 0;
-        }
-        .project-card:hover .project-select-wrapper {
+        .project-card:hover .project-select-wrapper 
           opacity: 1;
-        }
-        .project-card:has(.project-select:checked) .project-select-wrapper {
+        .project-card:has(.project-select:checked) .project-select-wrapper 
           opacity: 1;
-        }
-        .multi-select .project-menu {
+        .multi-select .project-menu 
           opacity: 0 !important;
           pointer-events: none;
-        }
-        .custom-checkbox {
+        .custom-checkbox 
           appearance: none;
           background-color: #fff;
           border: 2px solid #e2e8f0;
           border-radius: 8px;
           display: inline-grid;
           place-content: center;
-        }
-        .custom-checkbox:checked {
+        .custom-checkbox:checked 
           background-color: var(--brand-blue);
           border-color: var(--brand-blue);
-        }
-        .custom-checkbox:checked::after {
+        .custom-checkbox:checked::after 
           content: "";
           width: 10px;
           height: 10px;
@@ -329,7 +340,6 @@ export default function ProjectsPage() {
             86% 10%,
             40% 70%
           );
-        }
       `}</style>
 		</div>
 	);

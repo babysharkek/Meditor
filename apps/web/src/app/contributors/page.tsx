@@ -1,12 +1,9 @@
-import { OcGithubIcon } from "@opencut/ui/icons";
-import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GitHubContributeSection } from "@/components/gitHub-contribute-section";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { EXTERNAL_TOOLS, SOCIAL_LINKS } from "@/constants/site-constants";
+import { EXTERNAL_TOOLS } from "@/constants/site-constants";
 import { BasePage } from "../base-page";
 
 export const metadata: Metadata = {
@@ -87,7 +84,6 @@ export default async function ContributorsPage() {
 				{otherContributors.length > 0 && (
 					<AllContributorsSection contributors={otherContributors} />
 				)}
-				{contributors.length === 0 && <EmptyState />}
 				<ExternalToolsSection />
 				<GitHubContributeSection
 					title="Join the community"
@@ -206,36 +202,6 @@ function AllContributorsSection({
 					</Link>
 				))}
 			</div>
-		</div>
-	);
-}
-
-function EmptyState() {
-	return (
-		<div className="flex flex-col gap-8 py-20 text-center">
-			<div className="flex flex-col gap-6">
-				<div className="bg-muted/50 mx-auto flex size-20 items-center justify-center rounded-full">
-					<OcGithubIcon className="text-muted-foreground size-8" />
-				</div>
-				<div className="flex flex-col gap-3">
-					<h3 className="text-xl font-medium">No contributors found</h3>
-					<p className="text-muted-foreground mx-auto max-w-md">
-						Unable to load contributors at the moment. Check back later or view
-						on GitHub.
-					</p>
-				</div>
-			</div>
-			<Link
-				href={`${SOCIAL_LINKS.github}/graphs/contributors`}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<Button variant="outline" className="gap-2">
-					<OcGithubIcon />
-					View on GitHub
-					<ExternalLink />
-				</Button>
-			</Link>
 		</div>
 	);
 }

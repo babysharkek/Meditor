@@ -1,7 +1,8 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEditor } from "@/hooks/use-editor";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
-import { Bookmark } from "lucide-react";
+import { Bookmark02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 interface TimelineBookmarksRowProps {
 	zoomLevel: number;
@@ -84,10 +85,10 @@ export function TimelineBookmark({
 			onClick={(event) => handleBookmarkClick({ event })}
 		>
 			<div className="text-primary absolute top-[-1px] left-[-5px]">
-				<Bookmark
+				<HugeiconsIcon
+					icon={Bookmark02Icon}
 					aria-hidden="true"
 					className="fill-primary size-3"
-					focusable="false"
 				/>
 			</div>
 		</button>

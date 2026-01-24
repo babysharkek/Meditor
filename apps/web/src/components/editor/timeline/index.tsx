@@ -2,14 +2,13 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-	Eye,
-	EyeOff,
-	VolumeOff,
-	Volume2,
-	type LucideIcon,
-	EyeIcon,
-	Trash2,
-} from "lucide-react";
+	Delete02Icon,
+	ViewIcon,
+	ViewOffSlashIcon,
+	VolumeHighIcon,
+	VolumeOffIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -133,6 +132,7 @@ export function Timeline() {
 		selectionBox,
 		handleMouseDown: handleSelectionMouseDown,
 		isSelecting,
+		shouldIgnoreClick,
 	} = useSelectionBox({
 		containerRef: tracksContainerRef,
 		onSelectionComplete: (elements) => {
@@ -267,17 +267,12 @@ export function Timeline() {
 											}}
 										>
 											<div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-												{/* Debug main track */}
-												{/* {isMainTrack(track) && (
-                          <div className="size-2 rounded-full bg-red-500" />
-                        )} */}
-
 												{canTracktHaveAudio(track) && (
 													<TrackToggleIcon
 														isOff={track.muted}
 														icons={{
-															on: Volume2,
-															off: VolumeOff,
+															on: VolumeHighIcon,
+															off: VolumeOffIcon,
 														}}
 														onClick={() =>
 															editor.timeline.toggleTrackMute({
@@ -291,8 +286,8 @@ export function Timeline() {
 													<TrackToggleIcon
 														isOff={track.hidden}
 														icons={{
-															on: Eye,
-															off: EyeOff,
+															on: ViewIcon,
+															off: ViewOffSlashIcon,
 														}}
 														onClick={() =>
 															editor.timeline.toggleTrackVisibility({
@@ -397,6 +392,7 @@ export function Timeline() {
 														onElementMouseDown={handleElementMouseDown}
 														onElementClick={handleElementClick}
 														onTrackMouseDown={handleSelectionMouseDown}
+														shouldIgnoreClick={shouldIgnoreClick}
 													/>
 												</div>
 											</ContextMenuTrigger>
@@ -409,7 +405,7 @@ export function Timeline() {
 														});
 													}}
 												>
-													<Volume2 />
+													<HugeiconsIcon icon={VolumeHighIcon} />
 													<span>
 														{canTracktHaveAudio(track) && track.muted
 															? "Unmute track"
@@ -424,7 +420,7 @@ export function Timeline() {
 														});
 													}}
 												>
-													<EyeIcon />
+													<HugeiconsIcon icon={ViewIcon} />
 													<span>
 														{canTrackBeHidden(track) && track.hidden
 															? "Show track"
@@ -440,7 +436,7 @@ export function Timeline() {
 													}}
 													variant="destructive"
 												>
-													<Trash2 />
+													<HugeiconsIcon icon={Delete02Icon} />
 													Delete track
 												</ContextMenuItem>
 											</ContextMenuContent>
@@ -467,20 +463,22 @@ function TrackToggleIcon({
 }: {
 	isOff: boolean;
 	icons: {
-		on: LucideIcon;
-		off: LucideIcon;
+		on: IconSvgElement;
+		off: IconSvgElement;
 	};
 	onClick: () => void;
 }) {
 	return (
 		<>
 			{isOff ? (
-				<icons.off
+				<HugeiconsIcon
+					icon={icons.off}
 					className="text-destructive size-4 cursor-pointer"
 					onClick={onClick}
 				/>
 			) : (
-				<icons.on
+				<HugeiconsIcon
+					icon={icons.on}
 					className="text-muted-foreground size-4 cursor-pointer"
 					onClick={onClick}
 				/>

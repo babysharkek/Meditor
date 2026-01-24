@@ -52,7 +52,7 @@ export function DraggableItem({
 	const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
 	const dragRef = useRef<HTMLDivElement>(null);
 	const editor = useEditor();
-	const highlightClassName = "ring-2 ring-primary rounded-sm bg-primary/10";
+	const highlightClassName = `ring-2 ring-primary bg-primary/10 ${isRounded ? "rounded-sm" : ""}`;
 
 	const handleAddToTimeline = () => {
 		onAddToTimeline?.({ currentTime: editor.playback.getCurrentTime() });
@@ -111,7 +111,7 @@ export function DraggableItem({
 							ratio={aspectRatio}
 							className={cn(
 								"bg-panel-accent relative overflow-hidden",
-								isRounded && "rounded-md",
+								isRounded && "rounded-sm",
 								isDraggable && "[&::-webkit-drag-ghost]:opacity-0",
 							)}
 							draggable={isDraggable}

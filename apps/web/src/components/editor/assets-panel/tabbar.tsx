@@ -59,7 +59,7 @@ export function TabBar() {
 									type="button"
 									aria-label={tab.label}
 									className={cn(
-										"flex cursor-pointer flex-col items-center gap-0.5",
+										"flex cursor-pointer flex-col items-center gap-0.5 [&>svg]:size-4.5! opacity-100 hover:opacity-75",
 										activeTab === tabKey
 											? "text-primary !opacity-100"
 											: "text-muted-foreground",
@@ -72,7 +72,7 @@ export function TabBar() {
 										}
 									}}
 								>
-									<tab.icon className="size-[1.1rem]! opacity-100 hover:opacity-75" />
+									<tab.icon className=" " />
 								</button>
 							</TooltipTrigger>
 							<TooltipContent

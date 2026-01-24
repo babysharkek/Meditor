@@ -4,7 +4,8 @@ import { ScrollArea } from "../../ui/scroll-area";
 import { AudioProperties } from "./audio-properties";
 import { VideoProperties } from "./video-properties";
 import { TextProperties } from "./text-properties";
-import { SquareSlashIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Settings05Icon } from "@hugeicons/core-free-icons";
 import { useEditor } from "@/hooks/use-editor";
 import { useElementSelection } from "@/hooks/timeline/element/use-element-selection";
 
@@ -29,12 +30,12 @@ export function PropertiesPanel() {
 							);
 						}
 						if (element.type === "audio") {
-							return <AudioProperties key={element.id} element={element} />;
+							return <AudioProperties key={element.id} _element={element} />;
 						}
 						if (element.type === "video" || element.type === "image") {
 							return (
 								<div key={element.id}>
-									<VideoProperties element={element} />
+									<VideoProperties _element={element} />
 								</div>
 							);
 						}
@@ -51,12 +52,13 @@ export function PropertiesPanel() {
 function EmptyView() {
 	return (
 		<div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
-			<SquareSlashIcon
-				className="text-muted-foreground size-10"
-				strokeWidth={1.5}
+			<HugeiconsIcon
+				icon={Settings05Icon}
+				className="text-muted-foreground/75 size-10"
+				strokeWidth={1}
 			/>
 			<div className="flex flex-col gap-2 text-center">
-				<p className="text-lg font-medium">It’s empty here</p>
+				<p className="text-lg font-medium">It's empty here</p>
 				<p className="text-muted-foreground text-sm text-balance">
 					Click an element on the timeline to edit its properties
 				</p>

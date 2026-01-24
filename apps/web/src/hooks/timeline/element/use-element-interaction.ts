@@ -510,13 +510,9 @@ export function useElementInteraction({
 			element: TimelineElement;
 			track: TimelineTrack;
 		}) => {
-			event.stopPropagation();
-			mouseDownLocationRef.current = { x: event.clientX, y: event.clientY };
-
 			const isRightClick = event.button === 2;
-			const isMultiSelect = event.metaKey || event.ctrlKey || event.shiftKey;
 
-			// right-click
+			// right-click: don't stop propagation so ContextMenu can open
 			if (isRightClick) {
 				const alreadySelected = isElementSelected({
 					trackId: track.id,
@@ -531,6 +527,12 @@ export function useElementInteraction({
 				}
 				return;
 			}
+
+			// left-click: stop propagation for drag operations
+			event.stopPropagation();
+			mouseDownLocationRef.current = { x: event.clientX, y: event.clientY };
+
+			const isMultiSelect = event.metaKey || event.ctrlKey || event.shiftKey;
 
 			// multi-select: toggle selection
 			if (isMultiSelect) {

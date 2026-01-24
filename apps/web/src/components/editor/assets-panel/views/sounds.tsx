@@ -1,12 +1,5 @@
 "use client";
 
-import {
-	HeartIcon,
-	ListFilter,
-	PauseIcon,
-	PlayIcon,
-	PlusIcon,
-} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +26,14 @@ import { useSoundSearch } from "@/hooks/use-sound-search";
 import { useSoundsStore } from "@/stores/sounds-store";
 import type { SavedSound, SoundEffect } from "@/types/sounds";
 import { cn } from "@/utils/ui";
+import {
+	FavouriteIcon,
+	FilterMailIcon,
+	PauseIcon,
+	PlayIcon,
+	PlusSignIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 export function SoundsView() {
 	return (
@@ -250,7 +251,7 @@ function SoundEffectsView() {
 							size="icon"
 							className={cn(showCommercialOnly && "text-primary")}
 						>
-							<ListFilter />
+							<HugeiconsIcon icon={FilterMailIcon} />
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end" className="w-56">
@@ -406,9 +407,9 @@ function SavedSoundsView() {
 	if (savedSounds.length === 0) {
 		return (
 			<div className="bg-panel flex h-full flex-col items-center justify-center gap-3 p-4">
-				<HeartIcon
+				<HugeiconsIcon
+					icon={FavouriteIcon}
 					className="text-muted-foreground size-10"
-					strokeWidth={1.5}
 				/>
 				<div className="flex flex-col gap-2 text-center">
 					<p className="text-lg font-medium">No saved sounds</p>
@@ -527,9 +528,9 @@ function AudioItem({ sound, isPlaying, onPlay }: AudioItemProps) {
 				<div className="bg-accent relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md">
 					<div className="from-primary/20 absolute inset-0 bg-gradient-to-br to-transparent" />
 					{isPlaying ? (
-						<PauseIcon className="size-5" />
+						<HugeiconsIcon icon={PauseIcon} className="size-5" />
 					) : (
-						<PlayIcon className="size-5" />
+						<HugeiconsIcon icon={PlayIcon} className="size-5" />
 					)}
 				</div>
 
@@ -549,7 +550,7 @@ function AudioItem({ sound, isPlaying, onPlay }: AudioItemProps) {
 					onClick={handleAddToTimeline}
 					title="Add to timeline"
 				>
-					<PlusIcon />
+					<HugeiconsIcon icon={PlusSignIcon} />
 				</Button>
 				<Button
 					variant="text"
@@ -562,7 +563,10 @@ function AudioItem({ sound, isPlaying, onPlay }: AudioItemProps) {
 					onClick={handleSaveClick}
 					title={isSaved ? "Remove from saved" : "Save sound"}
 				>
-					<HeartIcon className={`${isSaved ? "fill-current" : ""}`} />
+					<HugeiconsIcon
+						icon={FavouriteIcon}
+						className={`${isSaved ? "fill-current" : ""}`}
+					/>
 				</Button>
 			</div>
 		</div>

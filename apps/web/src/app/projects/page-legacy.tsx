@@ -1,16 +1,5 @@
 "use client";
 
-import {
-	ArrowDown01,
-	Calendar,
-	ChevronLeft,
-	MoreHorizontal,
-	Plus,
-	Search,
-	Trash2,
-	Video,
-	X,
-} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -41,6 +30,18 @@ import {
 import { useEditor } from "@/hooks/use-editor";
 import type { TProjectMetadata } from "@/types/project";
 import { formatDate } from "@/utils/date";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+	ArrowHorizontalIcon,
+	ArrowLeft01Icon,
+	Calendar04Icon,
+	Delete02Icon,
+	MultiplicationSignIcon,
+	PlusSignIcon,
+	Search01Icon,
+	SortingNineOneIcon,
+	Video01Icon,
+} from "@hugeicons/core-free-icons";
 
 export default function ProjectsPage() {
 	const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -160,7 +161,7 @@ export default function ProjectsPage() {
 					href="/"
 					className="hover:text-muted-foreground flex items-center gap-1 transition-colors"
 				>
-					<ChevronLeft className="size-5! shrink-0" />
+					<HugeiconsIcon icon={ArrowLeft01Icon} className="size-5! shrink-0" />
 					<span className="text-sm font-medium">Back</span>
 				</Link>
 				<div className="block md:hidden">
@@ -171,7 +172,7 @@ export default function ProjectsPage() {
 								size="sm"
 								onClick={handleCancelSelection}
 							>
-								<X />
+								<HugeiconsIcon icon={MultiplicationSignIcon} />
 								Cancel
 							</Button>
 							{selectedProjects.size > 0 && (
@@ -180,7 +181,7 @@ export default function ProjectsPage() {
 									size="sm"
 									onClick={() => setIsBulkDeleteDialogOpen(true)}
 								>
-									<Trash2 />
+									<HugeiconsIcon icon={Delete02Icon} />
 									Delete ({selectedProjects.size})
 								</Button>
 							)}
@@ -210,7 +211,7 @@ export default function ProjectsPage() {
 						{isSelectionMode ? (
 							<div className="flex items-center gap-2">
 								<Button variant="outline" onClick={handleCancelSelection}>
-									<X />
+									<HugeiconsIcon icon={MultiplicationSignIcon} />
 									Cancel
 								</Button>
 								<Button
@@ -218,7 +219,7 @@ export default function ProjectsPage() {
 									disabled={selectedProjects.size === 0}
 									onClick={() => setIsBulkDeleteDialogOpen(true)}
 								>
-									<Trash2 />
+									<HugeiconsIcon icon={Delete02Icon} />
 									Delete {selectedProjects.size} projects
 								</Button>
 							</div>
@@ -257,9 +258,8 @@ export default function ProjectsPage() {
 												variant="outline"
 												className="size-9 items-center justify-center"
 											>
-												<ArrowDown01
-													strokeWidth={1.5}
-													className="!size-[1.05rem]"
+												<HugeiconsIcon
+													icon={SortingNineOneIcon}
 													aria-hidden="true"
 												/>
 											</Button>
@@ -430,7 +430,10 @@ function ProjectCard({
 						/>
 					) : (
 						<div className="bg-muted/50 flex size-full items-center justify-center">
-							<Video className="text-muted-foreground size-12 shrink-0" />
+							<HugeiconsIcon
+								icon={Video01Icon}
+								className="text-muted-foreground size-12 shrink-0"
+							/>
 						</div>
 					)}
 				</div>
@@ -458,7 +461,10 @@ function ProjectCard({
 									}`}
 									onClick={(event) => event.preventDefault()}
 								>
-									<MoreHorizontal aria-hidden="true" />
+									<HugeiconsIcon
+										icon={ArrowHorizontalIcon}
+										aria-hidden="true"
+									/>
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
@@ -506,7 +512,7 @@ function ProjectCard({
 
 				<div className="space-y-1">
 					<div className="text-muted-foreground flex items-center gap-1.5 text-sm">
-						<Calendar className="size-4!" />
+						<HugeiconsIcon icon={Calendar04Icon} className="size-4" />
 						<span>Created {formatDate({ date: project.createdAt })}</span>
 					</div>
 				</div>
@@ -575,7 +581,7 @@ function ProjectsLoader() {
 function CreateButton({ onClick }: { onClick?: () => void }) {
 	return (
 		<Button className="flex" onClick={onClick}>
-			<Plus />
+			<HugeiconsIcon icon={PlusSignIcon} />
 			<span className="text-sm font-medium">New project</span>
 		</Button>
 	);
@@ -596,7 +602,10 @@ function EmptyState({
 			<div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
 				<div className="flex flex-col items-center gap-2">
 					<div className="bg-muted/30 flex size-16 items-center justify-center rounded-full">
-						<Search className="text-muted-foreground size-8" />
+						<HugeiconsIcon
+							icon={Search01Icon}
+							className="text-muted-foreground size-8"
+						/>
 					</div>
 					<h3 className="text-lg font-medium">No results found</h3>
 					<p className="text-muted-foreground max-w-md">
@@ -614,7 +623,10 @@ function EmptyState({
 		<div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
 			<div className="flex flex-col items-center gap-2">
 				<div className="bg-muted/30 flex size-16 items-center justify-center rounded-full">
-					<Video className="text-muted-foreground size-8" />
+					<HugeiconsIcon
+						icon={Video01Icon}
+						className="text-muted-foreground size-8"
+					/>
 				</div>
 				<h3 className="text-lg font-medium">No projects yet</h3>
 				<p className="text-muted-foreground max-w-md">
@@ -623,7 +635,7 @@ function EmptyState({
 				</p>
 			</div>
 			<Button size="lg" className="gap-2" onClick={onCreateProject}>
-				<Plus />
+				<HugeiconsIcon icon={PlusSignIcon} />
 				Create your first project
 			</Button>
 		</div>

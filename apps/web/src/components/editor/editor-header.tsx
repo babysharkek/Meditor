@@ -2,7 +2,6 @@
 
 import { Button } from "../ui/button";
 import { ChevronDown } from "lucide-react";
-import { KeyboardShortcutsHelp } from "../keyboard-shortcuts-help";
 import { useState } from "react";
 import {
 	DropdownMenu,
@@ -21,7 +20,14 @@ import { ThemeToggle } from "../theme-toggle";
 import { SOCIAL_LINKS } from "@/constants/site-constants";
 import { toast } from "sonner";
 import { useEditor } from "@/hooks/use-editor";
-import { OcLeftArrowIcon, OcPencilIcon, OcTrashIcon } from "@opencut/ui/icons";
+import {
+	ArrowLeft02Icon,
+	Edit03Icon,
+	Delete02Icon,
+	Keyboard,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ShortcutsDialog } from "./shortcuts-dialog";
 
 export function EditorHeader() {
 	return (
@@ -30,7 +36,6 @@ export function EditorHeader() {
 				<ProjectDropdown />
 			</div>
 			<nav className="flex items-center gap-2">
-				<KeyboardShortcutsHelp />
 				<ExportButton />
 				<ThemeToggle />
 			</nav>
@@ -39,8 +44,9 @@ export function EditorHeader() {
 }
 
 function ProjectDropdown() {
-	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+	const [openDialog, setOpenDialog] = useState<
+		"delete" | "rename" | "shortcuts" | null
+	>(null);
 	const [isExiting, setIsExiting] = useState(false);
 	const router = useRouter();
 	const editor = useEditor();
@@ -78,7 +84,7 @@ function ProjectDropdown() {
 						error instanceof Error ? error.message : "Please try again",
 				});
 			} finally {
-				setIsRenameDialogOpen(false);
+				setOpenDialog(null);
 			}
 		}
 	};
@@ -94,7 +100,7 @@ function ProjectDropdown() {
 						error instanceof Error ? error.message : "Please try again",
 				});
 			} finally {
-				setIsDeleteDialogOpen(false);
+				setOpenDialog(null);
 			}
 		}
 	};
@@ -119,25 +125,32 @@ function ProjectDropdown() {
 						onClick={handleExit}
 						disabled={isExiting}
 					>
-						<OcLeftArrowIcon className="size-4" />
-						Projects
+						<HugeiconsIcon icon={ArrowLeft02Icon} className="size-4" />
+						Exit project
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						className="flex items-center gap-1.5"
-						onClick={() => setIsRenameDialogOpen(true)}
+						onClick={() => setOpenDialog("rename")}
 					>
-						<OcPencilIcon className="size-4" />
+						<HugeiconsIcon icon={Edit03Icon} className="size-4" />
 						Rename project
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						variant="destructive"
 						className="flex items-center gap-1.5"
-						onClick={() => setIsDeleteDialogOpen(true)}
+						onClick={() => setOpenDialog("delete")}
 					>
-						<OcTrashIcon className="size-4" />
-						Delete Project
+						<HugeiconsIcon icon={Delete02Icon} className="size-4" />
+						Delete project
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
+					<DropdownMenuItem
+						className="flex items-center gap-1.5"
+						onClick={() => setOpenDialog("shortcuts")}
+					>
+						<HugeiconsIcon icon={Keyboard} className="size-4" />
+						Keyboard shortcuts
+					</DropdownMenuItem>
 					<DropdownMenuItem asChild>
 						<Link
 							href={SOCIAL_LINKS.discord}
@@ -152,16 +165,20 @@ function ProjectDropdown() {
 				</DropdownMenuContent>
 			</DropdownMenu>
 			<RenameProjectDialog
-				isOpen={isRenameDialogOpen}
-				onOpenChange={setIsRenameDialogOpen}
+				isOpen={openDialog === "rename"}
+				onOpenChange={(isOpen) => setOpenDialog(isOpen ? "rename" : null)}
 				onConfirm={(newName) => handleSaveProjectName(newName)}
 				projectName={activeProject?.metadata.name || ""}
 			/>
 			<DeleteProjectDialog
-				isOpen={isDeleteDialogOpen}
-				onOpenChange={setIsDeleteDialogOpen}
+				isOpen={openDialog === "delete"}
+				onOpenChange={(isOpen) => setOpenDialog(isOpen ? "delete" : null)}
 				onConfirm={handleDeleteProject}
 				projectName={activeProject?.metadata.name || ""}
+			/>
+			<ShortcutsDialog
+				isOpen={openDialog === "shortcuts"}
+				onOpenChange={(isOpen) => setOpenDialog(isOpen ? "shortcuts" : null)}
 			/>
 		</>
 	);

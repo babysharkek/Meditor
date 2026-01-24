@@ -1,5 +1,11 @@
 import type { TrackType } from "@/types/timeline";
-import { Video, TypeIcon, Music, Sticker } from "lucide-react";
+import {
+	Happy01Icon,
+	MusicNote03Icon,
+	TextIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { OcVideoIcon } from "@opencut/ui/icons";
 
 export const TRACK_COLORS: Record<TrackType, { background: string }> = {
 	video: {
@@ -37,8 +43,23 @@ export const TIMELINE_CONSTANTS = {
 } as const;
 
 export const TRACK_ICONS: Record<TrackType, React.ReactNode> = {
-	video: <Video className="text-muted-foreground size-4 shrink-0" />,
-	text: <TypeIcon className="text-muted-foreground size-4 shrink-0" />,
-	audio: <Music className="text-muted-foreground size-4 shrink-0" />,
-	sticker: <Sticker className="text-muted-foreground size-4 shrink-0" />,
+	video: <OcVideoIcon className="text-muted-foreground size-4 shrink-0" />,
+	text: (
+		<HugeiconsIcon
+			icon={TextIcon}
+			className="text-muted-foreground size-4 shrink-0"
+		/>
+	),
+	audio: (
+		<HugeiconsIcon
+			icon={MusicNote03Icon}
+			className="text-muted-foreground size-4 shrink-0"
+		/>
+	),
+	sticker: (
+		<HugeiconsIcon
+			icon={Happy01Icon}
+			className="text-muted-foreground size-4 shrink-0"
+		/>
+	),
 } as const;

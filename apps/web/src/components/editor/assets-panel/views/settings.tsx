@@ -1,6 +1,5 @@
 "use client";
 
-import { PipetteIcon } from "lucide-react";
 import Image from "next/image";
 import { memo, useCallback, useMemo } from "react";
 import { PanelBaseView as BaseView } from "@/components/editor/panel-base-view";
@@ -31,6 +30,8 @@ import {
 	PropertyItemLabel,
 	PropertyItemValue,
 } from "../../properties-panel/property-item";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { DropperIcon } from "@hugeicons/core-free-icons";
 
 export function SettingsView() {
 	return <ProjectSettingsTabs />;
@@ -355,7 +356,7 @@ function BackgroundView() {
 			<PropertyGroup title="Colors" defaultExpanded={false}>
 				<div className="grid w-full grid-cols-4 gap-2">
 					<div className="border-foreground/15 hover:border-primary flex aspect-square w-full cursor-pointer items-center justify-center rounded-sm border">
-						<PipetteIcon className="size-4" />
+						<HugeiconsIcon icon={DropperIcon} className="size-4" />
 					</div>
 					<BackgroundPreviews
 						backgrounds={colors}

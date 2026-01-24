@@ -1179,7 +1179,7 @@ worker.ts
 
 ## apps/web/src/stores
 
-assets-panel-store.ts
+assets-panel-store.tsx
   export const TAB_KEYS
   export type Tab = (typeof TAB_KEYS)[number]
   export const tabs
@@ -1678,8 +1678,6 @@ ui.ts
 ## packages/ui/src/icons
 
 brand.tsx
-  export function OcGoogleIcon({ className }: { className?: string })
-  export function OcGithubIcon({ className }: { className?: string })
   export function OcVercelIcon({ className }: { className?: string })
   export function OcMarbleIcon({
   	className = "",
@@ -1696,48 +1694,17 @@ brand.tsx
   	size?: number;
   })
 
-editor.tsx
-  export function OcBackgroundIcon({ className }: { className?: string })
-  export function OcSocialsIcon({
+ui.tsx
+  export function OcSplitKeepLeftIcon({
   	className = "",
   	size = 32,
   }: {
   	className?: string;
   	size?: number;
   })
-  export function OcTransitionUpIcon({
+  export function OcSplitKeepRightIcon({
   	className = "",
-  	size = 16,
-  }: {
-  	className?: string;
-  	size?: number;
-  })
-
-ui.tsx
-  export function OcMenuIcon({
-  	className = "",
-  	size = 16,
-  }: {
-  	className?: string;
-  	size?: number;
-  })
-  export function OcPencilIcon({
-  	className = "",
-  	size = 24,
-  }: {
-  	className?: string;
-  	size?: number;
-  })
-  export function OcLeftArrowIcon({
-  	className = "",
-  	size = 24,
-  }: {
-  	className?: string;
-  	size?: number;
-  })
-  export function OcTrashIcon({
-  	className = "",
-  	size = 24,
+  	size = 32,
   }: {
   	className?: string;
   	size?: number;

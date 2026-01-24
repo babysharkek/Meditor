@@ -1,10 +1,11 @@
-import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { BasePage } from "@/app/base-page";
 import { Card, CardContent } from "@/components/ui/card";
 import { SPONSORS, type Sponsor } from "@/constants/site-constants";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LinkSquare02Icon } from "@hugeicons/core-free-icons";
 
 export const metadata: Metadata = {
 	title: "Sponsors - OpenCut",
@@ -25,9 +26,9 @@ export default function SponsorsPage() {
 				<h1 className="text-5xl font-bold tracking-tight md:text-6xl">
 					Sponsors
 				</h1>
-				<p className="text-muted-foreground mx-auto max-w-2xl text-xl leading-relaxed">
-					Support OpenCut and help us build the future of free and open-source
-					video editing.
+				<p className="text-muted-foreground mx-auto max-w-2xl text-xl leading-relaxed text-pretty">
+					Support OpenCut and help us build the future of privacy-first video
+					editing.
 				</p>
 			</div>
 			<SponsorsGrid />
@@ -51,7 +52,7 @@ function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
 			href={sponsor.url}
 			target="_blank"
 			rel="noopener noreferrer"
-					className="size-full"
+			className="size-full"
 		>
 			<Card className="h-full">
 				<CardContent className="flex h-full flex-col justify-center gap-8 p-8">
@@ -67,7 +68,10 @@ function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
 							<h3 className="text-xl font-semibold group-hover:underline">
 								{sponsor.name}
 							</h3>
-							<ExternalLink className="text-muted-foreground size-4" />
+							<HugeiconsIcon
+								icon={LinkSquare02Icon}
+								className="text-muted-foreground size-4"
+							/>
 						</div>
 						<p className="text-muted-foreground">{sponsor.description}</p>
 					</div>
