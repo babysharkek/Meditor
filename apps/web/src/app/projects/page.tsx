@@ -23,6 +23,14 @@ import { formatTimeCode } from "@/lib/time";
 import { formatDate } from "@/utils/date";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import {
 	Calendar04Icon,
 	GridViewIcon,
 	LeftToRightListDashIcon,
@@ -35,6 +43,7 @@ import {
 	Edit03Icon,
 	ArrowDown02Icon,
 	InformationCircleIcon,
+	HomeIcon,
 } from "@hugeicons/core-free-icons";
 import { OcVideoIcon } from "@opencut/ui/icons";
 import { Label } from "@/components/ui/label";
@@ -117,7 +126,23 @@ function ProjectsHeader() {
 		<header className="sticky top-0 z-20 px-8 bg-background flex flex-col gap-2">
 			<div className="flex items-center justify-between h-16 pt-2">
 				<div className="flex items-center gap-5">
-					<h1 className="text-xl font-semibold">All projects</h1>
+					<Breadcrumb>
+						<BreadcrumbList>
+							<BreadcrumbItem>
+								<BreadcrumbLink asChild>
+									<Link href="/" className="text-sm sm:text-base">
+										Home
+									</Link>
+								</BreadcrumbLink>
+							</BreadcrumbItem>
+							<BreadcrumbSeparator />
+							<BreadcrumbItem>
+								<BreadcrumbPage className="text-sm sm:text-base font-medium">
+									All projects
+								</BreadcrumbPage>
+							</BreadcrumbItem>
+						</BreadcrumbList>
+					</Breadcrumb>
 
 					<div className="hidden md:flex rounded-full border p-1 h-10">
 						<button
@@ -764,10 +789,10 @@ function ProjectMenu({
 						<HugeiconsIcon icon={Copy01Icon} />
 						Duplicate
 					</DropdownMenuItem>
-				<DropdownMenuItem onClick={handleInfoClick}>
-					<HugeiconsIcon icon={InformationCircleIcon} />
-					Info
-				</DropdownMenuItem>
+					<DropdownMenuItem onClick={handleInfoClick}>
+						<HugeiconsIcon icon={InformationCircleIcon} />
+						Info
+					</DropdownMenuItem>
 					<DropdownMenuItem variant="destructive" onClick={handleDeleteClick}>
 						<HugeiconsIcon icon={Delete02Icon} />
 						Delete
