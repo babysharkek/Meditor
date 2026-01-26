@@ -31,73 +31,28 @@ const roadmapItems: RoadmapItem[] = [
 	{
 		title: "Core UI",
 		description:
-			"Built the foundation - main layout, header, sidebar, timeline container, and basic component structure. Not all functionality yet, but the UI framework that everything else builds on.",
+			"Build the foundation - main layout, header, sidebar, timeline container, and basic component structure. Not all functionality yet, but the UI framework that everything else builds on.",
 		status: {
 			text: "Completed",
 			type: "complete",
 		},
 	},
 	{
-		title: "Basic Functionality",
+		title: "Essential functionality",
 		description:
-			"The heart of any video editor. Timeline zoom in/out, making clips longer/shorter, dragging elements around, selection, playhead scrubbing. **This part has to be fucking perfect** because it's what users interact with 99% of the time.",
+			"Everything that makes a video editor **useful**. Timeline interactivity, storage, effects, transitions, etc.",
 		status: {
 			text: "In progress",
 			type: "pending",
 		},
 	},
 	{
-		title: "Export/preview logic",
+		title: "Badge (potentially)",
 		description:
-			"The foundation that enables everything else. Real-time preview, video rendering, export functionality. Once this works, we can add effects, filters, transitions - basically everything that makes a video editor powerful.",
-		status: {
-			text: "Completed",
-			type: "complete",
-		},
-	},
-	{
-		title: "Desktop/mobile app",
-		description:
-			"The foundation that enables everything else. Real-time preview, video rendering, export functionality. Once this works, we can add effects, filters, transitions - basically everything that makes a video editor powerful.",
-		status: {
-			text: "In progress",
-			type: "pending",
-		},
-	},
-	{
-		title: "Text",
-		description:
-			"After media, text is the next most important thing. Font selection with custom font imports, text stroke, colors. All the text essential text properties.",
-		status: {
-			text: "In progress",
-			type: "pending",
-		},
-	},
-	{
-		title: "Effects",
-		description:
-			"Adding visual effects to both text and media. Blur, brightness, contrast, saturation, filters, and all the creative tools that make videos pop. This is where the magic happens.",
+			'An "Edit with OpenCut" badge web apps can integrate. Shows on video players.',
 		status: {
 			text: "Not started",
 			type: "default",
-		},
-	},
-	{
-		title: "Transitions",
-		description:
-			"Smooth transitions between clips. Fade in/out, slide, zoom, dissolve, and custom transition effects.",
-		status: {
-			text: "Not started",
-			type: "default",
-		},
-	},
-	{
-		title: "Refine from here",
-		description:
-			"Once we nail the above, we have a **solid foundation** to build anything. Advanced features, performance optimizations, mobile support, desktop app.",
-		status: {
-			text: "Future",
-			type: "info",
 		},
 	},
 ];

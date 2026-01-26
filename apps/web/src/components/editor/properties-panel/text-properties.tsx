@@ -151,7 +151,7 @@ export function TextProperties({
 							<Textarea
 								placeholder="Name"
 								defaultValue={element.content}
-								className="bg-panel-accent min-h-18 resize-none"
+								className="bg-panel-accent min-h-20"
 								onChange={(e) =>
 									editor.timeline.updateTextElement({
 										trackId,

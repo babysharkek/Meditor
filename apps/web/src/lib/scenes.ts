@@ -1,5 +1,6 @@
 import type { TScene } from "@/types/timeline";
 import { generateUUID } from "@/utils/id";
+import { calculateTotalDuration } from "@/lib/timeline";
 import { ensureMainTrack } from "@/lib/timeline/track-utils";
 
 export function getMainScene({ scenes }: { scenes: TScene[] }): TScene | null {
@@ -72,6 +73,19 @@ export function findCurrentScene({
 		scenes[0] ||
 		null
 	);
+}
+
+export function getProjectDurationFromScenes({
+	scenes,
+}: {
+	scenes: TScene[];
+}): number {
+	const mainScene = getMainScene({ scenes }) ?? scenes[0] ?? null;
+	if (!mainScene) {
+		return 0;
+	}
+
+	return calculateTotalDuration({ tracks: mainScene.tracks });
 }
 
 export function updateSceneInArray({

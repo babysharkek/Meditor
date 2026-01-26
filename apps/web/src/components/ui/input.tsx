@@ -1,12 +1,32 @@
 "use client";
 
 import { Eye, EyeOff, X } from "lucide-react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/utils/ui";
 import { Button } from "./button";
 import { forwardRef, type ComponentProps } from "react";
 import { useState } from "react";
 
-interface InputProps extends ComponentProps<"input"> {
+const inputVariants = cva(
+	"file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-border bg-background flex w-full min-w-0 rounded-full border shadow-xs outline-none file:inline-flex file:border-0 file:bg-transparent file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+	{
+		variants: {
+			size: {
+				default:
+					"h-9 px-3 py-1 text-base file:h-7 file:text-sm md:text-sm",
+				sm: "h-8 px-3 text-xs file:h-6 file:text-xs",
+				lg: "h-10 px-4 text-base file:h-8 file:text-sm md:text-sm",
+			},
+		},
+		defaultVariants: {
+			size: "default",
+		},
+	},
+);
+
+interface InputProps
+	extends Omit<ComponentProps<"input">, "size">,
+		VariantProps<typeof inputVariants> {
 	showPassword?: boolean;
 	onShowPasswordChange?: (show: boolean) => void;
 	showClearIcon?: boolean;
@@ -19,6 +39,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 		{
 			className,
 			type,
+			size,
 			containerClassName,
 			showPassword,
 			onShowPasswordChange,
@@ -55,11 +76,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 				<input
 					type={inputType}
 					className={cn(
-						"file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-input bg-background flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-						"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[2px]",
-						"aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-						paddingRight,
-						className,
+						inputVariants({
+							size,
+							className: cn(paddingRight, className),
+						}),
 					)}
 					ref={ref}
 					value={value}

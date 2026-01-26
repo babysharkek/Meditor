@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dialog Designs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --brand-blue: #00A3FF;
+        }
+
+        /* Utility to hide/show */
+        .dialog-overlay { display: none; }
+        .dialog-overlay.open { display: flex; }
+        
+        /* Stop body scroll when open */
+        body.dialog-open { overflow: hidden; }
+    </style>
+</head>
+<body class="bg-[#ffffff] text-slate-900 min-h-screen p-12">
+
+    <div class="max-w-4xl mx-auto space-y-4 mb-12 text-center">
+        <h1 class="text-2xl font-bold">Dialog Design Explorations</h1>
+        <p class="text-slate-500">Three interactions for the same brand language. Click buttons to open.</p>
+        
+        <div class="flex items-center justify-center gap-4 mt-8">
+            <button onclick="openDialog(1)" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-700 hover:border-[#00A3FF] hover:text-[#00A3FF] shadow-sm">
+                Option 1: Soft & Friendly
+            </button>
+            <button onclick="openDialog(2)" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-700 hover:border-[#00A3FF] hover:text-[#00A3FF] shadow-sm">
+                Option 2: Structured
+            </button>
+            <button onclick="openDialog(3)" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-700 hover:border-[#00A3FF] hover:text-[#00A3FF] shadow-sm">
+                Option 3: Edge Accent
+            </button>
+        </div>
+    </div>
+
+    <!-- Overlay (Shared) -->
+    <div id="overlay" class="dialog-overlay fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 items-center justify-center p-4">
+        
+        <!-- Option 1: Soft & Friendly -->
+        <!-- Characteristics: Very rounded, generous padding, minimal dividers -->
+        <div id="dialog-1" class="hidden w-full max-w-md bg-white rounded-[28px] shadow-xl p-8 relative">
+            <button onclick="closeAll()" class="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="mb-6">
+                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 text-[#00A3FF]">
+                    <i data-lucide="share-2" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Share Project</h2>
+                <p class="text-slate-500 text-[15px] leading-relaxed">
+                    Invite collaborators to <strong>Summer Vlog 2025</strong>. They will receive an email invitation to edit.
+                </p>
+            </div>
+
+            <div class="space-y-4 mb-8">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email address</label>
+                    <input type="email" placeholder="colleague@example.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00A3FF] focus:bg-white focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400">
+                </div>
+                
+                <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-xs font-bold">JM</div>
+                        <span class="text-sm font-medium text-slate-700">John Miller</span>
+                    </div>
+                    <span class="text-xs font-medium text-slate-400 px-2 py-1 bg-slate-50 rounded-md">Owner</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="closeAll()" class="flex-1 px-5 py-3 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl">
+                    Cancel
+                </button>
+                <button class="flex-1 px-5 py-3 text-sm font-bold text-white bg-[#00A3FF] hover:bg-[#008BE0] rounded-xl shadow-lg shadow-blue-500/20">
+                    Send Invite
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Option 2: Structured -->
+        <!-- Characteristics: Clear header/footer separation, solid pill buttons, highly organized -->
+        <div id="dialog-2" class="hidden w-full max-w-lg bg-white rounded-[20px] shadow-xl overflow-hidden flex flex-col">
+            <!-- Header -->
+            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                <h2 class="text-lg font-bold text-slate-900">Export Video</h2>
+                <button onclick="closeAll()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-slate-500">Resolution</label>
+                        <button class="w-full flex items-center justify-between px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:border-[#00A3FF]">
+                            <span>1080p HD</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-slate-500">Format</label>
+                        <button class="w-full flex items-center justify-between px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:border-[#00A3FF]">
+                            <span>MP4 (H.264)</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-3">
+                    <i data-lucide="info" class="w-5 h-5 text-[#00A3FF] mt-0.5 flex-shrink-0"></i>
+                    <div class="text-sm text-slate-600">
+                        <p class="font-medium text-slate-900 mb-1">Estimated file size: 245 MB</p>
+                        <p>Exporting may take a few minutes depending on your hardware.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button onclick="closeAll()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
+                    Cancel
+                </button>
+                <button class="px-4 py-2 text-sm font-bold text-white bg-[#00A3FF] hover:bg-[#008BE0] rounded-lg shadow-md shadow-blue-500/10">
+                    Export Video
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Option 3: Edge Accent -->
+        <!-- Characteristics: Minimalist, blue left border accent, very clean interactions -->
+        <div id="dialog-3" class="hidden w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden relative">
+            <!-- Accent Bar -->
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#00A3FF]"></div>
+
+            <div class="pl-8 pr-6 py-6">
+                <div class="flex items-start justify-between mb-2">
+                    <h2 class="text-lg font-bold text-slate-900">Delete Project?</h2>
+                    <button onclick="closeAll()" class="text-slate-400 hover:text-slate-600 -mt-1 -mr-2 p-2">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <p class="text-slate-500 text-sm mb-6">
+                    This will permanently delete <span class="text-slate-900 font-medium">"Summer Vlog 2025"</span> and all its associated media files. This action cannot be undone.
+                </p>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <button class="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-sm">
+                        Yes, delete it
+                    </button>
+                    <button onclick="closeAll()" class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg hover:bg-slate-50">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const overlay = document.getElementById('overlay');
+        const dialogs = [
+            document.getElementById('dialog-1'),
+            document.getElementById('dialog-2'),
+            document.getElementById('dialog-3')
+        ];
+
+        function openDialog(id) {
+            // Hide all first
+            dialogs.forEach(d => d.classList.add('hidden'));
+            
+            // Show overlay
+            overlay.classList.add('open');
+            document.body.classList.add('dialog-open');
+            
+            // Show specific dialog
+            const target = document.getElementById(`dialog-${id}`);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+        }
+
+        function closeAll() {
+            overlay.classList.remove('open');
+            document.body.classList.remove('dialog-open');
+            dialogs.forEach(d => d.classList.add('hidden'));
+        }
+
+        // Close on backdrop click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                closeAll();
+            }
+        });
+        
+        // Escape key support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAll();
+        });
+    </script>
+</body>
+</html>

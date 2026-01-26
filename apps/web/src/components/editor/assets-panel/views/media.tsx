@@ -44,6 +44,7 @@ import {
 	Video01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { OcVideoIcon } from "@opencut/ui/icons";
 
 export function MediaView() {
 	const editor = useEditor();
@@ -558,19 +559,18 @@ function MediaPreview({
 	item: MediaAsset;
 	variant?: "grid" | "compact";
 }) {
-	const shouldShowVideoOverlay = variant === "grid";
 	const shouldShowDurationBadge = variant === "grid";
 
 	if (item.type === "image") {
 		return (
-			<div className="flex size-full items-center justify-center">
+			<div className="relative flex size-full items-center justify-center">
 				<Image
 					src={item.url ?? ""}
 					alt={item.name}
-					className="max-h-full w-full object-cover"
+					fill
+					sizes="100vw"
+					className="object-cover"
 					loading="lazy"
-					width={item.width}
-					height={item.height}
 					unoptimized
 				/>
 			</div>
@@ -584,18 +584,12 @@ function MediaPreview({
 					<Image
 						src={item.thumbnailUrl}
 						alt={item.name}
-						className="size-full rounded object-cover"
+						fill
+						sizes="100vw"
+						className="rounded object-cover"
 						loading="lazy"
 						unoptimized
 					/>
-					{shouldShowVideoOverlay ? (
-						<div className="absolute inset-0 flex items-center justify-center rounded bg-black/20">
-							<HugeiconsIcon
-								icon={Video01Icon}
-								className="size-6 text-white drop-shadow-md"
-							/>
-						</div>
-					) : null}
 					{shouldShowDurationBadge ? (
 						<MediaDurationBadge duration={item.duration} />
 					) : null}

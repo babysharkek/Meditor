@@ -19,6 +19,7 @@ export interface TProjectMetadata {
 	id: string;
 	name: string;
 	thumbnail?: string;
+	duration: number;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -37,3 +38,7 @@ export interface TProject {
 	settings: TProjectSettings;
 	version: number;
 }
+
+export type TProjectSortKey = "createdAt" | "updatedAt" | "name" | "duration";
+export type TSortOrder = "asc" | "desc";
+export type TProjectSortOption = `${TProjectSortKey}-${TSortOrder}`;

@@ -1,30 +1,28 @@
 "use client";
 
 import { ArrowRightIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { SOCIAL_LINKS } from "@/constants/site-constants";
+import { useLocalStorage } from "@/hooks/storage/use-local-storage";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 
 export function Onboarding() {
 	const [step, setStep] = useState(0);
-	const [isOpen, setIsOpen] = useState(false);
+	const [hasSeenOnboarding, setHasSeenOnboarding] = useLocalStorage({
+		key: "hasSeenOnboarding",
+		defaultValue: false,
+	});
 
-	useEffect(() => {
-		const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
-		if (!hasSeenOnboarding) {
-			setIsOpen(true);
-		}
-	}, []);
+	const isOpen = !hasSeenOnboarding;
 
 	const handleNext = () => {
 		setStep(step + 1);
 	};
 
 	const handleClose = () => {
-		setIsOpen(false);
-		localStorage.setItem("hasSeenOnboarding", "true");
+		setHasSeenOnboarding({ value: true });
 	};
 
 	const getStepTitle = () => {

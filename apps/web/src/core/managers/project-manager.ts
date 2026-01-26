@@ -2,6 +2,8 @@ import type { EditorCore } from "@/core";
 import type {
 	TProject,
 	TProjectMetadata,
+	TProjectSortKey,
+	TProjectSortOption,
 	TProjectSettings,
 } from "@/types/project";
 import type { ExportOptions, ExportResult } from "@/types/export";
@@ -15,7 +17,7 @@ import {
 	DEFAULT_CANVAS_SIZE,
 	DEFAULT_COLOR,
 } from "@/constants/project-constants";
-import { buildDefaultScene } from "@/lib/scenes";
+import { buildDefaultScene, getProjectDurationFromScenes } from "@/lib/scenes";
 import { generateThumbnail } from "@/lib/media/processing";
 import {
 	CURRENT_STORAGE_VERSION,
@@ -90,6 +92,7 @@ export class ProjectManager {
 			metadata: {
 				id: generateUUID(),
 				name,
+				duration: getProjectDurationFromScenes({ scenes: [mainScene] }),
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			},
@@ -178,11 +181,13 @@ export class ProjectManager {
 		if (!this.active) return;
 
 		try {
+			const scenes = this.editor.scenes.getScenes();
 			const updatedProject = {
 				...this.active,
-				scenes: this.editor.scenes.getScenes(),
+				scenes,
 				metadata: {
 					...this.active.metadata,
+					duration: getProjectDurationFromScenes({ scenes }),
 					updatedAt: new Date(),
 				},
 			};
@@ -219,25 +224,37 @@ export class ProjectManager {
 		}
 	}
 
-	async deleteProject({ id }: { id: string }): Promise<void> {
+	async deleteProjects({ ids }: { ids: string[] }): Promise<void> {
+		const uniqueIds = Array.from(new Set(ids));
+		if (uniqueIds.length === 0) return;
+
 		try {
-			await Promise.all([
-				storageService.deleteProjectMedia({ projectId: id }),
-				storageService.deleteProject({ id }),
-			]);
+			await Promise.all(
+				uniqueIds.map((id) =>
+					Promise.all([
+						storageService.deleteProjectMedia({ projectId: id }),
+						storageService.deleteProject({ id }),
+					]),
+				),
+			);
 
-			this.savedProjects = this.savedProjects.filter((p) => p.id !== id);
-			this.notify();
+			const idSet = new Set(uniqueIds);
+			this.savedProjects = this.savedProjects.filter(
+				(project) => !idSet.has(project.id),
+			);
 
-			if (this.active?.metadata.id === id) {
+			const shouldClearActive =
+				this.active && idSet.has(this.active.metadata.id);
+
+			if (shouldClearActive) {
 				this.active = null;
-				this.notify();
-
 				this.editor.media.clearAllAssets();
 				this.editor.scenes.clearScenes();
 			}
+
+			this.notify();
 		} catch (error) {
-			console.error("Failed to delete project:", error);
+			console.error("Failed to delete projects:", error);
 		}
 	}
 
@@ -291,61 +308,125 @@ export class ProjectManager {
 		}
 	}
 
-	async duplicateProject({ id }: { id: string }): Promise<string> {
+	async duplicateProjects({ ids }: { ids: string[] }): Promise<string[]> {
+		const uniqueIds = Array.from(new Set(ids));
+		if (uniqueIds.length === 0) return [];
+
 		try {
-			const result = await storageService.loadProject({ id });
-			if (!result) {
-				toast.error("Project not found", {
-					description: "Please try again",
-				});
-				throw new Error("Project not found");
-			}
-
-			const project = result.project;
-			const numberMatch = project.metadata.name.match(/^\((\d+)\)\s+(.+)$/);
-			const baseName = numberMatch ? numberMatch[2] : project.metadata.name;
-			const existingNumbers: number[] = [];
-
-			this.savedProjects.forEach((p) => {
-				const match = p.name.match(/^\((\d+)\)\s+(.+)$/);
-				if (match && match[2] === baseName) {
-					existingNumbers.push(parseInt(match[1], 10));
-				}
-			});
-
-			const nextNumber =
-				existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
-
-			const newProjectId = generateUUID();
-			const newProject: TProject = {
-				...project,
-				metadata: {
-					...project.metadata,
-					id: newProjectId,
-					name: `(${nextNumber}) ${baseName}`,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				},
+			const getDuplicateBaseName = ({ name }: { name: string }) => {
+				const match = name.match(/^\((\d+)\)\s+(.+)$/);
+				const number = match ? Number.parseInt(match[1], 10) : null;
+				const baseName = match ? match[2] : name;
+				return { baseName, number };
 			};
 
-			await storageService.saveProject({ project: newProject });
+			const loadResults = await Promise.all(
+				uniqueIds.map(async (projectId) => {
+					const result = await storageService.loadProject({ id: projectId });
+					return { projectId, project: result?.project ?? null };
+				}),
+			);
 
-			const sourceMediaAssets = await storageService.loadAllMediaAssets({
-				projectId: id,
-			});
-			for (const asset of sourceMediaAssets) {
-				await storageService.saveMediaAsset({
-					projectId: newProjectId,
-					mediaAsset: asset,
-				});
+			const missingProjectIds = loadResults
+				.filter((result) => !result.project)
+				.map((result) => result.projectId);
+
+			if (missingProjectIds.length > 0) {
+				toast.error(
+					missingProjectIds.length === 1
+						? "Project not found"
+						: "Projects not found",
+					{
+						description:
+							missingProjectIds.length === 1
+								? "Please try again"
+								: "Some projects could not be found",
+					},
+				);
+				throw new Error(`Projects not found: ${missingProjectIds.join(", ")}`);
 			}
 
-			this.updateMetadata(newProject);
+			const projectsToDuplicate = loadResults.flatMap((result) =>
+				result.project ? [result.project] : [],
+			);
 
-			return newProjectId;
+			const maxNumberByBaseName = new Map<string, number>();
+
+			for (const project of this.savedProjects) {
+				const { baseName, number } = getDuplicateBaseName({
+					name: project.name,
+				});
+
+				if (number === null) continue;
+
+				const currentMax = maxNumberByBaseName.get(baseName);
+				if (currentMax === undefined || number > currentMax) {
+					maxNumberByBaseName.set(baseName, number);
+				}
+			}
+
+			const nextNumberByBaseName = new Map<string, number>();
+			for (const [baseName, maxNumber] of maxNumberByBaseName) {
+				nextNumberByBaseName.set(baseName, maxNumber + 1);
+			}
+
+			const duplicationPlans = projectsToDuplicate.map((project) => {
+				const { baseName } = getDuplicateBaseName({
+					name: project.metadata.name,
+				});
+				const nextNumber = nextNumberByBaseName.get(baseName) ?? 1;
+				nextNumberByBaseName.set(baseName, nextNumber + 1);
+
+				const newProjectId = generateUUID();
+				const newProject: TProject = {
+					...project,
+					metadata: {
+						...project.metadata,
+						id: newProjectId,
+						name: `(${nextNumber}) ${baseName}`,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					},
+				};
+
+				return {
+					newProjectId,
+					newProject,
+					sourceProjectId: project.metadata.id,
+				};
+			});
+
+			await Promise.all(
+				duplicationPlans.map(({ newProject }) =>
+					storageService.saveProject({ project: newProject }),
+				),
+			);
+
+			await Promise.all(
+				duplicationPlans.map(async ({ sourceProjectId, newProjectId }) => {
+					const sourceMediaAssets = await storageService.loadAllMediaAssets({
+						projectId: sourceProjectId,
+					});
+
+					await Promise.all(
+						sourceMediaAssets.map((mediaAsset) =>
+							storageService.saveMediaAsset({
+								projectId: newProjectId,
+								mediaAsset,
+							}),
+						),
+					);
+				}),
+			);
+
+			for (const { newProject } of duplicationPlans) {
+				this.updateMetadata(newProject);
+			}
+
+			return duplicationPlans.map((plan) => plan.newProjectId);
 		} catch (error) {
-			console.error("Failed to duplicate project:", error);
-			toast.error("Failed to duplicate project", {
+			console.error("Failed to duplicate projects:", error);
+			toast.error("Failed to duplicate projects", {
 				description:
 					error instanceof Error ? error.message : "Please try again",
 			});
@@ -402,24 +483,17 @@ export class ProjectManager {
 		sortOption,
 	}: {
 		searchQuery: string;
-		sortOption: string;
+		sortOption: TProjectSortOption;
 	}): TProjectMetadata[] {
 		const filteredProjects = this.savedProjects.filter((project) =>
 			project.name.toLowerCase().includes(searchQuery.toLowerCase()),
 		);
 
+		const [key, order] = sortOption.split("-") as [TProjectSortKey, "asc" | "desc"];
+
 		const sortedProjects = [...filteredProjects].sort((a, b) => {
-			const [key, order] = sortOption.split("-");
-
-			if (key !== "createdAt" && key !== "name") {
-				console.warn(`Invalid sort key: ${key}`);
-				return 0;
-			}
-
 			const aValue = a[key];
 			const bValue = b[key];
-
-			if (aValue === undefined || bValue === undefined) return 0;
 
 			if (order === "asc") {
 				if (aValue < bValue) return -1;

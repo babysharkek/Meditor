@@ -24,7 +24,7 @@ import {
 	ArrowLeft02Icon,
 	Edit03Icon,
 	Delete02Icon,
-	Keyboard,
+	CommandIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ShortcutsDialog } from "./shortcuts-dialog";
@@ -92,7 +92,9 @@ function ProjectDropdown() {
 	const handleDeleteProject = async () => {
 		if (activeProject) {
 			try {
-				await editor.project.deleteProject({ id: activeProject.metadata.id });
+				await editor.project.deleteProjects({
+					ids: [activeProject.metadata.id],
+				});
 				router.push("/projects");
 			} catch (error) {
 				toast.error("Failed to delete project", {
@@ -148,7 +150,7 @@ function ProjectDropdown() {
 						className="flex items-center gap-1.5"
 						onClick={() => setOpenDialog("shortcuts")}
 					>
-						<HugeiconsIcon icon={Keyboard} className="size-4" />
+						<HugeiconsIcon icon={CommandIcon} className="size-4" />
 						Keyboard shortcuts
 					</DropdownMenuItem>
 					<DropdownMenuItem asChild>
@@ -174,7 +176,7 @@ function ProjectDropdown() {
 				isOpen={openDialog === "delete"}
 				onOpenChange={(isOpen) => setOpenDialog(isOpen ? "delete" : null)}
 				onConfirm={handleDeleteProject}
-				projectName={activeProject?.metadata.name || ""}
+				projectNames={[activeProject?.metadata.name || ""]}
 			/>
 			<ShortcutsDialog
 				isOpen={openDialog === "shortcuts"}

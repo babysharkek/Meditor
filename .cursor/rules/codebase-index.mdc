@@ -187,6 +187,21 @@ use-action-handler.ts
 use-editor-actions.ts
   export function useEditorActions()
 
+## apps/web/src/hooks/storage
+
+use-local-storage.ts
+  export function useLocalStorage({
+  	key,
+  	defaultValue,
+  }: {
+  	key: string;
+  	defaultValue: T;
+  }): [
+  	T,
+  	({ value }: { value: T | ((previousValue: T) => T) }) => void,
+  	boolean,
+  ]
+
 ## apps/web/src/hooks/timeline
 
 use-edge-auto-scroll.ts
@@ -457,6 +472,11 @@ scenes.ts
   	scenes: TScene[];
   	currentSceneId: string;
   }): TScene | null
+  export function getProjectDurationFromScenes({
+  	scenes,
+  }: {
+  	scenes: TScene[];
+  }): number
   export function updateSceneInArray({
   	scenes,
   	sceneId,
@@ -1383,6 +1403,7 @@ project.ts
     id: string
     name: string
     thumbnail?: string
+    duration: number
     createdAt: Date
     updatedAt: Date
   }
@@ -1399,6 +1420,9 @@ project.ts
     settings: TProjectSettings
     version: number
   }
+  export type TProjectSortKey = "createdAt" | "updatedAt" | "name" | "duration"
+  export type TSortOrder = "asc" | "desc"
+  export type TProjectSortOption = `${TProjectSortKey}-${TSortOrder}`
 
 sounds.ts
   export interface SoundEffect {
@@ -1695,14 +1719,7 @@ brand.tsx
   })
 
 ui.tsx
-  export function OcSplitKeepLeftIcon({
-  	className = "",
-  	size = 32,
-  }: {
-  	className?: string;
-  	size?: number;
-  })
-  export function OcSplitKeepRightIcon({
+  export function OcVideoIcon({
   	className = "",
   	size = 32,
   }: {

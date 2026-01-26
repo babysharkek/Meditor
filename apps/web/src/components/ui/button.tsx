@@ -12,25 +12,28 @@ const buttonVariants = cva(
 				default:
 					"bg-foreground text-background shadow-sm hover:bg-foreground/90",
 				foreground:
-					"bg-background text-foreground shadow-sm hover:bg-background/80",
+					"bg-background text-foreground",
 				primary:
-					"bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+					"bg-primary text-primary-foreground hover:bg-primary/90",
 				"primary-gradient":
 					"bg-gradient-to-r from-cyan-400 to-blue-500 text-white hover:opacity-85 transition-opacity",
 				destructive:
-					"bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/80",
+					"bg-destructive text-destructive-foreground hover:bg-destructive/80",
+				"destructive-foreground":
+					"border bg-background hover:bg-destructive/15 text-destructive",
 				outline:
-					"border border-input bg-transparent shadow-xs transition-colors hover:bg-accent",
+					"border border-border bg-transparent transition-colors hover:bg-accent",
 				secondary:
-					"bg-secondary text-secondary-foreground shadow-xs hover:bg-foreground/15 border border-input",
-				text: "bg-transparent p-0 rounded-none opacity-100 hover:opacity-50 transition-opacity", // Instead of ghost (matches app better)
-				link: "text-primary underline-offset-4 hover:underline",
+					"bg-secondary text-secondary-foreground hover:bg-foreground/15 border border-input",
+				text: "bg-transparent rounded-none !opacity-100",
+				link: "text-primary underline-offset-4 hover:underline !p-0 !h-auto",
 			},
 			size: {
 				default: "h-9 px-4 py-2",
 				sm: "h-8 rounded-full px-3 text-xs",
-				lg: "h-10 rounded-full p-5",
-				icon: "size-7",
+				lg: "h-10 rounded-full p-5 px-6",
+				icon: "size-7 rounded-sm",
+				text: "p-0",
 			},
 		},
 		defaultVariants: {
@@ -49,9 +52,10 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	({ className, variant, size, asChild = false, ...props }, ref) => {
 		const Comp = asChild ? SlotPrimitive.Slot : "button";
+		const effectiveSize = size ?? (variant === "text" ? "text" : "default");
 		return (
 			<Comp
-				className={cn(buttonVariants({ variant, size, className }))}
+				className={cn(buttonVariants({ variant, size: effectiveSize, className }))}
 				ref={ref}
 				{...props}
 			/>

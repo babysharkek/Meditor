@@ -21,16 +21,16 @@ export function FontPicker({
 	return (
 		<Select defaultValue={defaultValue} onValueChange={onValueChange}>
 			<SelectTrigger
-				className={`bg-panel-accent h-8 w-full text-xs ${className || ""}`}
+				className={`bg-panel-accent h-9 w-full text-base ${className || ""}`}
 			>
-				<SelectValue placeholder="Select a font" />
+				<SelectValue placeholder="Select a font" className="text-sm" />
 			</SelectTrigger>
 			<SelectContent>
 				{FONT_OPTIONS.map((font) => (
 					<SelectItem
 						key={font.value}
 						value={font.value}
-						className="text-xs"
+						className="text-sn"
 						style={{ fontFamily: font.value }}
 					>
 						{font.label}

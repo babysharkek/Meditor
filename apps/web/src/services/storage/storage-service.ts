@@ -1,4 +1,5 @@
 import type { TProject, TProjectMetadata } from "@/types/project";
+import { getProjectDurationFromScenes } from "@/lib/scenes";
 import type { MediaAsset } from "@/types/assets";
 import { IndexedDBAdapter } from "./indexeddb-adapter";
 import { OPFSAdapter } from "./opfs-adapter";
@@ -13,7 +14,7 @@ import {
 	migrations,
 	runStorageMigrations,
 } from "@/services/storage/migrations";
-import type { TimelineTrack } from "@/types/timeline";
+import type { TimelineTrack, TScene } from "@/types/timeline";
 
 class StorageService {
 	private projectsAdapter: IndexedDBAdapter<SerializedProject>;
@@ -84,6 +85,9 @@ class StorageService {
 	}
 
 	async saveProject({ project }: { project: TProject }): Promise<void> {
+		const duration =
+			project.metadata.duration ??
+			getProjectDurationFromScenes({ scenes: project.scenes });
 		const serializedScenes: SerializedScene[] = project.scenes.map((scene) => ({
 			id: scene.id,
 			name: scene.name,
@@ -99,6 +103,7 @@ class StorageService {
 				id: project.metadata.id,
 				name: project.metadata.name,
 				thumbnail: project.metadata.thumbnail,
+				duration,
 				createdAt: project.metadata.createdAt.toISOString(),
 				updatedAt: project.metadata.updatedAt.toISOString(),
 			},
@@ -141,6 +146,9 @@ class StorageService {
 				id: serializedProject.metadata.id,
 				name: serializedProject.metadata.name,
 				thumbnail: serializedProject.metadata.thumbnail,
+				duration:
+					serializedProject.metadata.duration ??
+					getProjectDurationFromScenes({ scenes }),
 				createdAt: new Date(serializedProject.metadata.createdAt),
 				updatedAt: new Date(serializedProject.metadata.updatedAt),
 			},
@@ -177,6 +185,11 @@ class StorageService {
 			id: serializedProject.metadata.id,
 			name: serializedProject.metadata.name,
 			thumbnail: serializedProject.metadata.thumbnail,
+			duration:
+				serializedProject.metadata.duration ??
+				getProjectDurationFromScenes({
+					scenes: (serializedProject.scenes ?? []) as unknown as TScene[],
+				}),
 			createdAt: new Date(serializedProject.metadata.createdAt),
 			updatedAt: new Date(serializedProject.metadata.updatedAt),
 		}));

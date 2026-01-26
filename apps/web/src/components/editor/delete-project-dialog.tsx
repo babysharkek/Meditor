@@ -12,38 +12,43 @@ export function DeleteProjectDialog({
 	isOpen,
 	onOpenChange,
 	onConfirm,
-	projectName,
+	projectNames,
 }: {
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
 	onConfirm: () => void;
-	projectName?: string;
+	projectNames: string[];
 }) {
+	const count = projectNames.length;
+	const isSingle = count === 1;
+	const singleName = isSingle ? projectNames[0] : null;
+
 	return (
 		<Dialog open={isOpen} onOpenChange={onOpenChange}>
 			<DialogContent
-				onOpenAutoFocus={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
+				onOpenAutoFocus={(event) => {
+					event.preventDefault();
+					event.stopPropagation();
 				}}
 			>
 				<DialogHeader>
 					<DialogTitle>
-						{projectName ? (
+						{singleName ? (
 							<>
 								{"Delete '"}
 								<span className="inline-block max-w-[300px] truncate align-bottom">
-									{projectName}
+									{singleName}
 								</span>
 								{"'?"}
 							</>
 						) : (
-							"Delete Project?"
+							`Delete ${count} projects?`
 						)}
 					</DialogTitle>
 					<DialogDescription>
-						Are you sure you want to delete this project? This action cannot be
-						undone.
+						{isSingle
+							? "Are you sure you want to delete this project? This action cannot be undone."
+							: `Are you sure you want to delete these ${count} projects? This action cannot be undone.`}
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
