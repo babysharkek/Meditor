@@ -231,9 +231,10 @@ export class ScenesManager {
 		activeSceneId?: string;
 	}): void {
 		this.list = scenes;
-		this.active = activeSceneId
-			? (scenes.find((s) => s.id === activeSceneId) ?? null)
-			: this.active;
+		const nextActiveSceneId = activeSceneId ?? this.active?.id ?? null;
+		this.active = nextActiveSceneId
+			? (scenes.find((scene) => scene.id === nextActiveSceneId) ?? null)
+			: null;
 		this.notify();
 
 		const activeProject = this.editor.project.getActive();
