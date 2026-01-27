@@ -1,12 +1,15 @@
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
 import type { TProjectMetadata } from "@/types/project";
 import { formatDate } from "@/utils/date";
 import { formatTimeCode } from "@/lib/time";
+import { Button } from "../ui/button";
 
 function InfoRow({
 	label,
@@ -16,7 +19,7 @@ function InfoRow({
 	value: string | React.ReactNode;
 }) {
 	return (
-		<div className="flex justify-between items-center py-2 last:pb-0 border-b border-border/50 last:border-b-0">
+		<div className="flex justify-between items-center py-0 last:pb-0">
 			<span className="text-muted-foreground text-sm">{label}</span>
 			<span className="text-sm font-medium">{value}</span>
 		</div>
@@ -42,14 +45,14 @@ export function ProjectInfoDialog({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onOpenChange}>
-			<DialogContent>
+			<DialogContent onOpenAutoFocus={(event) => event.preventDefault()}>
 				<DialogHeader>
 					<DialogTitle className="truncate max-w-[350px]">
 						{project.name}
 					</DialogTitle>
 				</DialogHeader>
 
-				<div className="flex flex-col">
+				<DialogBody className="flex flex-col">
 					<InfoRow label="Duration" value={durationFormatted} />
 					<InfoRow
 						label="Created"
@@ -67,7 +70,13 @@ export function ProjectInfoDialog({
 							</code>
 						}
 					/>
-				</div>
+				</DialogBody>
+				<DialogFooter>
+					<Button variant="outline" onClick={() => onOpenChange(false)}>
+						Close
+					</Button>
+					<Button onClick={() => onOpenChange(false)}>Done</Button>
+				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	);

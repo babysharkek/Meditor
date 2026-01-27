@@ -7,6 +7,7 @@ import type {
 	CreateLibraryAudioElement,
 	TextElement,
 	TimelineElement,
+	TimelineTrack,
 	AudioElement,
 	VideoElement,
 	ImageElement,
@@ -224,4 +225,27 @@ export function buildLibraryAudioElement({
 		element.buffer = buffer;
 	}
 	return element;
+}
+
+export function getElementsAtTime({
+	tracks,
+	time,
+}: {
+	tracks: TimelineTrack[];
+	time: number;
+}): { trackId: string; elementId: string }[] {
+	const result: { trackId: string; elementId: string }[] = [];
+
+	for (const track of tracks) {
+		for (const element of track.elements) {
+			const elementStart = element.startTime;
+			const elementEnd = element.startTime + element.duration;
+
+			if (time > elementStart && time < elementEnd) {
+				result.push({ trackId: track.id, elementId: element.id });
+			}
+		}
+	}
+
+	return result;
 }

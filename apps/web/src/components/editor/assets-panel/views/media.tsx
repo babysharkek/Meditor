@@ -196,144 +196,132 @@ export function MediaView() {
 			<input {...fileInputProps} />
 
 			<div
-				className={`relative flex h-full flex-col gap-1 transition-colors ${isDragOver ? "bg-accent/30" : ""}`}
+				className={`relative flex h-full flex-col gap-1 ${isDragOver ? "bg-accent/30" : ""}`}
 				{...dragProps}
 			>
-				<div className="bg-panel p-3 pb-2">
-					<div className="flex items-center gap-2">
-						<Button
-							variant="foreground"
-							onClick={openFilePicker}
-							disabled={isProcessing}
-							className="w-full"
-						>
-							{isProcessing ? (
-								<HugeiconsIcon icon={Loading03Icon} className="animate-spin" />
-							) : (
-								<HugeiconsIcon icon={CloudUploadIcon} />
-							)}
-							<span>Upload</span>
-						</Button>
-						<div className="flex items-center gap-0">
-							<TooltipProvider>
+				<div className="bg-panel py-2 px-4 flex items-center justify-between border-b">
+					<span className="text-muted-foreground text-sm">Assets</span>
+					<div className="flex items-center gap-0">
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										size="icon"
+										variant="text"
+										onClick={() =>
+											setMediaViewMode(
+												mediaViewMode === "grid" ? "list" : "grid",
+											)
+										}
+										disabled={isProcessing}
+										className="items-center justify-center"
+									>
+										{mediaViewMode === "grid" ? (
+											<HugeiconsIcon icon={LeftToRightListDashIcon} />
+										) : (
+											<HugeiconsIcon icon={GridViewIcon} />
+										)}
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>
+										{mediaViewMode === "grid"
+											? "Switch to list view"
+											: "Switch to grid view"}
+									</p>
+								</TooltipContent>
 								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											size="icon"
-											variant="text"
-											onClick={() =>
-												setMediaViewMode(
-													mediaViewMode === "grid" ? "list" : "grid",
-												)
-											}
-											disabled={isProcessing}
-											className="items-center justify-center"
-										>
-											{mediaViewMode === "grid" ? (
-												<HugeiconsIcon icon={LeftToRightListDashIcon} />
-											) : (
-												<HugeiconsIcon icon={GridViewIcon} />
-											)}
-										</Button>
-									</TooltipTrigger>
+									<DropdownMenu>
+										<TooltipTrigger asChild>
+											<DropdownMenuTrigger asChild>
+												<Button
+													size="icon"
+													variant="text"
+													disabled={isProcessing}
+													className="items-center justify-center"
+												>
+													<HugeiconsIcon icon={SortingOneNineIcon} />
+												</Button>
+											</DropdownMenuTrigger>
+										</TooltipTrigger>
+										<DropdownMenuContent align="end">
+											<SortMenuItem
+												label="Name"
+												sortKey="name"
+												currentSortBy={sortBy}
+												currentSortOrder={sortOrder}
+												onSort={({ key }) => {
+													if (sortBy === key) {
+														setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+													} else {
+														setSortBy(key);
+														setSortOrder("asc");
+													}
+												}}
+											/>
+											<SortMenuItem
+												label="Type"
+												sortKey="type"
+												currentSortBy={sortBy}
+												currentSortOrder={sortOrder}
+												onSort={({ key }) => {
+													if (sortBy === key) {
+														setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+													} else {
+														setSortBy(key);
+														setSortOrder("asc");
+													}
+												}}
+											/>
+											<SortMenuItem
+												label="Duration"
+												sortKey="duration"
+												currentSortBy={sortBy}
+												currentSortOrder={sortOrder}
+												onSort={({ key }) => {
+													if (sortBy === key) {
+														setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+													} else {
+														setSortBy(key);
+														setSortOrder("asc");
+													}
+												}}
+											/>
+											<SortMenuItem
+												label="File size"
+												sortKey="size"
+												currentSortBy={sortBy}
+												currentSortOrder={sortOrder}
+												onSort={({ key }) => {
+													if (sortBy === key) {
+														setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+													} else {
+														setSortBy(key);
+														setSortOrder("asc");
+													}
+												}}
+											/>
+										</DropdownMenuContent>
+									</DropdownMenu>
 									<TooltipContent>
 										<p>
-											{mediaViewMode === "grid"
-												? "Switch to list view"
-												: "Switch to grid view"}
+											Sort by {sortBy} (
+											{sortOrder === "asc" ? "ascending" : "descending"})
 										</p>
 									</TooltipContent>
-									<Tooltip>
-										<DropdownMenu>
-											<TooltipTrigger asChild>
-												<DropdownMenuTrigger asChild>
-													<Button
-														size="icon"
-														variant="text"
-														disabled={isProcessing}
-														className="items-center justify-center"
-													>
-														<HugeiconsIcon icon={SortingOneNineIcon} />
-													</Button>
-												</DropdownMenuTrigger>
-											</TooltipTrigger>
-											<DropdownMenuContent align="end">
-												<SortMenuItem
-													label="Name"
-													sortKey="name"
-													currentSortBy={sortBy}
-													currentSortOrder={sortOrder}
-													onSort={({ key }) => {
-														if (sortBy === key) {
-															setSortOrder(
-																sortOrder === "asc" ? "desc" : "asc",
-															);
-														} else {
-															setSortBy(key);
-															setSortOrder("asc");
-														}
-													}}
-												/>
-												<SortMenuItem
-													label="Type"
-													sortKey="type"
-													currentSortBy={sortBy}
-													currentSortOrder={sortOrder}
-													onSort={({ key }) => {
-														if (sortBy === key) {
-															setSortOrder(
-																sortOrder === "asc" ? "desc" : "asc",
-															);
-														} else {
-															setSortBy(key);
-															setSortOrder("asc");
-														}
-													}}
-												/>
-												<SortMenuItem
-													label="Duration"
-													sortKey="duration"
-													currentSortBy={sortBy}
-													currentSortOrder={sortOrder}
-													onSort={({ key }) => {
-														if (sortBy === key) {
-															setSortOrder(
-																sortOrder === "asc" ? "desc" : "asc",
-															);
-														} else {
-															setSortBy(key);
-															setSortOrder("asc");
-														}
-													}}
-												/>
-												<SortMenuItem
-													label="File size"
-													sortKey="size"
-													currentSortBy={sortBy}
-													currentSortOrder={sortOrder}
-													onSort={({ key }) => {
-														if (sortBy === key) {
-															setSortOrder(
-																sortOrder === "asc" ? "desc" : "asc",
-															);
-														} else {
-															setSortBy(key);
-															setSortOrder("asc");
-														}
-													}}
-												/>
-											</DropdownMenuContent>
-										</DropdownMenu>
-										<TooltipContent>
-											<p>
-												Sort by {sortBy} (
-												{sortOrder === "asc" ? "ascending" : "descending"})
-											</p>
-										</TooltipContent>
-									</Tooltip>
 								</Tooltip>
-							</TooltipProvider>
-						</div>
+							</Tooltip>
+						</TooltipProvider>
+						<Button
+							variant="outline"
+							onClick={openFilePicker}
+							disabled={isProcessing}
+							size="sm"
+							className="items-center justify-center gap-1.5 ml-1.5"
+						>
+							<HugeiconsIcon icon={CloudUploadIcon} />
+							Upload
+						</Button>
 					</div>
 				</div>
 

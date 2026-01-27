@@ -3,9 +3,7 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { X } from "lucide-react";
-
 import { cn } from "@/utils/ui";
-import { ScrollArea } from "./scroll-area";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -22,7 +20,7 @@ const DialogOverlay = React.forwardRef<
 	<DialogPrimitive.Overlay
 		ref={ref}
 		className={cn(
-			"data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-250 bg-black/50",
+			"fixed inset-0 z-250 backdrop-blur-sm bg-black/10",
 			className,
 		)}
 		{...props}
@@ -39,7 +37,7 @@ const DialogContent = React.forwardRef<
 		<DialogPrimitive.Content
 			ref={ref}
 			className={cn(
-				"bg-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-250 grid w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200",
+				"bg-popover fixed top-[50%] left-[50%] z-250 grid w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] rounded-lg border shadow-lg duration-200",
 				className,
 			)}
 			onCloseAutoFocus={(e) => {
@@ -49,8 +47,8 @@ const DialogContent = React.forwardRef<
 			{...props}
 		>
 			{children}
-			<DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 cursor-pointer opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
-				<X className="size-4" />
+			<DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-6 right-6 cursor-pointer opacity-70 hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
+				<X className="size-5 text-muted-foreground" />
 				<span className="sr-only">Close</span>
 			</DialogPrimitive.Close>
 		</DialogPrimitive.Content>
@@ -63,11 +61,19 @@ const DialogHeader = ({
 	...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
 	<div
-		className={cn("flex flex-col space-y-2 text-left", className)}
+		className={cn("flex flex-col space-y-2 text-left border-b p-6", className)}
 		{...props}
 	/>
 );
 DialogHeader.displayName = "DialogHeader";
+
+const DialogBody = ({
+	className,
+	...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+	<div className={cn("p-6 flex flex-col gap-6", className)} {...props} />
+);
+DialogBody.displayName = "DialogBody";
 
 const DialogFooter = ({
 	className,
@@ -75,7 +81,7 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
 	<div
 		className={cn(
-			"flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-4",
+			"flex gap-3 flex-col-reverse sm:flex-row sm:justify-end p-6 py-5 border-t",
 			className,
 		)}
 		{...props}
@@ -118,6 +124,7 @@ export {
 	DialogClose,
 	DialogContent,
 	DialogHeader,
+	DialogBody,
 	DialogFooter,
 	DialogTitle,
 	DialogDescription,

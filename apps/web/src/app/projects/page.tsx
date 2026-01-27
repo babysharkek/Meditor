@@ -110,7 +110,11 @@ export default function ProjectsPage() {
 						}
 					>
 						{projectsToDisplay.map((project) => (
-							<ProjectItem key={project.id} project={project} />
+							<ProjectItem
+								key={project.id}
+								project={project}
+								allProjectIds={projectsToDisplay.map((p) => p.id)}
+							/>
 						))}
 					</div>
 				)}
@@ -144,10 +148,10 @@ function ProjectsHeader() {
 						</BreadcrumbList>
 					</Breadcrumb>
 
-					<div className="hidden md:flex rounded-full border p-1 h-10">
+					<div className="hidden md:flex rounded-md border p-1 h-10">
 						<button
 							type="button"
-							className={`p-2 rounded-full cursor-pointer ${isHydrated && viewMode === "grid" ? "bg-accent/75" : ""}`}
+							className={`p-2 rounded-sm cursor-pointer ${isHydrated && viewMode === "grid" ? "bg-accent/75" : ""}`}
 							onClick={() => setViewMode({ viewMode: "grid" })}
 							onKeyDown={(event) =>
 								event.key === "Enter" && setViewMode({ viewMode: "grid" })
@@ -159,7 +163,7 @@ function ProjectsHeader() {
 						</button>
 						<button
 							type="button"
-							className={`p-2 rounded-full cursor-pointer ${isHydrated && viewMode === "list" ? "bg-accent/75" : ""}`}
+							className={`p-2 rounded-sm cursor-pointer ${isHydrated && viewMode === "list" ? "bg-accent/75" : ""}`}
 							onClick={() => setViewMode({ viewMode: "list" })}
 							onKeyDown={(event) =>
 								event.key === "Enter" && setViewMode({ viewMode: "list" })
@@ -219,7 +223,7 @@ function ProjectsToolbar({ projectIds }: { projectIds: string[] }) {
 	};
 
 	return (
-		<div className="sticky top-16 z-10 flex items-center justify-between px-6 h-14 bg-background">
+		<div className="sticky top-16 z-10 flex items-center justify-between px-6 h-14 pt-2 bg-background">
 			<div className="flex items-center gap-2">
 				<Label
 					className="flex items-center gap-3 cursor-pointer px-2"
@@ -298,7 +302,7 @@ function ProjectsToolbar({ projectIds }: { projectIds: string[] }) {
 					</Button>
 				</div>
 			</div>
-			{selectedProjectCount > 1 ? <ProjectActions /> : null}
+			{selectedProjectCount > 0 ? <ProjectActions /> : null}
 		</div>
 	);
 }
@@ -518,20 +522,24 @@ function NewProjectButton() {
 
 	return (
 		<Button
-			variant="primary"
 			size="lg"
 			className="flex px-5 md:px-6"
 			onClick={handleCreateProject}
 		>
-			<HugeiconsIcon icon={PlusSignIcon} />
 			<span className="text-sm font-medium hidden md:block">New project</span>
 			<span className="text-sm font-medium block md:hidden">New</span>
 		</Button>
 	);
 }
 
-function ProjectItem({ project }: { project: TProjectMetadata }) {
-	const { selectedProjectIds, viewMode, setProjectSelected } =
+function ProjectItem({
+	project,
+	allProjectIds,
+}: {
+	project: TProjectMetadata;
+	allProjectIds: string[];
+}) {
+	const { selectedProjectIds, viewMode, setProjectSelected, selectProjectRange } =
 		useProjectsStore();
 	const selectedProjectIdSet = new Set(selectedProjectIds);
 	const isSelected = selectedProjectIdSet.has(project.id);
@@ -540,6 +548,20 @@ function ProjectItem({ project }: { project: TProjectMetadata }) {
 	const durationLabel = formatProjectDuration({ duration: project.duration });
 	const isMultiSelect = selectedProjectCount > 1;
 	const isGridView = viewMode === "grid";
+
+	const handleCheckboxChange = ({
+		checked,
+		shiftKey,
+	}: {
+		checked: boolean;
+		shiftKey: boolean;
+	}) => {
+		if (shiftKey && checked) {
+			selectProjectRange({ projectId: project.id, allProjectIds });
+			return;
+		}
+		setProjectSelected({ projectId: project.id, isSelected: checked });
+	};
 
 	const gridContent = (
 		<Card className="bg-background overflow-hidden border-none p-0">
@@ -567,7 +589,7 @@ function ProjectItem({ project }: { project: TProjectMetadata }) {
 			</div>
 
 			<CardContent className="flex flex-col gap-2 px-0 pt-4">
-				<h3 className="group-hover:text-foreground/90 line-clamp-2 text-sm leading-snug font-medium transition-colors">
+				<h3 className="group-hover:text-foreground/90 line-clamp-2 text-sm leading-snug font-medium">
 					{project.name}
 				</h3>
 				<div className="text-muted-foreground flex items-center gap-1.5 text-sm">
@@ -595,7 +617,7 @@ function ProjectItem({ project }: { project: TProjectMetadata }) {
 				)}
 			</div>
 
-			<h3 className="group-hover:text-foreground/90 text-sm font-medium truncate flex-1 min-w-0 transition-colors">
+			<h3 className="group-hover:text-foreground/90 text-sm font-medium truncate flex-1 min-w-0">
 				{project.name}
 			</h3>
 
@@ -617,12 +639,14 @@ function ProjectItem({ project }: { project: TProjectMetadata }) {
 		>
 			<Checkbox
 				checked={isSelected}
-				onCheckedChange={(checked) =>
-					setProjectSelected({
-						projectId: project.id,
-						isSelected: checked === true,
-					})
-				}
+				onMouseDown={(event) => event.preventDefault()}
+				onClick={(event) => {
+					handleCheckboxChange({
+						checked: !isSelected,
+						shiftKey: event.shiftKey,
+					});
+				}}
+				onCheckedChange={() => {}}
 				className="size-5 shrink-0"
 			/>
 
@@ -657,12 +681,14 @@ function ProjectItem({ project }: { project: TProjectMetadata }) {
 				<>
 					<Checkbox
 						checked={isSelected}
-						onCheckedChange={(checked) =>
-							setProjectSelected({
-								projectId: project.id,
-								isSelected: checked === true,
-							})
-						}
+						onMouseDown={(event) => event.preventDefault()}
+						onClick={(event) => {
+							handleCheckboxChange({
+								checked: !isSelected,
+								shiftKey: event.shiftKey,
+							});
+						}}
+						onCheckedChange={() => {}}
 						className={`absolute z-10 size-5 top-3 left-3 ${
 							isSelected || isDropdownOpen
 								? "opacity-100"

@@ -12,6 +12,7 @@ export function useKeybindingsListener() {
 		useKeybindingsStore();
 
 	useEffect(() => {
+		const eventOptions: AddEventListenerOptions = { capture: true };
 		const handleKeyDown = (ev: KeyboardEvent) => {
 			// do not check keybinds if the mode is disabled
 			if (!keybindingsEnabled) return;
@@ -35,28 +36,28 @@ export function useKeybindingsListener() {
 
 			ev.preventDefault();
 
-		switch (boundAction) {
-			case "seek-forward":
-				invokeAction("seek-forward", { seconds: 1 }, "keypress");
-				break;
-			case "seek-backward":
-				invokeAction("seek-backward", { seconds: 1 }, "keypress");
-				break;
-			case "jump-forward":
-				invokeAction("jump-forward", { seconds: 5 }, "keypress");
-				break;
-			case "jump-backward":
-				invokeAction("jump-backward", { seconds: 5 }, "keypress");
-				break;
-			default:
-				invokeAction(boundAction, undefined, "keypress");
-		}
+			switch (boundAction) {
+				case "seek-forward":
+					invokeAction("seek-forward", { seconds: 1 }, "keypress");
+					break;
+				case "seek-backward":
+					invokeAction("seek-backward", { seconds: 1 }, "keypress");
+					break;
+				case "jump-forward":
+					invokeAction("jump-forward", { seconds: 5 }, "keypress");
+					break;
+				case "jump-backward":
+					invokeAction("jump-backward", { seconds: 5 }, "keypress");
+					break;
+				default:
+					invokeAction(boundAction, undefined, "keypress");
+			}
 		};
 
-		document.addEventListener("keydown", handleKeyDown);
+		document.addEventListener("keydown", handleKeyDown, eventOptions);
 
 		return () => {
-			document.removeEventListener("keydown", handleKeyDown);
+			document.removeEventListener("keydown", handleKeyDown, eventOptions);
 		};
 	}, [keybindings, getKeybindingString, keybindingsEnabled, isRecording]);
 }

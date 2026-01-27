@@ -28,12 +28,6 @@ export const EXTERNAL_TOOLS: ExternalTool[] = [
 		icon: OcMarbleIcon,
 	},
 	{
-		name: "Vercel",
-		description: "Platform where we deploy and host OpenCut",
-		url: "https://vercel.com?utm_source=opencut",
-		icon: OcVercelIcon,
-	},
-	{
 		name: "Databuddy",
 		description: "GDPR compliant analytics and user insights for OpenCut",
 		url: "https://databuddy.cc?utm_source=opencut",

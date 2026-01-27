@@ -519,7 +519,7 @@ function AudioItem({ sound, isPlaying, onPlay }: AudioItemProps) {
 	};
 
 	return (
-		<div className="group flex items-center gap-3 opacity-100 transition-opacity hover:opacity-75">
+		<div className="group flex items-center gap-3 opacity-100 hover:opacity-75">
 			<button
 				type="button"
 				className="flex min-w-0 flex-1 items-center gap-3 text-left"

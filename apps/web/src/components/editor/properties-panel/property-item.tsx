@@ -74,10 +74,10 @@ export function PropertyGroup({
 		<PropertyItem direction="column" className={cn("gap-3", className)}>
 			<button
 				type="button"
-				className="flex items-center gap-1.5"
+				className="flex items-center gap-1.5 cursor-pointer"
 				onClick={() => setIsExpanded(!isExpanded)}
 			>
-				<PropertyItemLabel className={cn("cursor-pointer", titleClassName)}>
+				<PropertyItemLabel className={cn(titleClassName)}>
 					{title}
 				</PropertyItemLabel>
 				<HugeiconsIcon

@@ -6,11 +6,7 @@ import {
 	TooltipContent,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import {
-	SkipBack,
-	SplitSquareHorizontal,
-	LayersIcon,
-} from "lucide-react";
+import { SkipBack, SplitSquareHorizontal } from "lucide-react";
 import {
 	SplitButton,
 	SplitButtonLeft,
@@ -38,10 +34,6 @@ import {
 	PauseIcon,
 	PlayIcon,
 	Copy01Icon,
-	ArrowLeft03Icon,
-	ArrowRight03Icon,
-	LayoutAlignLeftIcon,
-	LayoutAlignRightIcon,
 	AlignLeftIcon,
 	AlignRightIcon,
 	Layers01Icon,
@@ -136,7 +128,7 @@ function ToolbarLeftSection() {
 					icon={<HugeiconsIcon icon={ScissorIcon} />}
 					tooltip="Split element"
 					onClick={({ event }) =>
-						handleAction({ action: "split-selected", event })
+						handleAction({ action: "split", event })
 					}
 				/>
 
@@ -144,7 +136,7 @@ function ToolbarLeftSection() {
 					icon={<HugeiconsIcon icon={AlignLeftIcon} />}
 					tooltip="Split left"
 					onClick={({ event }) =>
-						handleAction({ action: "split-selected-right", event })
+						handleAction({ action: "split-left", event })
 					}
 				/>
 
@@ -152,7 +144,7 @@ function ToolbarLeftSection() {
 					icon={<HugeiconsIcon icon={AlignRightIcon} />}
 					tooltip="Split right"
 					onClick={({ event }) =>
-						handleAction({ action: "split-selected-left", event })
+						handleAction({ action: "split-right", event })
 					}
 				/>
 

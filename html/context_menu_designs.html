@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Menu Designs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --brand-blue: #00A3FF;
+        }
+
+        /* Utility to hide/show */
+        .context-menu { display: none; }
+        .context-menu.open { display: block; }
+    </style>
+</head>
+<body class="bg-[#ffffff] text-slate-900 min-h-screen p-12">
+
+    <div class="max-w-6xl mx-auto space-y-4 mb-12 text-center">
+        <h1 class="text-2xl font-bold">Context Menu Explorations</h1>
+        <p class="text-slate-500">Right-click simulations (right-click buttons to toggle).</p>
+        
+        <div class="flex items-center justify-center gap-4 mt-8">
+            <button oncontextmenu="event.preventDefault(); toggle(1)" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-700 hover:border-[#00A3FF] hover:text-[#00A3FF] shadow-sm transition-colors">
+                Option 1: Standard
+            </button>
+            <button oncontextmenu="event.preventDefault(); toggle(2)" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-700 hover:border-[#00A3FF] hover:text-[#00A3FF] shadow-sm transition-colors">
+                Option 2: Rich with Shortcuts
+            </button>
+            <button oncontextmenu="event.preventDefault(); toggle(3)" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-700 hover:border-[#00A3FF] hover:text-[#00A3FF] shadow-sm transition-colors">
+                Option 3: Dense & Technical
+            </button>
+            <button oncontextmenu="event.preventDefault(); toggle(4)" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-700 hover:border-[#00A3FF] hover:text-[#00A3FF] shadow-sm transition-colors">
+                Option 4: Dense & Technical (Icons)
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start max-w-7xl mx-auto relative h-[500px]">
+
+        <!-- Option 1: Standard -->
+        <!-- Characteristics: Simple, clean, standard spacing -->
+        <div id="menu-1" class="context-menu absolute top-0 left-[15%] -translate-x-1/2 w-64 bg-white rounded-[20px] shadow-xl border border-slate-200 overflow-hidden py-2 z-10">
+            <div class="flex flex-col gap-0.5">
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-slate-600 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center gap-3 group">
+                    <i data-lucide="folder-open" class="w-4 h-4 text-slate-400 group-hover:text-[#00A3FF]"></i>
+                    <span>Open</span>
+                </a>
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-slate-600 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center gap-3 group">
+                    <i data-lucide="edit-2" class="w-4 h-4 text-slate-400 group-hover:text-[#00A3FF]"></i>
+                    <span>Rename</span>
+                </a>
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-slate-600 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center gap-3 group">
+                    <i data-lucide="copy" class="w-4 h-4 text-slate-400 group-hover:text-[#00A3FF]"></i>
+                    <span>Duplicate</span>
+                </a>
+                
+                <div class="h-px bg-slate-100 my-1 mx-2"></div>
+                
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-slate-600 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center gap-3 group">
+                    <i data-lucide="share" class="w-4 h-4 text-slate-400 group-hover:text-[#00A3FF]"></i>
+                    <span>Share...</span>
+                </a>
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-slate-600 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center gap-3 group">
+                    <i data-lucide="download" class="w-4 h-4 text-slate-400 group-hover:text-[#00A3FF]"></i>
+                    <span>Download</span>
+                </a>
+
+                <div class="h-px bg-slate-100 my-1 mx-2"></div>
+
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-red-500 rounded-xl hover:bg-red-50 flex items-center gap-3 group">
+                    <i data-lucide="trash-2" class="w-4 h-4 group-hover:text-red-600"></i>
+                    <span>Delete</span>
+                </a>
+            </div>
+        </div>
+
+
+        <!-- Option 2: Rich with Shortcuts -->
+        <!-- Characteristics: Wider, right-aligned shortcuts, grouping -->
+        <div id="menu-2" class="context-menu absolute top-0 left-[38%] -translate-x-1/2 w-72 bg-white rounded-[20px] shadow-xl border border-slate-200 overflow-hidden py-2 z-10">
+            <div class="flex flex-col gap-0.5">
+                <div class="px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 select-none">
+                    Actions
+                </div>
+                
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-slate-700 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="scissors" class="w-4 h-4 text-slate-400 group-hover:text-[#00A3FF]"></i>
+                        <span>Cut</span>
+                    </div>
+                    <span class="text-xs text-slate-400 group-hover:text-blue-300">⌘X</span>
+                </a>
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-slate-700 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="copy" class="w-4 h-4 text-slate-400 group-hover:text-[#00A3FF]"></i>
+                        <span>Copy</span>
+                    </div>
+                    <span class="text-xs text-slate-400 group-hover:text-blue-300">⌘C</span>
+                </a>
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-slate-700 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="clipboard" class="w-4 h-4 text-slate-400 group-hover:text-[#00A3FF]"></i>
+                        <span>Paste</span>
+                    </div>
+                    <span class="text-xs text-slate-400 group-hover:text-blue-300">⌘V</span>
+                </a>
+
+                <div class="h-px bg-slate-100 my-1 mx-2"></div>
+
+                <a href="#" class="block px-4 py-2 mx-2 text-sm text-slate-700 rounded-xl hover:bg-blue-50 hover:text-[#00A3FF] flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="maximize" class="w-4 h-4 text-slate-400 group-hover:text-[#00A3FF]"></i>
+                        <span>Properties</span>
+                    </div>
+                    <span class="text-xs text-slate-400 group-hover:text-blue-300">⌘I</span>
+                </a>
+            </div>
+        </div>
+
+
+        <!-- Option 3: Dense & Technical -->
+        <!-- Characteristics: Smaller text, smaller padding, minimal radius, efficient -->
+        <div id="menu-3" class="context-menu absolute top-0 left-[62%] -translate-x-1/2 w-60 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden py-2.5 z-10">
+            <div class="flex flex-col">
+                <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between group">
+                    <span>New Folder</span>
+                </a>
+                <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between group">
+                    <span>New File</span>
+                </a>
+                
+                <div class="h-px bg-slate-100 my-2"></div>
+                
+                <div class="relative group/submenu">
+                    <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between">
+                        <span>Sort By</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+                    </a>
+                </div>
+                
+                <div class="relative group/submenu">
+                    <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between">
+                        <span>View As</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+                    </a>
+                </div>
+
+                <div class="h-px bg-slate-100 my-2"></div>
+
+                <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between group">
+                    <span>Refresh</span>
+                    <span class="text-xs text-slate-400">R</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Option 4: Dense & Technical (Icons) -->
+        <div id="menu-4" class="context-menu absolute top-0 left-[85%] -translate-x-1/2 w-60 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden py-2.5 z-10">
+            <div class="flex flex-col">
+                <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between group">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="folder-plus" class="w-4 h-4 text-slate-400 group-hover:text-slate-600"></i>
+                        <span>New Folder</span>
+                    </div>
+                </a>
+                <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between group">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="file-plus" class="w-4 h-4 text-slate-400 group-hover:text-slate-600"></i>
+                        <span>New File</span>
+                    </div>
+                </a>
+                
+                <div class="h-px bg-slate-100 my-2"></div>
+                
+                <div class="relative group/submenu">
+                    <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <i data-lucide="arrow-up-down" class="w-4 h-4 text-slate-400"></i>
+                            <span>Sort By</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+                    </a>
+                </div>
+                
+                <div class="relative group/submenu">
+                    <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <i data-lucide="layout-grid" class="w-4 h-4 text-slate-400"></i>
+                            <span>View As</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+                    </a>
+                </div>
+
+                <div class="h-px bg-slate-100 my-2"></div>
+
+                <a href="#" class="block px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between group">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="rotate-cw" class="w-4 h-4 text-slate-400 group-hover:text-slate-600"></i>
+                        <span>Refresh</span>
+                    </div>
+                    <span class="text-xs text-slate-400">R</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function toggle(id) {
+            // Close others
+            [1, 2, 3, 4].forEach(num => {
+                if (num !== id) {
+                    document.getElementById(`menu-${num}`).classList.remove('open');
+                }
+            });
+            // Toggle current
+            const menu = document.getElementById(`menu-${id}`);
+            if (menu) {
+                menu.classList.toggle('open');
+            }
+        }
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('button') && !e.target.closest('.context-menu')) {
+                document.querySelectorAll('.context-menu').forEach(el => el.classList.remove('open'));
+            }
+        });
+        
+        // Open option 2 by default
+        toggle(2);
+    </script>
+</body>
+</html>

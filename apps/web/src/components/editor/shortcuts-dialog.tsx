@@ -1,6 +1,5 @@
 "use client";
 
-import { Keyboard } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -11,8 +10,8 @@ import { useKeybindingsStore } from "@/stores/keybindings-store";
 import { Button } from "../ui/button";
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
-	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -107,19 +106,12 @@ export function ShortcutsDialog({
 	return (
 		<Dialog open={isOpen} onOpenChange={onOpenChange}>
 			<DialogContent className="flex max-h-[80vh] max-w-2xl flex-col p-0">
-				<DialogHeader className="flex-shrink-0 gap-2 p-6 pb-0">
-					<DialogTitle className="flex items-center gap-2">
-						<Keyboard className="size-5" />
-						Keyboard shortcuts
-					</DialogTitle>
-					<DialogDescription>
-						Speed up your video editing workflow with these keyboard shortcuts.
-						Click any shortcut key to edit it.
-					</DialogDescription>
+				<DialogHeader>
+					<DialogTitle>Keyboard shortcuts</DialogTitle>
 				</DialogHeader>
 
-				<div className="scrollbar-thin flex-grow overflow-y-auto">
-					<div className="flex flex-col gap-6 p-6 pt-2">
+				<DialogBody className="scrollbar-thin flex-grow overflow-y-auto">
+					<div className="flex flex-col gap-6">
 						{categories.map((category) => (
 							<div key={category} className="flex flex-col gap-1">
 								<h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
@@ -142,9 +134,9 @@ export function ShortcutsDialog({
 							</div>
 						))}
 					</div>
-				</div>
-				<DialogFooter className="p-4 pt-0">
-					<Button size="sm" variant="destructive" onClick={resetToDefaults}>
+				</DialogBody>
+				<DialogFooter>
+					<Button variant="destructive" onClick={resetToDefaults}>
 						Reset to default
 					</Button>
 				</DialogFooter>

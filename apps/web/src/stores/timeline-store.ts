@@ -7,12 +7,6 @@ import { create } from "zustand";
 import type { ClipboardItem } from "@/types/timeline";
 
 interface TimelineStore {
-	selectedElements: { trackId: string; elementId: string }[];
-	setSelectedElements: ({
-		elements,
-	}: {
-		elements: { trackId: string; elementId: string }[];
-	}) => void;
 	snappingEnabled: boolean;
 	toggleSnapping: () => void;
 	rippleEditingEnabled: boolean;
@@ -28,12 +22,6 @@ interface TimelineStore {
 }
 
 export const useTimelineStore = create<TimelineStore>((set) => ({
-	selectedElements: [],
-
-	setSelectedElements: ({ elements }) => {
-		set({ selectedElements: elements });
-	},
-
 	snappingEnabled: true,
 
 	toggleSnapping: () => {

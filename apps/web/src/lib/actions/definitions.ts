@@ -70,32 +70,32 @@ export const ACTIONS = {
 		category: "navigation",
 		defaultShortcuts: ["end"],
 	},
-	"split-selected": {
-		description: "Split element at playhead",
+	split: {
+		description: "Split elements at playhead",
 		category: "editing",
 		defaultShortcuts: ["s"],
 	},
-	"split-selected-left": {
-		description: "Split element at playhead and keep left",
+	"split-left": {
+		description: "Split and remove left",
 		category: "editing",
 		defaultShortcuts: ["q"],
 	},
-	"split-selected-right": {
-		description: "Split element at playhead and keep right",
+	"split-right": {
+		description: "Split and remove right",
 		category: "editing",
 		defaultShortcuts: ["w"],
 	},
 	"delete-selected": {
 		description: "Delete selected elements",
 		category: "editing",
-		defaultShortcuts: ["delete", "backspace"],
+		defaultShortcuts: ["backspace", "delete"],
 	},
 	"copy-selected": {
 		description: "Copy selected elements",
 		category: "editing",
 		defaultShortcuts: ["ctrl+c"],
 	},
-	"paste-selected": {
+	"paste-copied": {
 		description: "Paste elements at playhead",
 		category: "editing",
 		defaultShortcuts: ["ctrl+v"],

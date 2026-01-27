@@ -30,9 +30,10 @@ export function Hero() {
 				<div className="mt-8 flex justify-center gap-8">
 					<Link href="/projects">
 						<Button
+							variant="foreground"
 							type="submit"
 							size="lg"
-							className="bg-foreground h-11 px-6 text-base"
+							className="h-11 text-base"
 						>
 							Try early beta
 							<ArrowRight className="ml-0.5" />

@@ -180,7 +180,7 @@ function AllContributorsSection({
 						href={contributor.html_url}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="opacity-100 transition-opacity hover:opacity-70"
+						className="opacity-100 hover:opacity-70"
 					>
 						<div className="flex flex-col items-center gap-2 p-2">
 							<Avatar className="size-16">
@@ -214,7 +214,7 @@ function ExternalToolsSection() {
 				<p className="text-muted-foreground">Tools we use to build OpenCut</p>
 			</div>
 
-			<div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+			<div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2">
 				{EXTERNAL_TOOLS.map((tool, index) => (
 					<Link
 						key={tool.url}
@@ -224,10 +224,8 @@ function ExternalToolsSection() {
 						style={{ animationDelay: `${index * 100}ms` }}
 					>
 						<Card className="h-full">
-							<CardContent className="flex h-full flex-col gap-4 p-6 text-center">
-								<div className="bg-muted/50 mx-auto flex size-12 items-center justify-center rounded-full">
-									<tool.icon className="size-6" />
-								</div>
+							<CardContent className="flex items-center justify-center h-full flex-col gap-4 p-6 text-center">
+								<tool.icon className="size-8" />
 								<div className="flex flex-1 flex-col gap-2">
 									<h3 className="text-lg font-semibold">{tool.name}</h3>
 									<p className="text-muted-foreground text-sm">

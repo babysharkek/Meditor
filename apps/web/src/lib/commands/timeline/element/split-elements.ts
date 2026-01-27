@@ -5,8 +5,8 @@ import { EditorCore } from "@/core";
 
 export class SplitElementsCommand extends Command {
 	private savedState: TimelineTrack[] | null = null;
-	private newElementIds: string[] = [];
-	private affectedElementIds: Set<string> = new Set();
+	private rightSideElements: { trackId: string; elementId: string }[] = [];
+	private previousSelection: { trackId: string; elementId: string }[] = [];
 
 	constructor(
 		private elements: { trackId: string; elementId: string }[],
@@ -16,15 +16,15 @@ export class SplitElementsCommand extends Command {
 		super();
 	}
 
-	get splitElementIds(): string[] {
-		return Array.from(this.affectedElementIds);
+	getRightSideElements(): { trackId: string; elementId: string }[] {
+		return this.rightSideElements;
 	}
 
 	execute(): void {
 		const editor = EditorCore.getInstance();
 		this.savedState = editor.timeline.getTracks();
-		this.newElementIds = [];
-		this.affectedElementIds.clear();
+		this.previousSelection = editor.selection.getSelectedElements();
+		this.rightSideElements = [];
 
 		const updatedTracks = this.savedState.map((track) => {
 			const elementsToSplit = this.elements.filter(
@@ -61,7 +61,6 @@ export class SplitElementsCommand extends Command {
 					const rightVisibleDuration = element.duration - relativeTime;
 
 					if (this.retainSide === "left") {
-						this.affectedElementIds.add(element.id);
 						return [
 							{
 								...element,
@@ -74,7 +73,10 @@ export class SplitElementsCommand extends Command {
 
 					if (this.retainSide === "right") {
 						const newId = generateUUID();
-						this.affectedElementIds.add(newId);
+						this.rightSideElements.push({
+							trackId: track.id,
+							elementId: newId,
+						});
 						return [
 							{
 								...element,
@@ -89,9 +91,10 @@ export class SplitElementsCommand extends Command {
 
 					// "both" - split into two pieces
 					const secondElementId = generateUUID();
-					this.affectedElementIds.add(element.id);
-					this.affectedElementIds.add(secondElementId);
-					this.newElementIds.push(secondElementId);
+					this.rightSideElements.push({
+						trackId: track.id,
+						elementId: secondElementId,
+					});
 
 					return [
 						{
@@ -114,12 +117,17 @@ export class SplitElementsCommand extends Command {
 		});
 
 		editor.timeline.updateTracks(updatedTracks);
+
+		if (this.rightSideElements.length > 0) {
+			editor.selection.setSelectedElements({ elements: this.rightSideElements });
+		}
 	}
 
 	undo(): void {
 		if (this.savedState) {
 			const editor = EditorCore.getInstance();
 			editor.timeline.updateTracks(this.savedState);
+			editor.selection.setSelectedElements({ elements: this.previousSelection });
 		}
 	}
 }

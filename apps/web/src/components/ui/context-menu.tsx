@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
-import { Check, ChevronRight, Circle } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
-
 import { cn } from "@/utils/ui";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Tick02Icon, ArrowRightIcon, CircleIcon } from "@hugeicons/core-free-icons"
 
 const ContextMenu = ContextMenuPrimitive.Root;
 
@@ -20,12 +20,12 @@ const ContextMenuSub = ContextMenuPrimitive.Sub;
 const ContextMenuRadioGroup = ContextMenuPrimitive.RadioGroup;
 
 const contextMenuItemVariants = cva(
-	"relative flex cursor-pointer select-none items-center gap-2 px-2 py-1.5 text-sm outline-hidden transition-opacity data-disabled:pointer-events-none data-disabled:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0",
+	"relative flex cursor-pointer select-none items-center gap-2.5 px-4 py-1.5 last:pb-1 text-base outline-hidden data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
 	{
 		variants: {
 			variant: {
-				default: "focus:opacity-65 focus:text-accent-foreground",
-				destructive: "text-destructive focus:text-destructive/80",
+				default: "focus:bg-accent/35 focus:text-accent-foreground [&_svg]:text-muted-foreground",
+				destructive: "text-destructive focus:bg-destructive/5 focus:text-destructive [&_svg]:text-destructive",
 			},
 		},
 		defaultVariants: {
@@ -39,20 +39,22 @@ const ContextMenuSubTrigger = React.forwardRef<
 	React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubTrigger> & {
 		inset?: boolean;
 		variant?: VariantProps<typeof contextMenuItemVariants>["variant"];
+		icon?: React.ReactNode;
 	}
->(({ className, inset, children, variant = "default", ...props }, ref) => (
+>(({ className, inset, children, variant = "default", icon, ...props }, ref) => (
 	<ContextMenuPrimitive.SubTrigger
 		ref={ref}
 		className={cn(
 			contextMenuItemVariants({ variant }),
-			"data-[state=open]:bg-accent data-[state=open]:opacity-65",
+			"data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
 			inset && "pl-8",
 			className,
 		)}
 		{...props}
 	>
+		{icon && <span className="size-4 shrink-0 text-muted-foreground">{icon}</span>}
 		{children}
-		<ChevronRight className="ml-auto" />
+		<HugeiconsIcon icon={ArrowRightIcon} className="ml-auto text-muted-foreground/80" />
 	</ContextMenuPrimitive.SubTrigger>
 ));
 ContextMenuSubTrigger.displayName = ContextMenuPrimitive.SubTrigger.displayName;
@@ -64,7 +66,7 @@ const ContextMenuSubContent = React.forwardRef<
 	<ContextMenuPrimitive.SubContent
 		ref={ref}
 		className={cn(
-			"bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-32 overflow-hidden rounded-md border p-1 shadow-lg",
+			"bg-popover text-popover-foreground z-50 min-w-48 overflow-hidden rounded-lg border shadow-xl py-2.5",
 			className,
 		)}
 		{...props}
@@ -80,8 +82,7 @@ const ContextMenuContent = React.forwardRef<
 		<ContextMenuPrimitive.Content
 			ref={ref}
 			className={cn(
-				"bg-popover text-popover-foreground z-50 min-w-32 overflow-hidden rounded-md border p-1 shadow-md",
-				"data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+				"bg-popover text-popover-foreground z-50 min-w-48 overflow-hidden rounded-lg border shadow-xl py-2.5",
 				className,
 			)}
 			{...props}
@@ -95,8 +96,10 @@ const ContextMenuItem = React.forwardRef<
 	React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Item> & {
 		inset?: boolean;
 		variant?: VariantProps<typeof contextMenuItemVariants>["variant"];
+		icon?: React.ReactNode;
+		textRight?: string;
 	}
->(({ className, inset, variant = "default", ...props }, ref) => (
+>(({ className, inset, variant = "default", icon, children, textRight, ...props }, ref) => (
 	<ContextMenuPrimitive.Item
 		ref={ref}
 		className={cn(
@@ -105,7 +108,15 @@ const ContextMenuItem = React.forwardRef<
 			className,
 		)}
 		{...props}
-	/>
+	>
+		{icon && <span className="[&_svg]:size-4 [&_svg]:shrink-0">{icon}</span>}
+		{children}
+		{textRight && (
+			<span className="ml-auto text-[0.60rem] tracking-widest text-muted-foreground/80 mb-0.5">
+				{textRight}
+			</span>
+		)}
+	</ContextMenuPrimitive.Item>
 ));
 ContextMenuItem.displayName = ContextMenuPrimitive.Item.displayName;
 
@@ -113,8 +124,9 @@ const ContextMenuCheckboxItem = React.forwardRef<
 	React.ElementRef<typeof ContextMenuPrimitive.CheckboxItem>,
 	React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.CheckboxItem> & {
 		variant?: VariantProps<typeof contextMenuItemVariants>["variant"];
+		icon?: React.ReactNode;
 	}
->(({ className, children, checked, variant = "default", ...props }, ref) => (
+>(({ className, children, checked, variant = "default", icon, ...props }, ref) => (
 	<ContextMenuPrimitive.CheckboxItem
 		ref={ref}
 		className={cn(contextMenuItemVariants({ variant }), "pr-2 pl-8", className)}
@@ -123,9 +135,10 @@ const ContextMenuCheckboxItem = React.forwardRef<
 	>
 		<span className="absolute left-2 flex size-3.5 items-center justify-center">
 			<ContextMenuPrimitive.ItemIndicator>
-				<Check className="size-4" />
+				<HugeiconsIcon icon={Tick02Icon} className="size-4" />
 			</ContextMenuPrimitive.ItemIndicator>
 		</span>
+		{icon && <span className="size-4 shrink-0 text-muted-foreground">{icon}</span>}
 		{children}
 	</ContextMenuPrimitive.CheckboxItem>
 ));
@@ -136,8 +149,9 @@ const ContextMenuRadioItem = React.forwardRef<
 	React.ElementRef<typeof ContextMenuPrimitive.RadioItem>,
 	React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.RadioItem> & {
 		variant?: VariantProps<typeof contextMenuItemVariants>["variant"];
+		icon?: React.ReactNode;
 	}
->(({ className, children, variant = "default", ...props }, ref) => (
+>(({ className, children, variant = "default", icon, ...props }, ref) => (
 	<ContextMenuPrimitive.RadioItem
 		ref={ref}
 		className={cn(contextMenuItemVariants({ variant }), "pr-2 pl-8", className)}
@@ -145,9 +159,10 @@ const ContextMenuRadioItem = React.forwardRef<
 	>
 		<span className="absolute left-2 flex size-3.5 items-center justify-center">
 			<ContextMenuPrimitive.ItemIndicator>
-				<Circle className="size-2 fill-current" />
+				<HugeiconsIcon icon={CircleIcon} className="size-2 fill-current" />
 			</ContextMenuPrimitive.ItemIndicator>
 		</span>
+		{icon && <span className="size-4 shrink-0 text-muted-foreground">{icon}</span>}
 		{children}
 	</ContextMenuPrimitive.RadioItem>
 ));
@@ -157,17 +172,21 @@ const ContextMenuLabel = React.forwardRef<
 	React.ElementRef<typeof ContextMenuPrimitive.Label>,
 	React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Label> & {
 		inset?: boolean;
+		icon?: React.ReactNode;
 	}
->(({ className, inset, ...props }, ref) => (
+>(({ className, inset, icon, children, ...props }, ref) => (
 	<ContextMenuPrimitive.Label
 		ref={ref}
 		className={cn(
-			"px-2 py-1.5 text-sm font-semibold",
+			"flex items-center gap-2.5 px-4 py-1.5 text-sm font-semibold text-foreground",
 			inset && "pl-8",
 			className,
 		)}
 		{...props}
-	/>
+	>
+		{icon && <span className="size-4 shrink-0 text-muted-foreground">{icon}</span>}
+		{children}
+	</ContextMenuPrimitive.Label>
 ));
 ContextMenuLabel.displayName = ContextMenuPrimitive.Label.displayName;
 
@@ -177,7 +196,7 @@ const ContextMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<ContextMenuPrimitive.Separator
 		ref={ref}
-		className={cn("bg-foreground/10 -mx-1 my-1 h-px", className)}
+		className={cn("bg-border my-2 h-px", className)}
 		{...props}
 	/>
 ));
@@ -189,7 +208,7 @@ const ContextMenuShortcut = ({
 }: React.HTMLAttributes<HTMLSpanElement>) => {
 	return (
 		<span
-			className={cn("ml-auto text-xs tracking-widest opacity-60", className)}
+			className={cn("ml-auto text-xs tracking-widest text-muted-foreground opacity-60", className)}
 			{...props}
 		/>
 	);

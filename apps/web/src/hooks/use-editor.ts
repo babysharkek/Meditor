@@ -19,6 +19,7 @@ export function useEditor(): EditorCore {
 				editor.project.subscribe(handleStoreChange),
 				editor.media.subscribe(handleStoreChange),
 				editor.renderer.subscribe(handleStoreChange),
+				editor.selection.subscribe(handleStoreChange),
 			];
 
 			return () => {

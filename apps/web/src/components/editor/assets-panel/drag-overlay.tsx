@@ -29,7 +29,7 @@ export function MediaDragOverlay({
 
 	return (
 		<button
-			className="bg-foreground/5 hover:bg-foreground/10 flex size-full flex-col items-center justify-center gap-4 rounded-lg p-8 text-center transition-all duration-200"
+			className="bg-foreground/5 hover:bg-foreground/10 flex size-full flex-col items-center justify-center gap-4 rounded-lg p-8 text-center"
 			type="button"
 			disabled={isProcessing || !onClick}
 			onClick={(event) => handleClick({ event })}
@@ -50,7 +50,7 @@ export function MediaDragOverlay({
 				<div className="w-full max-w-xs">
 					<div className="bg-muted/50 h-2 w-full rounded-full">
 						<div
-							className="bg-primary h-2 rounded-full transition-all duration-300"
+							className="bg-primary h-2 rounded-full"
 							style={{ width: `${progress}%` }}
 						/>
 					</div>

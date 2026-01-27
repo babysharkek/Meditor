@@ -166,7 +166,7 @@ export function AudioWaveform({
 			)}
 			<div
 				ref={waveformRef}
-				className={`w-full transition-opacity duration-200 ${isLoading ? "opacity-0" : "opacity-100"}`}
+				className={`w-full ${isLoading ? "opacity-0" : "opacity-100"}`}
 				style={{ height }}
 			/>
 		</div>

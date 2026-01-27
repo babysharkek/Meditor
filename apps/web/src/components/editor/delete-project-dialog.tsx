@@ -1,12 +1,16 @@
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
 
 export function DeleteProjectDialog({
 	isOpen,
@@ -45,25 +49,34 @@ export function DeleteProjectDialog({
 							`Delete ${count} projects?`
 						)}
 					</DialogTitle>
-					<DialogDescription>
-						{isSingle
-							? "Are you sure you want to delete this project? This action cannot be undone."
-							: `Are you sure you want to delete these ${count} projects? This action cannot be undone.`}
-					</DialogDescription>
 				</DialogHeader>
+				<DialogBody>
+					<Alert variant="destructive">
+						<AlertTitle>Warning</AlertTitle>
+						<AlertDescription>
+							This will permanently delete{" "}
+							{singleName ? `"${singleName}"` : `${count} projects`} and all
+							associated files.
+						</AlertDescription>
+					</Alert>
+					<div className="flex flex-col gap-3">
+						<Label className="text-xs font-semibold text-slate-500">
+							Type "DELETE" to confirm
+						</Label>
+						<Input
+							type="text"
+							placeholder="DELETE"
+							size="lg"
+							variant="destructive"
+						/>
+					</div>
+				</DialogBody>
 				<DialogFooter>
-					<Button
-						variant="text"
-						onClick={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							onOpenChange(false);
-						}}
-					>
+					<Button variant="outline" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
 					<Button variant="destructive" onClick={onConfirm}>
-						Delete
+						Delete project
 					</Button>
 				</DialogFooter>
 			</DialogContent>

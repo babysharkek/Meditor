@@ -14,7 +14,7 @@ import {
 
 export class PasteCommand extends Command {
 	private savedState: TimelineTrack[] | null = null;
-	private pastedElementIds: string[] = [];
+	private pastedElements: { trackId: string; elementId: string }[] = [];
 
 	constructor(
 		private time: number,
@@ -28,7 +28,7 @@ export class PasteCommand extends Command {
 
 		const editor = EditorCore.getInstance();
 		this.savedState = editor.timeline.getTracks();
-		this.pastedElementIds = [];
+		this.pastedElements = [];
 
 		const minStart = Math.min(
 			...this.clipboardItems.map((item) => item.element.startTime),
@@ -44,7 +44,6 @@ export class PasteCommand extends Command {
 				items,
 				minStart,
 				time: this.time,
-				pastedElementIds: this.pastedElementIds,
 			});
 
 			if (elementsToAdd.length === 0) {
@@ -68,6 +67,12 @@ export class PasteCommand extends Command {
 					...targetTrack,
 					elements: [...targetTrack.elements, ...elementsToAdd],
 				} as TimelineTrack;
+				for (const element of elementsToAdd) {
+					this.pastedElements.push({
+						trackId: targetTrack.id,
+						elementId: element.id,
+					});
+				}
 				continue;
 			}
 
@@ -81,6 +86,12 @@ export class PasteCommand extends Command {
 				elements: elementsToAdd,
 			});
 			updatedTracks.splice(insertIndex, 0, newTrack);
+			for (const element of elementsToAdd) {
+				this.pastedElements.push({
+					trackId: newTrack.id,
+					elementId: element.id,
+				});
+			}
 		}
 
 		editor.timeline.updateTracks(updatedTracks);
@@ -91,6 +102,10 @@ export class PasteCommand extends Command {
 			const editor = EditorCore.getInstance();
 			editor.timeline.updateTracks(this.savedState);
 		}
+	}
+
+	getPastedElements(): { trackId: string; elementId: string }[] {
+		return this.pastedElements;
 	}
 }
 
@@ -113,12 +128,10 @@ function buildPastedElements({
 	items,
 	minStart,
 	time,
-	pastedElementIds,
 }: {
 	items: ClipboardItem[];
 	minStart: number;
 	time: number;
-	pastedElementIds: string[];
 }): TimelineElement[] {
 	const elementsToAdd: TimelineElement[] = [];
 
@@ -127,7 +140,6 @@ function buildPastedElements({
 		const startTime = Math.max(0, time + relativeOffset);
 		const newElementId = generateUUID();
 
-		pastedElementIds.push(newElementId);
 		elementsToAdd.push({
 			...item.element,
 			id: newElementId,

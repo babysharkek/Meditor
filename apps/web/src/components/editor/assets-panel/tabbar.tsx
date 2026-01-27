@@ -106,7 +106,7 @@ function FadeOverlay({
 	return (
 		<div
 			className={cn(
-				"pointer-events-none absolute right-0 left-0 h-6 transition-opacity duration-200",
+				"pointer-events-none absolute right-0 left-0 h-6",
 				direction === "top" && show
 					? "from-panel top-0 bg-gradient-to-b to-transparent"
 					: "from-panel bottom-0 bg-gradient-to-t to-transparent",

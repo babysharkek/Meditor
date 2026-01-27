@@ -142,7 +142,7 @@ export function EditableTimecode({
 			disabled={disabled}
 			className={cn(
 				"text-primary cursor-pointer font-mono text-xs tabular-nums",
-				"hover:bg-muted/50 -mx-1 px-1 transition-colors hover:rounded",
+				"hover:bg-muted/50 -mx-1 px-1 hover:rounded",
 				disabled && "cursor-default hover:bg-transparent",
 				className,
 			)}

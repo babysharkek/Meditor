@@ -4,6 +4,7 @@ import { useTimelineStore } from "@/stores/timeline-store";
 import { useActionHandler } from "@/hooks/actions/use-action-handler";
 import { useEditor } from "../use-editor";
 import { useElementSelection } from "../timeline/element/use-element-selection";
+import { getElementsAtTime } from "@/lib/timeline";
 
 export function useEditorActions() {
 	const editor = useEditor();
@@ -122,35 +123,68 @@ export function useEditorActions() {
 	);
 
 	useActionHandler(
-		"split-selected",
+		"split",
 		() => {
+			const currentTime = editor.playback.getCurrentTime();
+			const elementsToSplit =
+				selectedElements.length > 0
+					? selectedElements
+					: getElementsAtTime({
+							tracks: editor.timeline.getTracks(),
+							time: currentTime,
+						});
+
+			if (elementsToSplit.length === 0) return;
+
 			editor.timeline.splitElements({
-				elements: selectedElements,
-				splitTime: editor.playback.getCurrentTime(),
+				elements: elementsToSplit,
+				splitTime: currentTime,
 			});
 		},
 		undefined,
 	);
 
 	useActionHandler(
-		"split-selected-left",
+		"split-left",
 		() => {
+			const currentTime = editor.playback.getCurrentTime();
+			const elementsToSplit =
+				selectedElements.length > 0
+					? selectedElements
+					: getElementsAtTime({
+							tracks: editor.timeline.getTracks(),
+							time: currentTime,
+						});
+
+		if (elementsToSplit.length === 0) return;
+
+		editor.timeline.splitElements({
+			elements: elementsToSplit,
+			splitTime: currentTime,
+			retainSide: "right",
+		});
+	},
+	undefined,
+);
+
+	useActionHandler(
+		"split-right",
+		() => {
+			const currentTime = editor.playback.getCurrentTime();
+			const elementsToSplit =
+				selectedElements.length > 0
+					? selectedElements
+					: getElementsAtTime({
+							tracks: editor.timeline.getTracks(),
+							time: currentTime,
+						});
+
+			if (elementsToSplit.length === 0) return;
+
 			editor.timeline.splitElements({
-				elements: selectedElements,
-				splitTime: editor.playback.getCurrentTime(),
+				elements: elementsToSplit,
+				splitTime: currentTime,
 				retainSide: "left",
-			});
-		},
-		undefined,
-	);
-
-	useActionHandler(
-		"split-selected-right",
-		() => {
-			editor.timeline.splitElements({
-				elements: selectedElements,
-				splitTime: editor.playback.getCurrentTime(),
-				retainSide: "right",
 			});
 		},
 		undefined,
@@ -186,7 +220,10 @@ export function useEditorActions() {
 	useActionHandler(
 		"duplicate-selected",
 		() => {
-			editor.timeline.duplicateElements({ elements: selectedElements });
+			const duplicatedElements = editor.timeline.duplicateElements({
+				elements: selectedElements,
+			});
+			setElementSelection({ elements: duplicatedElements });
 		},
 		undefined,
 	);
@@ -238,14 +275,16 @@ export function useEditorActions() {
 	);
 
 	useActionHandler(
-		"paste-selected",
+		"paste-copied",
 		() => {
 			if (!clipboard?.items.length) return;
 
-			editor.timeline.pasteAtTime({
-				time: editor.playback.getCurrentTime(),
-				clipboardItems: clipboard.items,
-			});
+			const pastedElements =
+				editor.timeline.pasteAtTime({
+					time: editor.playback.getCurrentTime(),
+					clipboardItems: clipboard.items,
+				}) ?? [];
+			setElementSelection({ elements: pastedElements });
 		},
 		undefined,
 	);

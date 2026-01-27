@@ -41,7 +41,7 @@ export function InputWithBack({
 	return (
 		<div ref={setContainerRef} className="relative w-full">
 			<motion.div
-				className="absolute top-1/2 left-0 z-10 -translate-y-1/2 cursor-pointer transition-opacity hover:opacity-75"
+				className="absolute top-1/2 left-0 z-10 -translate-y-1/2 cursor-pointer hover:opacity-75"
 				initial={{
 					x: isExpanded ? 0 : buttonOffset,
 					opacity: isExpanded ? 1 : 0.5,

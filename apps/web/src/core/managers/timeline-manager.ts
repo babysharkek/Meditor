@@ -142,10 +142,10 @@ export class TimelineManager {
 		elements: { trackId: string; elementId: string }[];
 		splitTime: number;
 		retainSide?: "both" | "left" | "right";
-	}): string[] {
+	}): { trackId: string; elementId: string }[] {
 		const command = new SplitElementsCommand(elements, splitTime, retainSide);
 		this.editor.command.execute({ command });
-		return command.splitElementIds;
+		return command.getRightSideElements();
 	}
 
 	getTotalDuration(): number {
@@ -184,9 +184,10 @@ export class TimelineManager {
 	}: {
 		time: number;
 		clipboardItems: ClipboardItem[];
-	}): void {
+	}): { trackId: string; elementId: string }[] {
 		const command = new PasteCommand(time, clipboardItems);
 		this.editor.command.execute({ command });
+		return command.getPastedElements();
 	}
 
 	deleteElements({
@@ -230,9 +231,10 @@ export class TimelineManager {
 		elements,
 	}: {
 		elements: { trackId: string; elementId: string }[];
-	}): void {
+	}): { trackId: string; elementId: string }[] {
 		const command = new DuplicateElementsCommand({ elements });
 		this.editor.command.execute({ command });
+		return command.getDuplicatedElements();
 	}
 
 	toggleElementsVisibility({

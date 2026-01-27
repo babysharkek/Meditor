@@ -15,6 +15,7 @@
 	--popover: hsl(0, 0%, 100%);
 	--popover-foreground: hsl(0 0% 2%);
 	--primary: hsl(203, 100%, 50%);
+	--primary-hover: hsl(203, 100%, 45%);
 	--primary-foreground: hsl(0, 0%, 100%);
 	--secondary: hsl(216, 13%, 92%);
 	--secondary-foreground: hsl(0 0% 2%);
@@ -44,9 +45,6 @@
 	--sidebar-ring: hsl(0 0% 16.9%);
 	--panel-background: hsl(216 13% 96%);
 	--panel-accent: hsl(216, 8%, 90%);
-
-	--radius: 1rem;
-
 	--sidebar: hsl(0 0% 98%);
 }
 .dark {
@@ -56,7 +54,8 @@
 	--card-foreground: hsl(0 0% 89%);
 	--popover: hsl(0 0% 14.9%);
 	--popover-foreground: hsl(0 0% 98%);
-	--primary: hsl(205, 84%, 53%);
+	--primary: hsl(203, 100%, 50%);
+	--primary-hover: hsl(203, 100%, 45%);
 	--primary-foreground: hsl(0 0% 9%);
 	--secondary: hsl(0 0% 14.9%);
 	--secondary-foreground: hsl(0 0% 98%);
@@ -124,15 +123,16 @@
 	--font-sans: var(--font-inter), sans-serif;
 
 	/* Font sizes */
-	--text-base: 0.95rem;
+	--text-xl: 1.20rem;
+  --text-base: 0.92rem;
 	--text-base--line-height: calc(1.5 / 0.95);
 	--text-xs: 0.75rem;
 	--text-xs--line-height: calc(1 / 0.8);
 
 	/* Border radius */
-	--radius-lg: var(--radius);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-sm: calc(var(--radius) - 8px);
+	--radius-lg: 0.82rem;
+	--radius-md: 0.65rem;
+	--radius-sm: 0.35rem;
 
 	/* Palette mapped to root design tokens */
 	--color-background: var(--background);
@@ -146,7 +146,7 @@
 
 	--color-primary: var(--primary);
 	--color-primary-foreground: var(--primary-foreground);
-
+	--color-primary-hover: var(--primary-hover);
 	--color-secondary: var(--secondary);
 	--color-secondary-foreground: var(--secondary-foreground);
 

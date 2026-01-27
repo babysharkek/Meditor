@@ -1,10 +1,14 @@
-import { useCallback } from "react";
-import { useTimelineStore } from "@/stores/timeline-store";
+import { useCallback, useSyncExternalStore } from "react";
+import { useEditor } from "@/hooks/use-editor";
 
 type ElementRef = { trackId: string; elementId: string };
 
 export function useElementSelection() {
-	const { selectedElements, setSelectedElements } = useTimelineStore();
+	const editor = useEditor();
+	const selectedElements = useSyncExternalStore(
+		(listener) => editor.selection.subscribe(listener),
+		() => editor.selection.getSelectedElements(),
+	);
 
 	const isElementSelected = useCallback(
 		({ trackId, elementId }: ElementRef) =>
@@ -17,9 +21,9 @@ export function useElementSelection() {
 
 	const selectElement = useCallback(
 		({ trackId, elementId }: ElementRef) => {
-			setSelectedElements({ elements: [{ trackId, elementId }] });
+			editor.selection.setSelectedElements({ elements: [{ trackId, elementId }] });
 		},
-		[setSelectedElements],
+		[editor],
 	);
 
 	const addElementToSelection = useCallback(
@@ -30,23 +34,23 @@ export function useElementSelection() {
 			);
 			if (alreadySelected) return;
 
-			setSelectedElements({
+			editor.selection.setSelectedElements({
 				elements: [...selectedElements, { trackId, elementId }],
 			});
 		},
-		[selectedElements, setSelectedElements],
+		[selectedElements, editor],
 	);
 
 	const removeElementFromSelection = useCallback(
 		({ trackId, elementId }: ElementRef) => {
-			setSelectedElements({
+			editor.selection.setSelectedElements({
 				elements: selectedElements.filter(
 					(element) =>
 						!(element.trackId === trackId && element.elementId === elementId),
 				),
 			});
 		},
-		[selectedElements, setSelectedElements],
+		[selectedElements, editor],
 	);
 
 	const toggleElementSelection = useCallback(
@@ -66,14 +70,14 @@ export function useElementSelection() {
 	);
 
 	const clearElementSelection = useCallback(() => {
-		setSelectedElements({ elements: [] });
-	}, [setSelectedElements]);
+		editor.selection.clearSelection();
+	}, [editor]);
 
 	const setElementSelection = useCallback(
 		({ elements }: { elements: ElementRef[] }) => {
-			setSelectedElements({ elements });
+			editor.selection.setSelectedElements({ elements });
 		},
-		[setSelectedElements],
+		[editor],
 	);
 
 	/**

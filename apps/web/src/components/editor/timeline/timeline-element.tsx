@@ -1,17 +1,5 @@
 "use client";
 
-import {
-	Scissors,
-	Trash2,
-	Copy,
-	Search,
-	RefreshCw,
-	EyeOff,
-	Eye,
-	Volume2,
-	VolumeX,
-	ArrowUpDown,
-} from "lucide-react";
 import { useEditor } from "@/hooks/use-editor";
 import { useAssetsPanelStore } from "@/stores/assets-panel-store";
 import AudioWaveform from "./audio-waveform";
@@ -39,9 +27,35 @@ import type {
 } from "@/types/timeline";
 import type { MediaAsset } from "@/types/assets";
 import { mediaSupportsAudio } from "@/lib/media/media-utils";
-import { type TAction, invokeAction } from "@/lib/actions";
+import { getActionDefinition, type TAction, invokeAction } from "@/lib/actions";
 import { useElementSelection } from "@/hooks/timeline/element/use-element-selection";
 import Image from "next/image";
+import {
+	ScissorIcon,
+	Delete02Icon,
+	Copy01Icon,
+	ViewIcon,
+	ViewOffSlashIcon,
+	VolumeHighIcon,
+	VolumeOffIcon,
+	VolumeMute02Icon,
+	Search01Icon,
+	Exchange01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { uppercase } from "@/utils/string";
+import type { ComponentProps } from "react";
+
+function getDisplayShortcut(action: TAction) {
+	const { defaultShortcuts } = getActionDefinition(action);
+	if (!defaultShortcuts?.length) {
+		return "";
+	}
+
+	return uppercase({
+		string: defaultShortcuts[0].replace("+", " "),
+	});
+}
 
 interface TimelineElementProps {
 	element: TimelineElementType;
@@ -112,17 +126,6 @@ export function TimelineElement({
 		displayedDuration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
 	const elementLeft = displayedStartTime * 50 * zoomLevel;
 
-	const handleAction = ({
-		action,
-		event,
-	}: {
-		action: TAction;
-		event: React.MouseEvent;
-	}) => {
-		event.stopPropagation();
-		invokeAction(action);
-	};
-
 	const handleRevealInMedia = ({ event }: { event: React.MouseEvent }) => {
 		event.stopPropagation();
 		if (hasMediaId(element)) {
@@ -162,31 +165,16 @@ export function TimelineElement({
 					/>
 				</div>
 			</ContextMenuTrigger>
-			<ContextMenuContent className="z-200">
-				<ContextMenuItem
-					onClick={(event) => handleAction({ action: "split-selected", event })}
-				>
-					<Scissors className="mr-2 size-4" />
-					{selectedElements.length > 1 && isCurrentElementSelected
-						? `Split ${selectedElements.length} elements at playhead`
-						: "Split at playhead"}
-				</ContextMenuItem>
-				<CopyMenuItem
-					isMultipleSelected={selectedElements.length > 1}
-					isCurrentElementSelected={isCurrentElementSelected}
-					selectedCount={selectedElements.length}
-					onClick={(event) => handleAction({ action: "copy-selected", event })}
-				/>
+			<ContextMenuContent className="z-200 w-64">
+				<ActionMenuItem action="split" icon={<HugeiconsIcon icon={ScissorIcon} />}>
+					Split
+				</ActionMenuItem>
+				<CopyMenuItem />
 				{canElementHaveAudio(element) && hasAudio && (
 					<MuteMenuItem
-						element={element}
 						isMultipleSelected={selectedElements.length > 1}
 						isCurrentElementSelected={isCurrentElementSelected}
 						isMuted={isMuted}
-						selectedCount={selectedElements.length}
-						onClick={(event) =>
-							handleAction({ action: "toggle-elements-muted-selected", event })
-						}
 					/>
 				)}
 				{canElementBeHidden(element) && (
@@ -194,36 +182,26 @@ export function TimelineElement({
 						element={element}
 						isMultipleSelected={selectedElements.length > 1}
 						isCurrentElementSelected={isCurrentElementSelected}
-						selectedCount={selectedElements.length}
-						onClick={(event) =>
-							handleAction({
-								action: "toggle-elements-visibility-selected",
-								event,
-							})
-						}
 					/>
 				)}
 				{selectedElements.length === 1 && (
-					<ContextMenuItem
-						onClick={(event) =>
-							handleAction({ action: "duplicate-selected", event })
-						}
-					>
-						<Copy className="mr-2 size-4" />
-						Duplicate {element.type === "text" ? "text" : "clip"}
-					</ContextMenuItem>
+					<ActionMenuItem action="duplicate-selected" icon={<HugeiconsIcon icon={Copy01Icon} />}>
+						Duplicate
+					</ActionMenuItem>
 				)}
 				{selectedElements.length === 1 && hasMediaId(element) && (
 					<>
 						<ContextMenuItem
+							icon={<HugeiconsIcon icon={Search01Icon} />}
 							onClick={(event) => handleRevealInMedia({ event })}
 						>
-							<Search className="mr-2 size-4" />
-							Reveal in media
+							Reveal media
 						</ContextMenuItem>
-						<ContextMenuItem disabled>
-							<RefreshCw className="mr-2 size-4" />
-							Replace clip (Coming soon)
+						<ContextMenuItem
+							icon={<HugeiconsIcon icon={Exchange01Icon} />}
+							disabled
+						>
+							Replace media
 						</ContextMenuItem>
 					</>
 				)}
@@ -233,9 +211,6 @@ export function TimelineElement({
 					isCurrentElementSelected={isCurrentElementSelected}
 					elementType={element.type}
 					selectedCount={selectedElements.length}
-					onClick={(event) =>
-						handleAction({ action: "delete-selected", event })
-					}
 				/>
 			</ContextMenuContent>
 		</ContextMenu>
@@ -300,9 +275,15 @@ function ElementInner({
 					: canElementBeHidden(element) && element.hidden) && (
 					<div className="bg-opacity-50 pointer-events-none absolute inset-0 flex items-center justify-center bg-black">
 						{hasAudio ? (
-							<VolumeX className="size-6 text-white" />
+							<HugeiconsIcon
+								icon={VolumeHighIcon}
+								className="size-6 text-white"
+							/>
 						) : (
-							<EyeOff className="size-6 text-white" />
+							<HugeiconsIcon
+								icon={VolumeOffIcon}
+								className="size-6 text-white"
+							/>
 						)}
 					</div>
 				)}
@@ -463,66 +444,38 @@ function ElementContent({
 	);
 }
 
-function CopyMenuItem({
-	isMultipleSelected,
-	isCurrentElementSelected,
-	selectedCount,
-	onClick,
-}: {
-	isMultipleSelected: boolean;
-	isCurrentElementSelected: boolean;
-	selectedCount: number;
-	onClick: (e: React.MouseEvent) => void;
-}) {
+function CopyMenuItem() {
 	return (
-		<ContextMenuItem onClick={onClick}>
-			<Copy className="mr-2 size-4" />
-			{isMultipleSelected && isCurrentElementSelected
-				? `Copy ${selectedCount} elements`
-				: "Copy element"}
-		</ContextMenuItem>
+		<ActionMenuItem action="copy-selected" icon={<HugeiconsIcon icon={Copy01Icon} />}>
+			Copy
+		</ActionMenuItem>
 	);
 }
 
 function MuteMenuItem({
-	element,
 	isMultipleSelected,
 	isCurrentElementSelected,
 	isMuted,
-	selectedCount,
-	onClick,
 }: {
-	element: TimelineElementType;
 	isMultipleSelected: boolean;
 	isCurrentElementSelected: boolean;
 	isMuted: boolean;
-	selectedCount: number;
-	onClick: (e: React.MouseEvent) => void;
 }) {
 	const getIcon = () => {
 		if (isMultipleSelected && isCurrentElementSelected) {
-			return <VolumeX className="mr-2 size-4" />;
+			return <HugeiconsIcon icon={VolumeMute02Icon} />;
 		}
 		return isMuted ? (
-			<Volume2 className="mr-2 size-4" />
+			<HugeiconsIcon icon={VolumeHighIcon} />
 		) : (
-			<VolumeX className="mr-2 size-4" />
+			<HugeiconsIcon icon={VolumeOffIcon} />
 		);
 	};
 
-	const getLabel = () => {
-		if (isMultipleSelected && isCurrentElementSelected) {
-			return `Toggle mute ${selectedCount} elements`;
-		}
-		const suffix = element.type === "text" ? "text" : "clip";
-		return isMuted ? `Unmute ${suffix}` : `Mute ${suffix}`;
-	};
-
 	return (
-		<ContextMenuItem onClick={onClick}>
-			{getIcon()}
-			<span>{getLabel()}</span>
-		</ContextMenuItem>
+		<ActionMenuItem action="toggle-elements-muted-selected" icon={getIcon()}>
+			{isMuted ? "Unmute" : "Mute"}
+		</ActionMenuItem>
 	);
 }
 
@@ -530,41 +483,28 @@ function VisibilityMenuItem({
 	element,
 	isMultipleSelected,
 	isCurrentElementSelected,
-	selectedCount,
-	onClick,
 }: {
 	element: TimelineElementType;
 	isMultipleSelected: boolean;
 	isCurrentElementSelected: boolean;
-	selectedCount: number;
-	onClick: (e: React.MouseEvent) => void;
 }) {
 	const isHidden = canElementBeHidden(element) && element.hidden;
 
 	const getIcon = () => {
 		if (isMultipleSelected && isCurrentElementSelected) {
-			return <EyeOff className="mr-2 size-4" />;
+			return <HugeiconsIcon icon={ViewOffSlashIcon} />;
 		}
 		return isHidden ? (
-			<Eye className="mr-2 size-4" />
+			<HugeiconsIcon icon={ViewIcon} />
 		) : (
-			<EyeOff className="mr-2 size-4" />
+			<HugeiconsIcon icon={ViewOffSlashIcon} />
 		);
 	};
 
-	const getLabel = () => {
-		if (isMultipleSelected && isCurrentElementSelected) {
-			return `Toggle visibility ${selectedCount} elements`;
-		}
-		const suffix = element.type === "text" ? "text" : "clip";
-		return isHidden ? `Show ${suffix}` : `Hide ${suffix}`;
-	};
-
 	return (
-		<ContextMenuItem onClick={onClick}>
-			{getIcon()}
-			<span>{getLabel()}</span>
-		</ContextMenuItem>
+		<ActionMenuItem action="toggle-elements-visibility-selected" icon={getIcon()}>
+			{isHidden ? "Show" : "Hide"}
+		</ActionMenuItem>
 	);
 }
 
@@ -573,23 +513,42 @@ function DeleteMenuItem({
 	isCurrentElementSelected,
 	elementType,
 	selectedCount,
-	onClick,
 }: {
 	isMultipleSelected: boolean;
 	isCurrentElementSelected: boolean;
 	elementType: TimelineElementType["type"];
 	selectedCount: number;
-	onClick: (e: React.MouseEvent) => void;
 }) {
 	return (
-		<ContextMenuItem
-			onClick={onClick}
-			className="text-destructive focus:text-destructive"
+		<ActionMenuItem
+			action="delete-selected"
+			variant="destructive"
+			icon={<HugeiconsIcon icon={Delete02Icon} />}
 		>
-			<Trash2 className="mr-2 size-4" />
 			{isMultipleSelected && isCurrentElementSelected
 				? `Delete ${selectedCount} elements`
 				: `Delete ${elementType === "text" ? "text" : "clip"}`}
+		</ActionMenuItem>
+	);
+}
+
+function ActionMenuItem({
+	action,
+	children,
+	...props
+}: Omit<ComponentProps<typeof ContextMenuItem>, "onClick" | "textRight"> & {
+	action: TAction;
+}) {
+	return (
+		<ContextMenuItem
+			onClick={(event) => {
+				event.stopPropagation();
+				invokeAction(action);
+			}}
+			textRight={getDisplayShortcut(action)}
+			{...props}
+		>
+			{children}
 		</ContextMenuItem>
 	);
 }

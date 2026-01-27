@@ -242,7 +242,7 @@ const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
 				>
 					<button
 						ref={triggerRef}
-						className="size-6 cursor-pointer rounded-full transition-all hover:ring-2 hover:ring-white/20"
+						className="size-6 cursor-pointer rounded-full hover:ring-2 hover:ring-white/20"
 						style={{ backgroundColor: `#${value}` }}
 						type="button"
 						onClick={() => {

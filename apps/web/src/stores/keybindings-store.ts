@@ -7,6 +7,10 @@ import { getDefaultShortcuts } from "@/lib/actions";
 import { isTypableDOMElement } from "@/utils/browser";
 import { isAppleDevice } from "@/utils/platform";
 import type { KeybindingConfig, ShortcutKey } from "@/types/keybinding";
+import {
+	runMigrations,
+	CURRENT_VERSION,
+} from "./keybindings/migrations";
 
 export const defaultKeybindings: KeybindingConfig = getDefaultShortcuts();
 
@@ -35,8 +39,6 @@ interface KeybindingsState {
 		action: TActionWithOptionalArgs,
 	) => KeybindingConflict | null;
 	getKeybindingsForAction: (action: TActionWithOptionalArgs) => ShortcutKey[];
-
-	// Utility
 	getKeybindingString: (ev: KeyboardEvent) => ShortcutKey | null;
 }
 
@@ -143,7 +145,13 @@ export const useKeybindingsStore = create<KeybindingsState>()(
 		}),
 		{
 			name: "opencut-keybindings",
-			version: 2,
+			version: CURRENT_VERSION,
+			partialize: (state) => ({
+				keybindings: state.keybindings,
+				isCustomized: state.isCustomized,
+			}),
+			migrate: (persisted, version) =>
+				runMigrations({ state: persisted, fromVersion: version }),
 		},
 	),
 );

@@ -5,34 +5,32 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/utils/ui";
 
 const buttonVariants = cva(
-	"inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+	"inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
 	{
 		variants: {
 			variant: {
 				default:
-					"bg-foreground text-background shadow-sm hover:bg-foreground/90",
+					"bg-primary text-primary-foreground hover:bg-primary-hover",
 				foreground:
-					"bg-background text-foreground",
-				primary:
-					"bg-primary text-primary-foreground hover:bg-primary/90",
+					"bg-foreground text-background hover:bg-foreground/90",
 				"primary-gradient":
-					"bg-gradient-to-r from-cyan-400 to-blue-500 text-white hover:opacity-85 transition-opacity",
+					"bg-gradient-to-r from-cyan-400 to-blue-500 text-white hover:opacity-85",
 				destructive:
 					"bg-destructive text-destructive-foreground hover:bg-destructive/80",
 				"destructive-foreground":
 					"border bg-background hover:bg-destructive/15 text-destructive",
 				outline:
-					"border border-border bg-transparent transition-colors hover:bg-accent",
+					"border border-border bg-transparent hover:bg-accent/50",
 				secondary:
 					"bg-secondary text-secondary-foreground hover:bg-foreground/15 border border-input",
-				text: "bg-transparent rounded-none !opacity-100",
+				text: "bg-transparent rounded-none opacity-100 hover:opacity-75",
 				link: "text-primary underline-offset-4 hover:underline !p-0 !h-auto",
 			},
 			size: {
-				default: "h-9 px-4 py-2",
-				sm: "h-8 rounded-full px-3 text-xs",
-				lg: "h-10 rounded-full p-5 px-6",
-				icon: "size-7 rounded-sm",
+				default: "h-9.5 px-4 py-2",
+				sm: "h-8 px-3 text-xs",
+				lg: "h-10 p-5 px-6",
+				icon: "size-7",
 				text: "p-0",
 			},
 		},

@@ -12,7 +12,7 @@ interface DuplicateElementsParams {
 }
 
 export class DuplicateElementsCommand extends Command {
-	private duplicatedIds: string[] = [];
+	private duplicatedElements: { trackId: string; elementId: string }[] = [];
 	private savedState: TimelineTrack[] | null = null;
 	private elements: DuplicateElementsParams["elements"];
 
@@ -24,7 +24,7 @@ export class DuplicateElementsCommand extends Command {
 	execute(): void {
 		const editor = EditorCore.getInstance();
 		this.savedState = editor.timeline.getTracks();
-		this.duplicatedIds = [];
+		this.duplicatedElements = [];
 
 		const updatedTracks = [...this.savedState];
 
@@ -42,13 +42,22 @@ export class DuplicateElementsCommand extends Command {
 			);
 			const newTrackElements: TimelineElement[] = [];
 
+			const newTrackId = generateUUID();
+			const newTrackBase = buildEmptyTrack({
+				id: newTrackId,
+				type: track.type,
+			});
+
 			for (const element of track.elements) {
 				if (!elementIdsToDuplicate.has(element.id)) {
 					continue;
 				}
 
 				const newId = generateUUID();
-				this.duplicatedIds.push(newId);
+				this.duplicatedElements.push({
+					trackId: newTrackId,
+					elementId: newId,
+				});
 				newTrackElements.push(
 					buildDuplicateElement({
 						element,
@@ -58,11 +67,6 @@ export class DuplicateElementsCommand extends Command {
 				);
 			}
 
-			const newTrackId = generateUUID();
-			const newTrackBase = buildEmptyTrack({
-				id: newTrackId,
-				type: track.type,
-			});
 			const newTrack = {
 				...newTrackBase,
 				elements: newTrackElements,
@@ -83,6 +87,10 @@ export class DuplicateElementsCommand extends Command {
 			const editor = EditorCore.getInstance();
 			editor.timeline.updateTracks(this.savedState);
 		}
+	}
+
+	getDuplicatedElements(): { trackId: string; elementId: string }[] {
+		return this.duplicatedElements;
 	}
 }
 

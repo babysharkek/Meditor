@@ -19,7 +19,7 @@ import {
 } from "./property-item";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { cn } from "@/utils/ui";
-import { capitalizeFirstLetter, uppercase } from "@/utils/strings";
+import { capitalizeFirstLetter, uppercase } from "@/utils/string";
 import { clamp } from "@/utils/math";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { LayoutGridIcon } from "@hugeicons/core-free-icons";
@@ -387,7 +387,8 @@ export function TextProperties({
 													}
 													className="bg-panel-accent size-9 overflow-hidden rounded-full p-0"
 												>
-													<HugeiconsIcon icon={LayoutGridIcon}
+													<HugeiconsIcon
+														icon={LayoutGridIcon}
 														className={cn(
 															"text-foreground",
 															element.backgroundColor === "transparent" &&

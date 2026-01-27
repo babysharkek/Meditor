@@ -8,9 +8,13 @@ import { forwardRef, type ComponentProps } from "react";
 import { useState } from "react";
 
 const inputVariants = cva(
-	"file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-border bg-background flex w-full min-w-0 rounded-full border shadow-xs outline-none file:inline-flex file:border-0 file:bg-transparent file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+	"file:text-foreground placeholder:text-muted-foreground border-border bg-background flex w-full min-w-0 rounded-md border shadow-xs outline-none file:inline-flex file:border-0 file:bg-transparent file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-4 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
 	{
 		variants: {
+			variant: {
+				default: "selection:bg-primary selection:text-primary-foreground focus-visible:border-primary focus-visible:ring-primary/10",
+				destructive: "selection:bg-destructive selection:text-destructive-foreground focus-visible:border-destructive focus-visible:ring-destructive/10",
+			},
 			size: {
 				default:
 					"h-9 px-3 py-1 text-base file:h-7 file:text-sm md:text-sm",
@@ -20,6 +24,7 @@ const inputVariants = cva(
 		},
 		defaultVariants: {
 			size: "default",
+			variant: "default",
 		},
 	},
 );
@@ -40,6 +45,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 			className,
 			type,
 			size,
+			variant,
 			containerClassName,
 			showPassword,
 			onShowPasswordChange,
@@ -79,6 +85,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 						inputVariants({
 							size,
 							className: cn(paddingRight, className),
+							variant,
 						}),
 					)}
 					ref={ref}

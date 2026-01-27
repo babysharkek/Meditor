@@ -113,6 +113,7 @@ index.ts
     renderer: RendererManager
     save: SaveManager
     audio: AudioManager
+    selection: SelectionManager
     static getInstance(): EditorCore
     static reset(): void
   }
@@ -925,6 +926,13 @@ element-utils.ts
   	startTime: number;
   	buffer?: AudioBuffer;
   }): CreateLibraryAudioElement
+  export function getElementsAtTime({
+  	tracks,
+  	time,
+  }: {
+  	tracks: TimelineTrack[];
+  	time: number;
+  }): { trackId: string; elementId: string }[]
 
 index.ts
   export function calculateTotalDuration({
@@ -1692,7 +1700,7 @@ platform.ts
   export function getPlatformAlternateKey(): string
   export function isAppleDevice(): boolean
 
-strings.ts
+string.ts
   export function capitalizeFirstLetter({ string }: { string: string })
   export function uppercase({ string }: { string: string })
 

@@ -74,7 +74,7 @@ export function Header() {
 							</Button>
 						</Link>
 						<Link href="/projects">
-							<Button className="text-sm">
+							<Button variant="foreground" className="text-sm">
 								Projects
 								<ArrowRight className="size-4" />
 							</Button>

@@ -3,6 +3,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	Delete02Icon,
+	TaskAdd02Icon,
 	ViewIcon,
 	ViewOffSlashIcon,
 	VolumeHighIcon,
@@ -36,6 +37,7 @@ import {
 	canTracktHaveAudio,
 	canTrackBeHidden,
 	getTimelineZoomMin,
+	isMainTrack,
 } from "@/lib/timeline";
 import { TimelineToolbar } from "./timeline-toolbar";
 import { useScrollSync } from "@/hooks/timeline/use-scroll-sync";
@@ -48,6 +50,7 @@ import { useTimelineStore } from "@/stores/timeline-store";
 import { useEditor } from "@/hooks/use-editor";
 import { useTimelinePlayhead } from "@/hooks/timeline/use-timeline-playhead";
 import { DragLine } from "./drag-line";
+import { invokeAction } from "@/lib/actions";
 
 export function Timeline() {
 	const tracksContainerHeight = { min: 0, max: 800 };
@@ -181,7 +184,7 @@ export function Timeline() {
 	return (
 		<section
 			className={
-				"bg-panel relative flex h-full flex-col overflow-hidden rounded-sm transition-colors duration-200"
+				"bg-panel relative flex h-full flex-col overflow-hidden rounded-sm"
 			}
 			{...dragProps}
 			aria-label="Timeline"
@@ -267,6 +270,10 @@ export function Timeline() {
 											}}
 										>
 											<div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+												{process.env.NODE_ENV === "development" &&
+													isMainTrack(track) && (
+														<div className="bg-red-500 size-1.5 rounded-full" />
+													)}
 												{canTracktHaveAudio(track) && (
 													<TrackToggleIcon
 														isOff={track.muted}
@@ -281,7 +288,6 @@ export function Timeline() {
 														}
 													/>
 												)}
-
 												{canTrackBeHidden(track) && (
 													<TrackToggleIcon
 														isOff={track.hidden}
@@ -296,7 +302,6 @@ export function Timeline() {
 														}
 													/>
 												)}
-
 												<TrackIcon track={track} />
 											</div>
 										</div>
@@ -397,6 +402,15 @@ export function Timeline() {
 												</div>
 											</ContextMenuTrigger>
 											<ContextMenuContent className="z-200 w-40">
+												<ContextMenuItem
+													icon={<HugeiconsIcon icon={TaskAdd02Icon} />}
+													onClick={(e) => {
+														e.stopPropagation();
+														invokeAction("paste-copied");
+													}}
+												>
+													Paste elements
+												</ContextMenuItem>
 												<ContextMenuItem
 													onClick={(e) => {
 														e.stopPropagation();
