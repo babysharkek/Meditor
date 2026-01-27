@@ -18,7 +18,7 @@ import {
 	DEFAULT_COLOR,
 } from "@/constants/project-constants";
 import { buildDefaultScene, getProjectDurationFromScenes } from "@/lib/scenes";
-import { generateThumbnail } from "@/lib/media/processing";
+import { generateImageThumbnail, generateThumbnail } from "@/lib/media/processing";
 import {
 	CURRENT_STORAGE_VERSION,
 	migrations,
@@ -601,8 +601,17 @@ export class ProjectManager {
 			});
 		}
 
-		if (mediaAsset.type === "image" && mediaAsset.url) {
-			thumbnailDataUrl = mediaAsset.thumbnailUrl || mediaAsset.url;
+		if (mediaAsset.type === "image" && mediaAsset.file) {
+			if (
+				mediaAsset.thumbnailUrl &&
+				!mediaAsset.thumbnailUrl.startsWith("blob:")
+			) {
+				thumbnailDataUrl = mediaAsset.thumbnailUrl;
+			} else {
+				thumbnailDataUrl = await generateImageThumbnail({
+					imageFile: mediaAsset.file,
+				});
+			}
 		}
 
 		if (!thumbnailDataUrl || thumbnailDataUrl.startsWith("blob:")) {

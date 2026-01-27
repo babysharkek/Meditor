@@ -780,6 +780,11 @@ processing.ts
   	videoFile: File;
   	timeInSeconds: number;
   }): Promise<string>
+  export function generateImageThumbnail({
+  	imageFile,
+  }: {
+  	imageFile: File;
+  }): Promise<string>
   export function processMediaAssets({
   	files,
   	onProgress,

@@ -6,6 +6,63 @@ import { Input, ALL_FORMATS, BlobSource, VideoSampleSink } from "mediabunny";
 
 export interface ProcessedMediaAsset extends Omit<MediaAsset, "id"> {}
 
+const THUMBNAIL_MAX_WIDTH = 1280;
+const THUMBNAIL_MAX_HEIGHT = 720;
+
+const getThumbnailSize = ({
+	width,
+	height,
+}: {
+	width: number;
+	height: number;
+}): { width: number; height: number } => {
+	const aspectRatio = width / height;
+	let targetWidth = width;
+	let targetHeight = height;
+
+	if (targetWidth > THUMBNAIL_MAX_WIDTH) {
+		targetWidth = THUMBNAIL_MAX_WIDTH;
+		targetHeight = Math.round(targetWidth / aspectRatio);
+	}
+	if (targetHeight > THUMBNAIL_MAX_HEIGHT) {
+		targetHeight = THUMBNAIL_MAX_HEIGHT;
+		targetWidth = Math.round(targetHeight * aspectRatio);
+	}
+
+	return { width: targetWidth, height: targetHeight };
+};
+
+const renderToThumbnailDataUrl = ({
+	width,
+	height,
+	draw,
+}: {
+	width: number;
+	height: number;
+	draw: ({
+		context,
+		width,
+		height,
+	}: {
+		context: CanvasRenderingContext2D;
+		width: number;
+		height: number;
+	}) => void;
+}): string => {
+	const size = getThumbnailSize({ width, height });
+	const canvas = document.createElement("canvas");
+	canvas.width = size.width;
+	canvas.height = size.height;
+	const context = canvas.getContext("2d");
+
+	if (!context) {
+		throw new Error("Could not get canvas context");
+	}
+
+	draw({ context, width: size.width, height: size.height });
+	return canvas.toDataURL("image/jpeg", 0.8);
+};
+
 export async function generateThumbnail({
 	videoFile,
 	timeInSeconds,
@@ -36,41 +93,58 @@ export async function generateThumbnail({
 		throw new Error("Could not get frame at specified time");
 	}
 
-	const maxWidth = 1280;
-	const maxHeight = 720;
-
-	const videoWidth = videoTrack.displayWidth;
-	const videoHeight = videoTrack.displayHeight;
-	const aspectRatio = videoWidth / videoHeight;
-
-	let width = videoWidth;
-	let height = videoHeight;
-
-	if (width > maxWidth) {
-		width = maxWidth;
-		height = Math.round(width / aspectRatio);
-	}
-	if (height > maxHeight) {
-		height = maxHeight;
-		width = Math.round(height * aspectRatio);
-	}
-
-	const canvas = document.createElement("canvas");
-	canvas.width = width;
-	canvas.height = height;
-	const ctx = canvas.getContext("2d");
-
-	if (!ctx) {
-		throw new Error("Could not get canvas context");
-	}
-
 	try {
-		frame.draw(ctx, 0, 0, width, height);
-		const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
-		return dataUrl;
+		return renderToThumbnailDataUrl({
+			width: videoTrack.displayWidth,
+			height: videoTrack.displayHeight,
+			draw: ({ context, width, height }) => {
+				frame.draw(context, 0, 0, width, height);
+			},
+		});
 	} finally {
 		frame.close();
 	}
+}
+
+export async function generateImageThumbnail({
+	imageFile,
+}: {
+	imageFile: File;
+}): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const image = new window.Image();
+		const objectUrl = URL.createObjectURL(imageFile);
+
+		image.addEventListener("load", () => {
+		try {
+			const dataUrl = renderToThumbnailDataUrl({
+				width: image.naturalWidth,
+				height: image.naturalHeight,
+				draw: ({ context, width, height }) => {
+					context.drawImage(image, 0, 0, width, height);
+				},
+			});
+			resolve(dataUrl);
+		} catch (error) {
+			reject(
+				error instanceof Error
+					? error
+					: new Error("Could not render image"),
+			);
+		} finally {
+			URL.revokeObjectURL(objectUrl);
+			image.remove();
+		}
+		});
+
+		image.addEventListener("error", () => {
+			URL.revokeObjectURL(objectUrl);
+			image.remove();
+			reject(new Error("Could not load image"));
+		});
+
+		image.src = objectUrl;
+	});
 }
 
 export async function processMediaAssets({
@@ -106,6 +180,7 @@ export async function processMediaAssets({
 				const dimensions = await getImageDimensions({ file });
 				width = dimensions.width;
 				height = dimensions.height;
+				thumbnailUrl = await generateImageThumbnail({ imageFile: file });
 			} else if (fileType === "video") {
 				try {
 					const videoInfo = await getVideoInfo({ videoFile: file });
