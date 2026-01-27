@@ -77,7 +77,11 @@ export class SceneExporter extends EventEmitter<SceneExporterEvents> {
 		this.isCancelled = true;
 	}
 
-	async export({ rootNode }: { rootNode: RootNode }): Promise<ArrayBuffer | null> {
+	async export({
+		rootNode,
+	}: {
+		rootNode: RootNode;
+	}): Promise<ArrayBuffer | null> {
 		const { fps } = this.renderer;
 		const frameCount = Math.ceil(rootNode.duration * fps);
 

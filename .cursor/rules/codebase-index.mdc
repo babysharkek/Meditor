@@ -1116,7 +1116,11 @@ scene-exporter.ts
   		audioBuffer,
   	}: ExportParams)
     cancel(): void
-    async export({ rootNode }: { rootNode: RootNode }): Promise<ArrayBuffer | null>
+    async export({
+  		rootNode,
+  	}: {
+  		rootNode: RootNode;
+  	}): Promise<ArrayBuffer | null>
   }
 
 ## apps/web/src/services/storage
