@@ -1,6 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEditor } from "@/hooks/use-editor";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
+import { getSnappedSeekTime } from "@/lib/time";
 import { Bookmark02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
@@ -64,14 +65,24 @@ export function TimelineBookmark({
 	zoomLevel: number;
 }) {
 	const editor = useEditor();
+	const activeProject = editor.project.getActive();
+	const duration = editor.timeline.getTotalDuration();
 
-	const handleBookmarkClick = ({
+	const handleBookmarkActivate = ({
 		event,
 	}: {
-		event: React.MouseEvent<HTMLButtonElement>;
+		event:
+			| React.MouseEvent<HTMLButtonElement>
+			| React.KeyboardEvent<HTMLButtonElement>;
 	}) => {
 		event.stopPropagation();
-		editor.playback.seek({ time });
+		const framesPerSecond = activeProject?.settings.fps ?? 30;
+		const snappedTime = getSnappedSeekTime({
+			rawTime: time,
+			duration,
+			fps: framesPerSecond,
+		});
+		editor.playback.seek({ time: snappedTime });
 	};
 
 	return (
@@ -82,7 +93,16 @@ export function TimelineBookmark({
 			}}
 			aria-label={`Seek to bookmark at ${time}s`}
 			type="button"
-			onClick={(event) => handleBookmarkClick({ event })}
+			onMouseDown={(event) => {
+				event.preventDefault();
+				event.stopPropagation();
+			}}
+			onClick={(event) => handleBookmarkActivate({ event })}
+			onKeyDown={(event) => {
+				if (event.key !== "Enter" && event.key !== " ") return;
+				event.preventDefault();
+				handleBookmarkActivate({ event });
+			}}
 		>
 			<div className="text-primary absolute top-[-1px] left-[-5px]">
 				<HugeiconsIcon
