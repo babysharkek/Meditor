@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { Label } from "./ui/label";
+import { Label } from "@/components/ui/label";
 
 export function RenameProjectDialog({
 	isOpen,

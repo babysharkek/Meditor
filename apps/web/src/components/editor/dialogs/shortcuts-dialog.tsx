@@ -7,7 +7,7 @@ import {
 	useKeyboardShortcutsHelp,
 } from "@/hooks/use-keyboard-shortcuts-help";
 import { useKeybindingsStore } from "@/stores/keybindings-store";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogBody,
@@ -15,7 +15,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "../ui/dialog";
+} from "@/components/ui/dialog";
 
 export function ShortcutsDialog({
 	isOpen,

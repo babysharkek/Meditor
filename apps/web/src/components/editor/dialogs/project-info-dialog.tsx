@@ -9,7 +9,7 @@ import {
 import type { TProjectMetadata } from "@/types/project";
 import { formatDate } from "@/utils/date";
 import { formatTimeCode } from "@/lib/time";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 function InfoRow({
 	label,

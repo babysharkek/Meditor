@@ -7,9 +7,9 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export function DeleteProjectDialog({
 	isOpen,

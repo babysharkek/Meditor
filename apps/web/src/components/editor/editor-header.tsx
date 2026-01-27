@@ -11,8 +11,8 @@ import {
 	DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import Link from "next/link";
-import { RenameProjectDialog } from "../rename-project-dialog";
-import { DeleteProjectDialog } from "./delete-project-dialog";
+import { RenameProjectDialog } from "./dialogs/rename-project-dialog";
+import { DeleteProjectDialog } from "./dialogs/delete-project-dialog";
 import { useRouter } from "next/navigation";
 import { FaDiscord } from "react-icons/fa6";
 import { ExportButton } from "./export-button";
@@ -27,7 +27,7 @@ import {
 	CommandIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ShortcutsDialog } from "./shortcuts-dialog";
+import { ShortcutsDialog } from "./dialogs/shortcuts-dialog";
 
 export function EditorHeader() {
 	return (

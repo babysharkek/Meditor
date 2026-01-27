@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import type { KeyboardEvent, MouseEvent } from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { MigrationDialog } from "@/components/editor/migration-dialog";
+import { MigrationDialog } from "@/components/editor/dialogs/migration-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -53,9 +53,9 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DeleteProjectDialog } from "@/components/editor/delete-project-dialog";
-import { ProjectInfoDialog } from "@/components/editor/project-info-dialog";
-import { RenameProjectDialog } from "@/components/rename-project-dialog";
+import { DeleteProjectDialog } from "@/components/editor/dialogs/delete-project-dialog";
+import { ProjectInfoDialog } from "@/components/editor/dialogs/project-info-dialog";
+import { RenameProjectDialog } from "@/components/editor/dialogs/rename-project-dialog";
 import { cn } from "@/utils/ui";
 
 const formatProjectDuration = ({
