@@ -7,7 +7,6 @@ import type {
 	TProjectSettings,
 } from "@/types/project";
 import type { ExportOptions, ExportResult } from "@/types/export";
-import type { TimelineElement } from "@/types/timeline";
 import { storageService } from "@/services/storage/storage-service";
 import { toast } from "sonner";
 import { generateUUID } from "@/utils/id";
@@ -18,10 +17,8 @@ import {
 	DEFAULT_COLOR,
 } from "@/constants/project-constants";
 import { buildDefaultScene, getProjectDurationFromScenes } from "@/lib/scenes";
-import {
-	generateImageThumbnail,
-	generateThumbnail,
-} from "@/lib/media/processing";
+import { buildScene } from "@/services/renderer/scene-builder";
+import { CanvasRenderer } from "@/services/renderer/canvas-renderer";
 import {
 	CURRENT_STORAGE_VERSION,
 	migrations,
@@ -580,49 +577,37 @@ export class ProjectManager {
 
 		const tracks = this.editor.timeline.getTracks();
 		const mediaAssets = this.editor.media.getAssets();
-		const allElements = tracks.flatMap(
-			(track): TimelineElement[] => track.elements,
-		);
-		const sortedElements = allElements.sort(
-			(a, b) => a.startTime - b.startTime,
-		);
-		const firstElement = sortedElements[0];
+		const duration = this.editor.timeline.getTotalDuration();
 
-		if (!firstElement) return false;
-		if (firstElement.type !== "video" && firstElement.type !== "image") {
-			return false;
-		}
+		if (duration === 0) return false;
 
-		const mediaAsset = mediaAssets.find(
-			(asset) => asset.id === firstElement.mediaId,
-		);
-		if (!mediaAsset) return false;
+		const { canvasSize, background } = this.active.settings;
 
-		let thumbnailDataUrl: string | undefined;
+		const scene = buildScene({
+			tracks,
+			mediaAssets,
+			duration,
+			canvasSize,
+			background,
+		});
 
-		if (mediaAsset.type === "video" && mediaAsset.file) {
-			thumbnailDataUrl = await generateThumbnail({
-				videoFile: mediaAsset.file,
-				timeInSeconds: 1,
-			});
-		}
+		const renderer = new CanvasRenderer({
+			width: canvasSize.width,
+			height: canvasSize.height,
+			fps: this.active.settings.fps,
+		});
 
-		if (mediaAsset.type === "image" && mediaAsset.file) {
-			if (
-				mediaAsset.thumbnailUrl &&
-				!mediaAsset.thumbnailUrl.startsWith("blob:")
-			) {
-				thumbnailDataUrl = mediaAsset.thumbnailUrl;
-			} else {
-				thumbnailDataUrl = await generateImageThumbnail({
-					imageFile: mediaAsset.file,
-				});
-			}
-		}
+		const tempCanvas = document.createElement("canvas");
+		tempCanvas.width = canvasSize.width;
+		tempCanvas.height = canvasSize.height;
 
-		if (!thumbnailDataUrl || thumbnailDataUrl.startsWith("blob:")) {
-			return false;
-		}
+		await renderer.renderToCanvas({
+			node: scene,
+			time: 0,
+			targetCanvas: tempCanvas,
+		});
+
+		const thumbnailDataUrl = tempCanvas.toDataURL("image/png");
 
 		await this.updateThumbnail({ thumbnail: thumbnailDataUrl });
 		return true;
