@@ -539,8 +539,12 @@ function ProjectItem({
 	project: TProjectMetadata;
 	allProjectIds: string[];
 }) {
-	const { selectedProjectIds, viewMode, setProjectSelected, selectProjectRange } =
-		useProjectsStore();
+	const {
+		selectedProjectIds,
+		viewMode,
+		setProjectSelected,
+		selectProjectRange,
+	} = useProjectsStore();
 	const selectedProjectIdSet = new Set(selectedProjectIds);
 	const isSelected = selectedProjectIdSet.has(project.id);
 	const selectedProjectCount = selectedProjectIds.length;
