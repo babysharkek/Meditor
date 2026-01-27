@@ -39,12 +39,10 @@ import {
 	LeftToRightListDashIcon,
 	SortingOneNineIcon,
 	Image02Icon,
-	Loading03Icon,
 	MusicNote03Icon,
 	Video01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import { OcVideoIcon } from "@opencut/ui/icons";
 
 export function MediaView() {
 	const editor = useEditor();

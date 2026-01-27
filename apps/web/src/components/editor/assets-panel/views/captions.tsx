@@ -13,8 +13,6 @@ import { extractTimelineAudio } from "@/lib/media/mediabunny";
 import { useEditor } from "@/hooks/use-editor";
 import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
 import { TRANSCRIPTION_LANGUAGES } from "@/constants/transcription-constants";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Loading03Icon } from "@hugeicons/core-free-icons";
 import type {
 	TranscriptionLanguage,
 	TranscriptionProgress,
