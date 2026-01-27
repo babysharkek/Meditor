@@ -43,7 +43,6 @@ import {
 	Edit03Icon,
 	ArrowDown02Icon,
 	InformationCircleIcon,
-	HomeIcon,
 } from "@hugeicons/core-free-icons";
 import { OcVideoIcon } from "@opencut/ui/icons";
 import { Label } from "@/components/ui/label";
@@ -783,7 +782,7 @@ function ProjectMenu({
 				<DropdownMenuTrigger asChild>
 					<Button
 						type="button"
-						variant="foreground"
+						variant="background"
 						className={
 							isGrid
 								? `absolute z-10 top-3 right-3 ${isOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`
@@ -944,8 +943,8 @@ function EmptyState() {
 				</div>
 				<h3 className="text-lg font-medium">No projects yet</h3>
 				<p className="text-muted-foreground max-w-md">
-					Start creating your first video project. Import media, edit, and
-					export professional videos.
+					Start creating your first project. Import media, edit, and export your
+					videos. All privately.
 				</p>
 			</div>
 			<Button size="lg" className="gap-2" onClick={handleCreateProject}>
