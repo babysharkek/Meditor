@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
-import { PanelBaseView } from "@/components/editor/panel-base-view";
+import { PanelBaseView } from "@/components/editor/panels/panel-base-view";
 import {
 	TEXT_PROPERTIES_TABS,
 	isTextPropertiesTab,

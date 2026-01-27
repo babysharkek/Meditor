@@ -1,6 +1,6 @@
 "use client";
 
-import { ScrollArea } from "../../ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { AudioProperties } from "./audio-properties";
 import { VideoProperties } from "./video-properties";
 import { TextProperties } from "./text-properties";

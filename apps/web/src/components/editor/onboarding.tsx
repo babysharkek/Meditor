@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import { SOCIAL_LINKS } from "@/constants/site-constants";
 import { useLocalStorage } from "@/hooks/storage/use-local-storage";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogTitle } from "../ui/dialog";
 
 export function Onboarding() {
 	const [step, setStep] = useState(0);
@@ -81,11 +81,13 @@ export function Onboarding() {
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleClose}>
-			<DialogContent className="pt-2 !outline-none sm:max-w-[425px]">
+			<DialogContent className="sm:max-w-[425px]">
 				<DialogTitle>
 					<span className="sr-only">{getStepTitle()}</span>
 				</DialogTitle>
-				{renderStepContent()}
+				<DialogBody>
+					{renderStepContent()}
+				</DialogBody>
 			</DialogContent>
 		</Dialog>
 	);

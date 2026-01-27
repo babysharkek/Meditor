@@ -3,12 +3,16 @@
 import { useState, useRef } from "react";
 import { TransitionTopIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Button } from "../ui/button";
-import { Label } from "../ui/label";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Progress } from "../ui/progress";
-import { Checkbox } from "../ui/checkbox";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/utils/ui";
 import { getExportMimeType, getExportFileExtension } from "@/lib/export";
 import { Check, Copy, Download, RotateCcw, X } from "lucide-react";
@@ -19,7 +23,7 @@ import {
 	type ExportQuality,
 	type ExportResult,
 } from "@/types/export";
-import { PropertyGroup } from "./properties-panel/property-item";
+import { PropertyGroup } from "@/components/editor/panels/properties/property-item";
 import { useEditor } from "@/hooks/use-editor";
 import { DEFAULT_EXPORT_OPTIONS } from "@/constants/export-constants";
 

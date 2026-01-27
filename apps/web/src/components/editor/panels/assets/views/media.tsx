@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { MediaDragOverlay } from "@/components/editor/assets-panel/drag-overlay";
-import { DraggableItem } from "@/components/editor/draggable-item";
+import { MediaDragOverlay } from "@/components/editor/panels/assets/drag-overlay";
+import { DraggableItem } from "@/components/editor/panels/assets/draggable-item";
 import { Button } from "@/components/ui/button";
 import {
 	ContextMenu,

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { memo, useCallback, useMemo } from "react";
-import { PanelBaseView as BaseView } from "@/components/editor/panel-base-view";
+import { PanelBaseView as BaseView } from "@/components/editor/panels/panel-base-view";
 import {
 	Select,
 	SelectContent,
@@ -29,7 +29,7 @@ import {
 	PropertyItem,
 	PropertyItemLabel,
 	PropertyItemValue,
-} from "../../properties-panel/property-item";
+} from "@/components/editor/panels/properties/property-item";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { DropperIcon } from "@hugeicons/core-free-icons";
 

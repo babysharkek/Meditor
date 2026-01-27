@@ -1,10 +1,7 @@
 "use client";
 
 import { Separator } from "@/components/ui/separator";
-import {
-	type Tab,
-	useAssetsPanelStore,
-} from "../../../stores/assets-panel-store";
+import { type Tab, useAssetsPanelStore } from "@/stores/assets-panel-store";
 import { TabBar } from "./tabbar";
 import { Captions } from "./views/captions";
 import { MediaView } from "./views/media";

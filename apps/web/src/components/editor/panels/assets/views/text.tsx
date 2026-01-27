@@ -1,5 +1,5 @@
-import { DraggableItem } from "@/components/editor/draggable-item";
-import { PanelBaseView as BaseView } from "@/components/editor/panel-base-view";
+import { DraggableItem } from "@/components/editor/panels/assets/draggable-item";
+import { PanelBaseView as BaseView } from "@/components/editor/panels/panel-base-view";
 import { useEditor } from "@/hooks/use-editor";
 import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
 import { buildTextElement } from "@/lib/timeline/element-utils";

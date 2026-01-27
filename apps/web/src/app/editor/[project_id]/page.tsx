@@ -6,10 +6,10 @@ import {
 	ResizablePanel,
 	ResizableHandle,
 } from "@/components/ui/resizable";
-import { AssetsPanel } from "@/components/editor/assets-panel";
-import { PropertiesPanel } from "@/components/editor/properties-panel";
+import { AssetsPanel } from "@/components/editor/panels/assets";
+import { PropertiesPanel } from "@/components/editor/panels/properties";
 import { Timeline } from "@/components/editor/timeline";
-import { PreviewPanel } from "@/components/editor/preview-panel";
+import { PreviewPanel } from "@/components/editor/panels/preview";
 import { EditorHeader } from "@/components/editor/editor-header";
 import { EditorProvider } from "@/components/providers/editor-provider";
 import { Onboarding } from "@/components/editor/onboarding";

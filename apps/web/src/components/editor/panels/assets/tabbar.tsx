@@ -11,7 +11,7 @@ import {
 	TAB_KEYS,
 	tabs,
 	useAssetsPanelStore,
-} from "../../../stores/assets-panel-store";
+} from "@/stores/assets-panel-store";
 
 export function TabBar() {
 	const { activeTab, setActiveTab } = useAssetsPanelStore();

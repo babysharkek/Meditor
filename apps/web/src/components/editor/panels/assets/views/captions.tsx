@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { PropertyGroup } from "../../properties-panel/property-item";
-import { PanelBaseView as BaseView } from "@/components/editor/panel-base-view";
+import { PropertyGroup } from "@/components/editor/panels/properties/property-item";
+import { PanelBaseView as BaseView } from "@/components/editor/panels/panel-base-view";
 import {
 	Select,
 	SelectContent,
