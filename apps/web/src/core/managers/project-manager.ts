@@ -18,7 +18,10 @@ import {
 	DEFAULT_COLOR,
 } from "@/constants/project-constants";
 import { buildDefaultScene, getProjectDurationFromScenes } from "@/lib/scenes";
-import { generateImageThumbnail, generateThumbnail } from "@/lib/media/processing";
+import {
+	generateImageThumbnail,
+	generateThumbnail,
+} from "@/lib/media/processing";
 import {
 	CURRENT_STORAGE_VERSION,
 	migrations,
@@ -489,7 +492,10 @@ export class ProjectManager {
 			project.name.toLowerCase().includes(searchQuery.toLowerCase()),
 		);
 
-		const [key, order] = sortOption.split("-") as [TProjectSortKey, "asc" | "desc"];
+		const [key, order] = sortOption.split("-") as [
+			TProjectSortKey,
+			"asc" | "desc",
+		];
 
 		const sortedProjects = [...filteredProjects].sort((a, b) => {
 			const aValue = a[key];

@@ -116,25 +116,23 @@ export async function generateImageThumbnail({
 		const objectUrl = URL.createObjectURL(imageFile);
 
 		image.addEventListener("load", () => {
-		try {
-			const dataUrl = renderToThumbnailDataUrl({
-				width: image.naturalWidth,
-				height: image.naturalHeight,
-				draw: ({ context, width, height }) => {
-					context.drawImage(image, 0, 0, width, height);
-				},
-			});
-			resolve(dataUrl);
-		} catch (error) {
-			reject(
-				error instanceof Error
-					? error
-					: new Error("Could not render image"),
-			);
-		} finally {
-			URL.revokeObjectURL(objectUrl);
-			image.remove();
-		}
+			try {
+				const dataUrl = renderToThumbnailDataUrl({
+					width: image.naturalWidth,
+					height: image.naturalHeight,
+					draw: ({ context, width, height }) => {
+						context.drawImage(image, 0, 0, width, height);
+					},
+				});
+				resolve(dataUrl);
+			} catch (error) {
+				reject(
+					error instanceof Error ? error : new Error("Could not render image"),
+				);
+			} finally {
+				URL.revokeObjectURL(objectUrl);
+				image.remove();
+			}
 		});
 
 		image.addEventListener("error", () => {
