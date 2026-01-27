@@ -112,12 +112,14 @@ function ExportPopover({
 		});
 
 		setIsExporting(false);
-		setExportResult(result);
 
 		if (result.cancelled) {
+			setExportResult(null);
 			setProgress(0);
 			return;
 		}
+
+		setExportResult(result);
 
 		if (result.success && result.buffer) {
 			const mimeType = getExportMimeType({ format });
