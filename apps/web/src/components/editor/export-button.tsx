@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { TransitionTopIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -86,10 +86,12 @@ function ExportPopover({
 	const [isExporting, setIsExporting] = useState(false);
 	const [progress, setProgress] = useState(0);
 	const [exportResult, setExportResult] = useState<ExportResult | null>(null);
+	const cancelRequestedRef = useRef(false);
 
 	const handleExport = async () => {
 		if (!activeProject) return;
 
+		cancelRequestedRef.current = false;
 		setIsExporting(true);
 		setProgress(0);
 		setExportResult(null);
@@ -101,12 +103,17 @@ function ExportPopover({
 				fps: activeProject.settings.fps,
 				includeAudio,
 				onProgress: ({ progress }) => setProgress(progress),
-				onCancel: () => false, // TODO: add cancel functionality
+				onCancel: () => cancelRequestedRef.current,
 			},
 		});
 
 		setIsExporting(false);
 		setExportResult(result);
+
+		if (result.cancelled) {
+			setProgress(0);
+			return;
+		}
 
 		if (result.success && result.buffer) {
 			const mimeType = getExportMimeType({ format });
@@ -134,6 +141,10 @@ function ExportPopover({
 			setExportResult(null);
 			setProgress(0);
 		}
+	};
+
+	const handleCancel = () => {
+		cancelRequestedRef.current = true;
 	};
 
 	return (
@@ -262,7 +273,7 @@ function ExportPopover({
 								<Button
 									variant="outline"
 									className="w-full rounded-md"
-									onClick={() => {}}
+									onClick={handleCancel}
 								>
 									Cancel
 								</Button>
