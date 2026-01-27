@@ -14,6 +14,7 @@ interface DuplicateElementsParams {
 export class DuplicateElementsCommand extends Command {
 	private duplicatedElements: { trackId: string; elementId: string }[] = [];
 	private savedState: TimelineTrack[] | null = null;
+	private previousSelection: { trackId: string; elementId: string }[] = [];
 	private elements: DuplicateElementsParams["elements"];
 
 	constructor({ elements }: DuplicateElementsParams) {
@@ -24,6 +25,7 @@ export class DuplicateElementsCommand extends Command {
 	execute(): void {
 		const editor = EditorCore.getInstance();
 		this.savedState = editor.timeline.getTracks();
+		this.previousSelection = editor.selection.getSelectedElements();
 		this.duplicatedElements = [];
 
 		const updatedTracks = [...this.savedState];
@@ -80,12 +82,17 @@ export class DuplicateElementsCommand extends Command {
 		}
 
 		editor.timeline.updateTracks(updatedTracks);
+
+		if (this.duplicatedElements.length > 0) {
+			editor.selection.setSelectedElements({ elements: this.duplicatedElements });
+		}
 	}
 
 	undo(): void {
 		if (this.savedState) {
 			const editor = EditorCore.getInstance();
 			editor.timeline.updateTracks(this.savedState);
+			editor.selection.setSelectedElements({ elements: this.previousSelection });
 		}
 	}
 

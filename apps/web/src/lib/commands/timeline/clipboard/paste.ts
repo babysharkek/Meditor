@@ -15,6 +15,7 @@ import {
 export class PasteCommand extends Command {
 	private savedState: TimelineTrack[] | null = null;
 	private pastedElements: { trackId: string; elementId: string }[] = [];
+	private previousSelection: { trackId: string; elementId: string }[] = [];
 
 	constructor(
 		private time: number,
@@ -28,6 +29,7 @@ export class PasteCommand extends Command {
 
 		const editor = EditorCore.getInstance();
 		this.savedState = editor.timeline.getTracks();
+		this.previousSelection = editor.selection.getSelectedElements();
 		this.pastedElements = [];
 
 		const minStart = Math.min(
@@ -95,12 +97,17 @@ export class PasteCommand extends Command {
 		}
 
 		editor.timeline.updateTracks(updatedTracks);
+
+		if (this.pastedElements.length > 0) {
+			editor.selection.setSelectedElements({ elements: this.pastedElements });
+		}
 	}
 
 	undo(): void {
 		if (this.savedState) {
 			const editor = EditorCore.getInstance();
 			editor.timeline.updateTracks(this.savedState);
+			editor.selection.setSelectedElements({ elements: this.previousSelection });
 		}
 	}
 

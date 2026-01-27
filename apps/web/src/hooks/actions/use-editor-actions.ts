@@ -220,10 +220,9 @@ export function useEditorActions() {
 	useActionHandler(
 		"duplicate-selected",
 		() => {
-			const duplicatedElements = editor.timeline.duplicateElements({
-				elements: selectedElements,
-			});
-			setElementSelection({ elements: duplicatedElements });
+		editor.timeline.duplicateElements({
+			elements: selectedElements,
+		});
 		},
 		undefined,
 	);
@@ -277,14 +276,12 @@ export function useEditorActions() {
 	useActionHandler(
 		"paste-copied",
 		() => {
-			if (!clipboard?.items.length) return;
+		if (!clipboard?.items.length) return;
 
-			const pastedElements =
-				editor.timeline.pasteAtTime({
-					time: editor.playback.getCurrentTime(),
-					clipboardItems: clipboard.items,
-				}) ?? [];
-			setElementSelection({ elements: pastedElements });
+		editor.timeline.pasteAtTime({
+			time: editor.playback.getCurrentTime(),
+			clipboardItems: clipboard.items,
+		});
 		},
 		undefined,
 	);
