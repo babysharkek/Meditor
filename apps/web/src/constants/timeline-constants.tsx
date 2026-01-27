@@ -40,6 +40,7 @@ export const TIMELINE_CONSTANTS = {
 	ZOOM_MIN: 0.1,
 	ZOOM_MAX: 50,
 	ZOOM_STEP: 0.1,
+	ZOOM_OUT_FACTOR: 4,
 } as const;
 
 export const TRACK_ICONS: Record<TrackType, React.ReactNode> = {

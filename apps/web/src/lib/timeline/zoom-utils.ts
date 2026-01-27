@@ -14,9 +14,7 @@ export function getTimelineZoomMin({
 	const zoomToFit =
 		safeContainerWidth /
 		(paddedDuration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND);
+	const minZoom = zoomToFit / TIMELINE_CONSTANTS.ZOOM_OUT_FACTOR;
 
-	return Math.min(
-		TIMELINE_CONSTANTS.ZOOM_MAX,
-		Math.max(TIMELINE_CONSTANTS.ZOOM_MIN, zoomToFit),
-	);
+	return Math.min(TIMELINE_CONSTANTS.ZOOM_MAX, minZoom);
 }
