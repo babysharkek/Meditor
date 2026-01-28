@@ -22,10 +22,6 @@ export interface VideoNodeParams extends BaseMediaNodeParams {
 }
 
 export class VideoNode extends BaseNode<VideoNodeParams> {
-	constructor(params: VideoNodeParams) {
-		super(params);
-	}
-
 	private getVideoTime(time: number) {
 		return time - this.params.timeOffset + this.params.trimStart;
 	}
@@ -73,7 +69,13 @@ export class VideoNode extends BaseNode<VideoNodeParams> {
 					this.params.height,
 				);
 			} else {
-				renderer.context.drawImage(frame.canvas, 0, 0, renderer.width, renderer.height);
+				renderer.context.drawImage(
+					frame.canvas,
+					0,
+					0,
+					renderer.width,
+					renderer.height,
+				);
 			}
 
 			renderer.context.restore();
