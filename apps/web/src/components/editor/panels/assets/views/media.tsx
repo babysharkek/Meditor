@@ -29,6 +29,11 @@ import { useEditor } from "@/hooks/use-editor";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useRevealItem } from "@/hooks/use-reveal-item";
 import { processMediaAssets } from "@/lib/media/processing";
+import {
+	buildImageElement,
+	buildUploadAudioElement,
+	buildVideoElement,
+} from "@/lib/timeline/element-utils";
 import { useAssetsPanelStore } from "@/stores/assets-panel-store";
 import type { MediaAsset } from "@/types/assets";
 import type { CreateTimelineElement } from "@/types/timeline";
@@ -644,45 +649,26 @@ function createElementFromMedia({
 
 	switch (asset.type) {
 		case "video":
-			return {
-				type: "video",
-				name: asset.name,
+			return buildVideoElement({
 				mediaId: asset.id,
-				startTime,
+				name: asset.name,
 				duration,
-				trimStart: 0,
-				trimEnd: 0,
-				muted: false,
-				hidden: false,
-				transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
-				opacity: 1,
-			};
+				startTime,
+			});
 		case "image":
-			return {
-				type: "image",
-				name: asset.name,
+			return buildImageElement({
 				mediaId: asset.id,
-				startTime,
+				name: asset.name,
 				duration,
-				trimStart: 0,
-				trimEnd: 0,
-				hidden: false,
-				transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
-				opacity: 1,
-			};
+				startTime,
+			});
 		case "audio":
-			return {
-				type: "audio",
-				sourceType: "upload",
-				name: asset.name,
+			return buildUploadAudioElement({
 				mediaId: asset.id,
-				startTime,
+				name: asset.name,
 				duration,
-				trimStart: 0,
-				trimEnd: 0,
-				volume: 1,
-				muted: false,
-			};
+				startTime,
+			});
 		default:
 			throw new Error(`Unsupported media type: ${asset.type}`);
 	}

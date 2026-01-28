@@ -905,6 +905,28 @@ element-utils.ts
   	iconName: string;
   	startTime: number;
   }): CreateStickerElement
+  export function buildVideoElement({
+  	mediaId,
+  	name,
+  	duration,
+  	startTime,
+  }: {
+  	mediaId: string;
+  	name: string;
+  	duration: number;
+  	startTime: number;
+  }): CreateVideoElement
+  export function buildImageElement({
+  	mediaId,
+  	name,
+  	duration,
+  	startTime,
+  }: {
+  	mediaId: string;
+  	name: string;
+  	duration: number;
+  	startTime: number;
+  }): CreateImageElement
   export function buildUploadAudioElement({
   	mediaId,
   	name,

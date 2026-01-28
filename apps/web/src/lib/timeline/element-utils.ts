@@ -2,6 +2,8 @@ import { DEFAULT_TEXT_ELEMENT } from "@/constants/text-constants";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import type {
 	CreateTimelineElement,
+	CreateVideoElement,
+	CreateImageElement,
 	CreateStickerElement,
 	CreateUploadAudioElement,
 	CreateLibraryAudioElement,
@@ -160,6 +162,57 @@ export function buildStickerElement({
 		startTime,
 		trimStart: 0,
 		trimEnd: 0,
+		transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
+		opacity: 1,
+	};
+}
+
+export function buildVideoElement({
+	mediaId,
+	name,
+	duration,
+	startTime,
+}: {
+	mediaId: string;
+	name: string;
+	duration: number;
+	startTime: number;
+}): CreateVideoElement {
+	return {
+		type: "video",
+		mediaId,
+		name,
+		duration,
+		startTime,
+		trimStart: 0,
+		trimEnd: 0,
+		muted: false,
+		hidden: false,
+		transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
+		opacity: 1,
+	};
+}
+
+export function buildImageElement({
+	mediaId,
+	name,
+	duration,
+	startTime,
+}: {
+	mediaId: string;
+	name: string;
+	duration: number;
+	startTime: number;
+}): CreateImageElement {
+	return {
+		type: "image",
+		mediaId,
+		name,
+		duration,
+		startTime,
+		trimStart: 0,
+		trimEnd: 0,
+		hidden: false,
 		transform: { scale: 1, position: { x: 0, y: 0 }, rotate: 0 },
 		opacity: 1,
 	};

@@ -7,6 +7,9 @@ import { snapTimeToFrame } from "@/lib/time";
 import {
 	buildTextElement,
 	buildStickerElement,
+	buildUploadAudioElement,
+	buildVideoElement,
+	buildImageElement,
 } from "@/lib/timeline/element-utils";
 import { computeDropTarget } from "@/lib/timeline/drop-utils";
 import { getDragData, hasDragData } from "@/lib/drag-data";
@@ -261,62 +264,32 @@ export function useTimelineDragDrop({
 			if (dragData.mediaType === "audio") {
 				editor.timeline.insertElement({
 					placement: { mode: "explicit", trackId },
-					element: {
-						type: "audio",
-						sourceType: "upload",
+					element: buildUploadAudioElement({
 						mediaId: mediaAsset.id,
 						name: mediaAsset.name,
 						duration,
 						startTime: target.xPosition,
-						trimStart: 0,
-						trimEnd: 0,
-						volume: 1,
-						muted: false,
-					},
+					}),
 				});
 			} else if (dragData.mediaType === "video") {
 				editor.timeline.insertElement({
 					placement: { mode: "explicit", trackId },
-					element: {
-						type: "video",
+					element: buildVideoElement({
 						mediaId: mediaAsset.id,
 						name: mediaAsset.name,
 						duration,
 						startTime: target.xPosition,
-						trimStart: 0,
-						trimEnd: 0,
-						transform: {
-							scale: 1,
-							position: {
-								x: 0,
-								y: 0,
-							},
-							rotate: 0,
-						},
-						opacity: 1,
-					},
+					}),
 				});
 			} else {
 				editor.timeline.insertElement({
 					placement: { mode: "explicit", trackId },
-					element: {
-						type: "image",
+					element: buildImageElement({
 						mediaId: mediaAsset.id,
 						name: mediaAsset.name,
 						duration,
 						startTime: target.xPosition,
-						trimStart: 0,
-						trimEnd: 0,
-						transform: {
-							scale: 1,
-							position: {
-								x: 0,
-								y: 0,
-							},
-							rotate: 0,
-						},
-						opacity: 1,
-					},
+					}),
 				});
 			}
 		},
@@ -377,63 +350,33 @@ export function useTimelineDragDrop({
 					if (added.type === "audio") {
 						editor.timeline.insertElement({
 							placement: { mode: "explicit", trackId },
-							element: {
-								type: "audio",
-								sourceType: "upload",
+							element: buildUploadAudioElement({
 								mediaId: added.id,
 								name: added.name,
 								duration,
 								startTime: dropTarget.xPosition,
-								trimStart: 0,
-								trimEnd: 0,
-								volume: 1,
 								buffer: new AudioBuffer({ length: 1, sampleRate: 44100 }),
-								muted: false,
-							},
+							}),
 						});
 					} else if (added.type === "video") {
 						editor.timeline.insertElement({
 							placement: { mode: "explicit", trackId },
-							element: {
-								type: "video",
+							element: buildVideoElement({
 								mediaId: added.id,
 								name: added.name,
 								duration,
 								startTime: dropTarget.xPosition,
-								trimStart: 0,
-								trimEnd: 0,
-								transform: {
-									scale: 1,
-									position: {
-										x: 0,
-										y: 0,
-									},
-									rotate: 0,
-								},
-								opacity: 1,
-							},
+							}),
 						});
 					} else {
 						editor.timeline.insertElement({
 							placement: { mode: "explicit", trackId },
-							element: {
-								type: "image",
+							element: buildImageElement({
 								mediaId: added.id,
 								name: added.name,
 								duration,
 								startTime: dropTarget.xPosition,
-								trimStart: 0,
-								trimEnd: 0,
-								transform: {
-									scale: 1,
-									position: {
-										x: 0,
-										y: 0,
-									},
-									rotate: 0,
-								},
-								opacity: 1,
-							},
+							}),
 						});
 					}
 				}
@@ -486,10 +429,10 @@ export function useTimelineDragDrop({
 			}
 		},
 		[
-			dropTarget, 
-			executeTextDrop, 
-			executeStickerDrop, 
-			executeMediaDrop, 
+			dropTarget,
+			executeTextDrop,
+			executeStickerDrop,
+			executeMediaDrop,
 			executeFileDrop,
 			containerRef,
 		],
