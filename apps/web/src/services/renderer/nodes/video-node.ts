@@ -1,6 +1,6 @@
-import { Input, ALL_FORMATS, BlobSource, VideoSampleSink } from "mediabunny";
 import type { CanvasRenderer } from "../canvas-renderer";
 import { BaseNode } from "./base-node";
+import { videoCache } from "@/services/media/video-cache";
 
 const VIDEO_EPSILON = 1 / 1000;
 
@@ -17,33 +17,13 @@ export interface BaseMediaNodeParams {
 	opacity?: number;
 }
 
-export type VideoNodeParams = BaseMediaNodeParams;
+export interface VideoNodeParams extends BaseMediaNodeParams {
+	mediaId: string;
+}
 
 export class VideoNode extends BaseNode<VideoNodeParams> {
-	private sink?: VideoSampleSink;
-	private readyPromise: Promise<void>;
-
 	constructor(params: VideoNodeParams) {
 		super(params);
-		this.readyPromise = this.load();
-	}
-
-	private async load() {
-		const input = new Input({
-			source: new BlobSource(this.params.file),
-			formats: ALL_FORMATS,
-		});
-
-		const videoTrack = await input.getPrimaryVideoTrack();
-		if (!videoTrack) {
-			throw new Error("No video track found");
-		}
-
-		if (!(await videoTrack.canDecode())) {
-			throw new Error("Unable to decode the video track.");
-		}
-
-		this.sink = new VideoSampleSink(videoTrack);
 	}
 
 	private getVideoTime(time: number) {
@@ -65,44 +45,38 @@ export class VideoNode extends BaseNode<VideoNodeParams> {
 			return;
 		}
 
-		await this.readyPromise;
-
-		if (!this.sink) {
-			throw new Error("Sink not initialized");
-		}
-
 		const videoTime = this.getVideoTime(time);
-		const sample = await this.sink.getSample(videoTime);
+		const frame = await videoCache.getFrameAt({
+			mediaId: this.params.mediaId,
+			file: this.params.file,
+			time: videoTime,
+		});
 
-		if (sample) {
-			try {
-				renderer.context.save();
+		if (frame) {
+			renderer.context.save();
 
-				if (this.params.opacity !== undefined) {
-					renderer.context.globalAlpha = this.params.opacity;
-				}
-
-				if (
-					this.params.x !== undefined &&
-					this.params.y !== undefined &&
-					this.params.width !== undefined &&
-					this.params.height !== undefined
-				) {
-					sample.draw(
-						renderer.context,
-						this.params.x,
-						this.params.y,
-						this.params.width,
-						this.params.height,
-					);
-				} else {
-					sample.draw(renderer.context, 0, 0, renderer.width, renderer.height);
-				}
-
-				renderer.context.restore();
-			} finally {
-				sample.close();
+			if (this.params.opacity !== undefined) {
+				renderer.context.globalAlpha = this.params.opacity;
 			}
+
+			if (
+				this.params.x !== undefined &&
+				this.params.y !== undefined &&
+				this.params.width !== undefined &&
+				this.params.height !== undefined
+			) {
+				renderer.context.drawImage(
+					frame.canvas,
+					this.params.x,
+					this.params.y,
+					this.params.width,
+					this.params.height,
+				);
+			} else {
+				renderer.context.drawImage(frame.canvas, 0, 0, renderer.width, renderer.height);
+			}
+
+			renderer.context.restore();
 		}
 	}
 }

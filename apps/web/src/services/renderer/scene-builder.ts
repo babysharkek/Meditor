@@ -58,6 +58,7 @@ export function buildScene(params: BuildSceneParams) {
 				if (mediaAsset.type === "video") {
 					contentNodes.push(
 						new VideoNode({
+							mediaId: mediaAsset.id,
 							file: mediaAsset.file,
 							duration: element.duration,
 							timeOffset: element.startTime,

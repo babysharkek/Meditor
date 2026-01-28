@@ -10,7 +10,10 @@ interface VideoSinkData {
 	sink: CanvasSink;
 	iterator: AsyncGenerator<WrappedCanvas, void, unknown> | null;
 	currentFrame: WrappedCanvas | null;
+	nextFrame: WrappedCanvas | null;
 	lastTime: number;
+	prefetching: boolean;
+	prefetchPromise: Promise<void> | null;
 }
 export class VideoCache {
 	private sinks = new Map<string, VideoSinkData>();
@@ -30,10 +33,19 @@ export class VideoCache {
 		const sinkData = this.sinks.get(mediaId);
 		if (!sinkData) return null;
 
+		if (sinkData.nextFrame && sinkData.nextFrame.timestamp <= time) {
+			sinkData.currentFrame = sinkData.nextFrame;
+			sinkData.nextFrame = null;
+			this.startPrefetch({ sinkData });
+		}
+
 		if (
 			sinkData.currentFrame &&
 			this.isFrameValid({ frame: sinkData.currentFrame, time })
 		) {
+			if (!sinkData.nextFrame && !sinkData.prefetching) {
+				this.startPrefetch({ sinkData });
+			}
 			return sinkData.currentFrame;
 		}
 
@@ -44,10 +56,19 @@ export class VideoCache {
 			time < sinkData.lastTime + 2.0
 		) {
 			const frame = await this.iterateToTime({ sinkData, targetTime: time });
-			if (frame) return frame;
+			if (frame) {
+				if (!sinkData.nextFrame && !sinkData.prefetching) {
+					this.startPrefetch({ sinkData });
+				}
+				return frame;
+			}
 		}
 
-		return await this.seekToTime({ sinkData, time });
+		const frame = await this.seekToTime({ sinkData, time });
+		if (frame && !sinkData.nextFrame && !sinkData.prefetching) {
+			this.startPrefetch({ sinkData });
+		}
+		return frame;
 	}
 
 	private isFrameValid({
@@ -70,11 +91,29 @@ export class VideoCache {
 
 		try {
 			while (true) {
-				const { value: frame, done } = await sinkData.iterator.next();
+				// Wait for any pending prefetch to finish before touching iterator
+				if (sinkData.prefetching && sinkData.prefetchPromise) {
+					await sinkData.prefetchPromise;
+				}
 
-				if (done || !frame) break;
+				// Check if the nextFrame (which might have just arrived) is what we need
+				if (
+					sinkData.nextFrame &&
+					sinkData.nextFrame.timestamp <= targetTime + 0.05 // Tolerance
+				) {
+					sinkData.currentFrame = sinkData.nextFrame;
+					sinkData.nextFrame = null;
+				} else {
+					const { value: frame, done } = await sinkData.iterator.next();
 
-				sinkData.currentFrame = frame;
+					if (done || !frame) break;
+
+					sinkData.currentFrame = frame;
+				}
+
+				const frame = sinkData.currentFrame;
+				if (!frame) break;
+
 				sinkData.lastTime = frame.timestamp;
 
 				if (this.isFrameValid({ frame, time: targetTime })) {
@@ -98,18 +137,36 @@ export class VideoCache {
 		time: number;
 	}): Promise<WrappedCanvas | null> {
 		try {
+			if (sinkData.prefetching && sinkData.prefetchPromise) {
+				await sinkData.prefetchPromise;
+			}
+
 			if (sinkData.iterator) {
 				await sinkData.iterator.return();
 				sinkData.iterator = null;
 			}
 
+			sinkData.nextFrame = null;
 			sinkData.iterator = sinkData.sink.canvases(time);
 			sinkData.lastTime = time;
 
+			// Fetch current frame
 			const { value: frame } = await sinkData.iterator.next();
 
 			if (frame) {
 				sinkData.currentFrame = frame;
+
+				// Aggressively fetch next frame immediately to fill buffer
+				// This matches the mediaplayer example which fetches 2 frames on start
+				try {
+					const { value: next } = await sinkData.iterator.next();
+					if (next) {
+						sinkData.nextFrame = next;
+					}
+				} catch (e) {
+					console.warn("Failed to pre-fetch next frame on seek:", e);
+				}
+
 				return frame;
 			}
 		} catch (error) {
@@ -117,6 +174,46 @@ export class VideoCache {
 		}
 
 		return null;
+	}
+
+	private startPrefetch({ sinkData }: { sinkData: VideoSinkData }): void {
+		if (sinkData.prefetching || !sinkData.iterator || sinkData.nextFrame) {
+			return;
+		}
+
+		sinkData.prefetching = true;
+		sinkData.prefetchPromise = this.prefetchNextFrame({ sinkData });
+	}
+
+	private async prefetchNextFrame({
+		sinkData,
+	}: {
+		sinkData: VideoSinkData;
+	}): Promise<void> {
+		if (!sinkData.iterator) {
+			sinkData.prefetching = false;
+			sinkData.prefetchPromise = null;
+			return;
+		}
+
+		try {
+			const { value: frame, done } = await sinkData.iterator.next();
+
+			if (done || !frame) {
+				sinkData.prefetching = false;
+				sinkData.prefetchPromise = null;
+				return;
+			}
+
+			sinkData.nextFrame = frame;
+			sinkData.prefetching = false;
+			sinkData.prefetchPromise = null;
+		} catch (error) {
+			console.warn("Prefetch failed:", error);
+			sinkData.prefetching = false;
+			sinkData.prefetchPromise = null;
+			sinkData.iterator = null;
+		}
 	}
 	private async ensureSink({
 		mediaId,
@@ -173,7 +270,10 @@ export class VideoCache {
 				sink,
 				iterator: null,
 				currentFrame: null,
+				nextFrame: null,
 				lastTime: -1,
+				prefetching: false,
+				prefetchPromise: null,
 			});
 		} catch (error) {
 			console.error(`Failed to initialize video sink for ${mediaId}:`, error);
@@ -185,7 +285,7 @@ export class VideoCache {
 		const sinkData = this.sinks.get(mediaId);
 		if (sinkData) {
 			if (sinkData.iterator) {
-				sinkData.iterator.return();
+				void sinkData.iterator.return();
 			}
 
 			this.sinks.delete(mediaId);
