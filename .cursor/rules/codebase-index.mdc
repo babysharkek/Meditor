@@ -983,6 +983,33 @@ index.ts
   	tracks: TimelineTrack[];
   }): number
 
+ruler-utils.ts
+  export interface RulerConfig {
+    labelIntervalSeconds: number
+    tickIntervalSeconds: number
+  }
+  export function getRulerConfig({
+  	zoomLevel,
+  	fps,
+  }: {
+  	zoomLevel: number;
+  	fps: number;
+  }): RulerConfig
+  export function shouldShowLabel({
+  	time,
+  	labelIntervalSeconds,
+  }: {
+  	time: number;
+  	labelIntervalSeconds: number;
+  }): boolean
+  export function formatRulerLabel({
+  	timeInSeconds,
+  	fps,
+  }: {
+  	timeInSeconds: number;
+  	fps: number;
+  }): string
+
 track-utils.ts
   export function canTracktHaveAudio(
   	track: TimelineTrack,

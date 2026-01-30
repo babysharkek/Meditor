@@ -39,7 +39,7 @@ export const TIMELINE_CONSTANTS = {
 	PADDING_TOP_PX: 0,
 	ZOOM_LEVELS: [0.1, 0.25, 0.5, 1, 1.5, 2, 3, 4, 6, 8, 10, 15, 20, 30, 50],
 	ZOOM_MIN: 0.1,
-	ZOOM_MAX: 50,
+	ZOOM_MAX: 100,
 	ZOOM_STEP: 0.1,
 } as const;
 
