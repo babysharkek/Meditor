@@ -28,6 +28,7 @@ Review every point below carefully for files to ensure they follow consistent co
    ```
    
 17. For components that need to subscribe to data from the editor api (`src/core`, `src/managers`), use the `useEditor` hook.
+
 18. In react components: store/manager methods should not be passed as props to sub-components. If a sub-component can access the same methods, it should do so. Example:
 
     ```tsx

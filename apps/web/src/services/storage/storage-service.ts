@@ -111,6 +111,7 @@ class StorageService {
 			currentSceneId: project.currentSceneId,
 			settings: project.settings,
 			version: project.version,
+			timelineViewState: project.timelineViewState,
 		};
 
 		await this.projectsAdapter.set(project.metadata.id, serializedProject);
@@ -156,6 +157,7 @@ class StorageService {
 			currentSceneId: serializedProject.currentSceneId || "",
 			settings: serializedProject.settings,
 			version: serializedProject.version,
+			timelineViewState: serializedProject.timelineViewState,
 		};
 
 		return { project };

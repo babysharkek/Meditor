@@ -1,3 +1,4 @@
+import type { TTimelineViewState } from "@/types/project";
 import type { TrackType } from "@/types/timeline";
 import {
 	Happy01Icon,
@@ -41,7 +42,13 @@ export const TIMELINE_CONSTANTS = {
 	ZOOM_MAX: 50,
 	ZOOM_STEP: 0.1,
 	ZOOM_OUT_FACTOR: 4,
+	ZOOM_PLAYHEAD_ANCHOR_THRESHOLD: 0.0002,
 } as const;
+
+export const DEFAULT_TIMELINE_VIEW_STATE: TTimelineViewState = {
+	zoomLevel: 1,
+	scrollLeft: 0,
+};
 
 export const TRACK_ICONS: Record<TrackType, React.ReactNode> = {
 	video: <OcVideoIcon className="text-muted-foreground size-4 shrink-0" />,

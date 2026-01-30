@@ -97,10 +97,17 @@ export function Timeline() {
 		containerWidth: timelineRef.current?.clientWidth,
 	});
 
-	const { zoomLevel, setZoomLevel, handleWheel } = useTimelineZoom({
-		containerRef: timelineRef,
-		minZoom: minZoomLevel,
-	});
+	const savedViewState = editor.project.getTimelineViewState();
+
+	const { zoomLevel, setZoomLevel, handleWheel, saveScrollPosition } =
+		useTimelineZoom({
+			containerRef: timelineRef,
+			minZoom: minZoomLevel,
+			initialZoom: savedViewState?.zoomLevel,
+			initialScrollLeft: savedViewState?.scrollLeft,
+			tracksScrollRef,
+			rulerScrollRef,
+		});
 
 	const {
 		dragState,
@@ -354,6 +361,9 @@ export function Timeline() {
 								if (!isDirectTarget) return;
 								event.stopPropagation();
 								handleTracksClick(event);
+							}}
+							onScroll={() => {
+								saveScrollPosition();
 							}}
 						>
 							<div

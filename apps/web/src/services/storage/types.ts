@@ -1,5 +1,9 @@
 import type { MediaType } from "@/types/assets";
-import type { TProject, TProjectMetadata } from "@/types/project";
+import type {
+	TProject,
+	TProjectMetadata,
+	TTimelineViewState,
+} from "@/types/project";
 import type { TScene } from "@/types/timeline";
 
 export interface StorageAdapter<T> {
@@ -41,6 +45,7 @@ export type SerializedProjectMetadata = Omit<
 export type SerializedProject = Omit<TProject, "metadata" | "scenes"> & {
 	metadata: SerializedProjectMetadata;
 	scenes: SerializedScene[];
+	timelineViewState?: TTimelineViewState;
 };
 
 export interface StorageConfig {

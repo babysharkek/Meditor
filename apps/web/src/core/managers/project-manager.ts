@@ -5,6 +5,7 @@ import type {
 	TProjectSortKey,
 	TProjectSortOption,
 	TProjectSettings,
+	TTimelineViewState,
 } from "@/types/project";
 import type { ExportOptions, ExportResult } from "@/types/export";
 import { storageService } from "@/services/storage/storage-service";
@@ -24,6 +25,7 @@ import {
 	migrations,
 	runStorageMigrations,
 } from "@/services/storage/migrations";
+import { DEFAULT_TIMELINE_VIEW_STATE } from "@/constants/timeline-constants";
 
 export interface MigrationState {
 	isMigrating: boolean;
@@ -539,6 +541,19 @@ export class ProjectManager {
 	 */
 	getActiveOrNull(): TProject | null {
 		return this.active;
+	}
+
+	getTimelineViewState(): TTimelineViewState {
+		return this.active?.timelineViewState ?? DEFAULT_TIMELINE_VIEW_STATE;
+	}
+
+	setTimelineViewState({ viewState }: { viewState: TTimelineViewState }): void {
+		if (!this.active) return;
+		this.active = {
+			...this.active,
+			timelineViewState: viewState ?? undefined,
+		};
+		this.editor.save.markDirty();
 	}
 
 	getSavedProjects(): TProjectMetadata[] {

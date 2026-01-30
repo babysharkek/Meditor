@@ -31,12 +31,18 @@ export interface TProjectSettings {
 	background: TBackground;
 }
 
+export interface TTimelineViewState {
+	zoomLevel: number;
+	scrollLeft: number;
+}
+
 export interface TProject {
 	metadata: TProjectMetadata;
 	scenes: TScene[];
 	currentSceneId: string;
 	settings: TProjectSettings;
 	version: number;
+	timelineViewState?: TTimelineViewState;
 }
 
 export type TProjectSortKey = "createdAt" | "updatedAt" | "name" | "duration";
