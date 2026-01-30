@@ -156,16 +156,16 @@ export function useEditorActions() {
 							time: currentTime,
 						});
 
-		if (elementsToSplit.length === 0) return;
+			if (elementsToSplit.length === 0) return;
 
-		editor.timeline.splitElements({
-			elements: elementsToSplit,
-			splitTime: currentTime,
-			retainSide: "right",
-		});
-	},
-	undefined,
-);
+			editor.timeline.splitElements({
+				elements: elementsToSplit,
+				splitTime: currentTime,
+				retainSide: "right",
+			});
+		},
+		undefined,
+	);
 
 	useActionHandler(
 		"split-right",
@@ -220,9 +220,9 @@ export function useEditorActions() {
 	useActionHandler(
 		"duplicate-selected",
 		() => {
-		editor.timeline.duplicateElements({
-			elements: selectedElements,
-		});
+			editor.timeline.duplicateElements({
+				elements: selectedElements,
+			});
 		},
 		undefined,
 	);
@@ -276,12 +276,12 @@ export function useEditorActions() {
 	useActionHandler(
 		"paste-copied",
 		() => {
-		if (!clipboard?.items.length) return;
+			if (!clipboard?.items.length) return;
 
-		editor.timeline.pasteAtTime({
-			time: editor.playback.getCurrentTime(),
-			clipboardItems: clipboard.items,
-		});
+			editor.timeline.pasteAtTime({
+				time: editor.playback.getCurrentTime(),
+				clipboardItems: clipboard.items,
+			});
 		},
 		undefined,
 	);

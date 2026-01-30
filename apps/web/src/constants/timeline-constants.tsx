@@ -36,18 +36,17 @@ export const TIMELINE_CONSTANTS = {
 	PIXELS_PER_SECOND: 50,
 	DEFAULT_ELEMENT_DURATION: 5,
 	PLAYHEAD_LOOKAHEAD_SECONDS: 30, // padding ahead
-	PADDING_TOP: 0, // px
+	PADDING_TOP_PX: 0,
 	ZOOM_LEVELS: [0.1, 0.25, 0.5, 1, 1.5, 2, 3, 4, 6, 8, 10, 15, 20, 30, 50],
 	ZOOM_MIN: 0.1,
 	ZOOM_MAX: 50,
 	ZOOM_STEP: 0.1,
-	ZOOM_OUT_FACTOR: 4,
-	ZOOM_PLAYHEAD_ANCHOR_THRESHOLD: 0.0002,
 } as const;
 
 export const DEFAULT_TIMELINE_VIEW_STATE: TTimelineViewState = {
 	zoomLevel: 1,
 	scrollLeft: 0,
+	playheadTime: 0,
 };
 
 export const TRACK_ICONS: Record<TrackType, React.ReactNode> = {

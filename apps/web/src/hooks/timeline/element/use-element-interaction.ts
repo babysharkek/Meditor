@@ -28,6 +28,7 @@ interface UseElementInteractionProps {
 	timelineRef: RefObject<HTMLDivElement | null>;
 	tracksContainerRef: RefObject<HTMLDivElement | null>;
 	tracksScrollRef: RefObject<HTMLDivElement | null>;
+	headerRef?: RefObject<HTMLElement | null>;
 	snappingEnabled: boolean;
 	onSnapPointChange?: (snapPoint: SnapPoint | null) => void;
 }
@@ -104,6 +105,7 @@ function getDragDropTarget({
 	tracks,
 	tracksContainerRef,
 	tracksScrollRef,
+	headerRef,
 	zoomLevel,
 	snappedTime,
 	verticalDragDirection,
@@ -115,6 +117,7 @@ function getDragDropTarget({
 	tracks: TimelineTrack[];
 	tracksContainerRef: RefObject<HTMLDivElement | null>;
 	tracksScrollRef: RefObject<HTMLDivElement | null>;
+	headerRef?: RefObject<HTMLElement | null>;
 	zoomLevel: number;
 	snappedTime: number;
 	verticalDragDirection?: "up" | "down" | null;
@@ -131,9 +134,11 @@ function getDragDropTarget({
 
 	const elementDuration = movingElement.duration;
 	const scrollLeft = scrollContainer.scrollLeft;
+	const scrollTop = scrollContainer.scrollTop;
 	const scrollContainerRect = scrollContainer.getBoundingClientRect();
+	const headerHeight = headerRef?.current?.getBoundingClientRect().height ?? 0;
 	const mouseX = clientX - scrollContainerRect.left + scrollLeft;
-	const mouseY = clientY - containerRect.top;
+	const mouseY = clientY - scrollContainerRect.top + scrollTop - headerHeight;
 
 	return computeDropTarget({
 		elementType: movingElement.type,
@@ -165,6 +170,7 @@ export function useElementInteraction({
 	timelineRef,
 	tracksContainerRef,
 	tracksScrollRef,
+	headerRef,
 	snappingEnabled,
 	onSnapPointChange,
 }: UseElementInteractionProps) {
@@ -368,6 +374,7 @@ export function useElementInteraction({
 					tracks,
 					tracksContainerRef,
 					tracksScrollRef,
+					headerRef,
 					zoomLevel,
 					snappedTime,
 					verticalDragDirection,
@@ -391,6 +398,7 @@ export function useElementInteraction({
 		timelineRef,
 		tracksScrollRef,
 		tracksContainerRef,
+		headerRef,
 		tracks,
 		isPendingDrag,
 		startDrag,
@@ -423,6 +431,7 @@ export function useElementInteraction({
 				tracks,
 				tracksContainerRef,
 				tracksScrollRef,
+				headerRef,
 				zoomLevel,
 				snappedTime: dragState.currentTime,
 				verticalDragDirection: getVerticalDragDirection({
@@ -485,6 +494,7 @@ export function useElementInteraction({
 		editor.timeline,
 		tracksContainerRef,
 		tracksScrollRef,
+		headerRef,
 	]);
 
 	useEffect(() => {

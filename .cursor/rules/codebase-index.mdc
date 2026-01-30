@@ -219,8 +219,8 @@ use-edge-auto-scroll.ts
 
 use-scroll-sync.ts
   export function useScrollSync({
-  	rulerScrollRef,
   	tracksScrollRef,
+  	rulerScrollRef,
   	trackLabelsScrollRef,
   	bookmarksScrollRef,
   }: UseScrollSyncProps)
@@ -247,6 +247,7 @@ use-snap-indicator-position.ts
 use-timeline-drag-drop.ts
   export function useTimelineDragDrop({
   	containerRef,
+  	headerRef,
   	zoomLevel,
   }: UseTimelineDragDropProps)
 
@@ -296,13 +297,14 @@ use-timeline-snapping.ts
   }: UseTimelineSnappingOptions = {})
 
 use-timeline-zoom.ts
-  export function useTimelineZoom({
-  	containerRef,
-  	minZoom = TIMELINE_CONSTANTS.ZOOM_MIN,
-  	initialZoom,
-  	initialScrollLeft,
-  	tracksScrollRef,
-  	rulerScrollRef,
+  export function useTimelineZoom({
+  	containerRef,
+  	minZoom = TIMELINE_CONSTANTS.ZOOM_MIN,
+  	initialZoom,
+  	initialScrollLeft,
+  	initialPlayheadTime,
+  	tracksScrollRef,
+  	rulerScrollRef,
   }: UseTimelineZoomProps): UseTimelineZoomReturn
 
 ## apps/web/src/hooks/timeline/element
@@ -313,6 +315,7 @@ use-element-interaction.ts
   	timelineRef,
   	tracksContainerRef,
   	tracksScrollRef,
+  	headerRef,
   	snappingEnabled,
   	onSnapPointChange,
   }: UseElementInteractionProps)
@@ -551,6 +554,13 @@ time.ts
   	fps,
   }: {
   	rawTime: number;
+  	duration: number;
+  	fps: number;
+  }): number
+  export function getLastFrameTime({
+  	duration,
+  	fps,
+  }: {
   	duration: number;
   	fps: number;
   }): number
@@ -1045,12 +1055,28 @@ track-utils.ts
   }): { isValid: boolean; errorMessage?: string }
 
 zoom-utils.ts
-  export function getTimelineZoomMin({
-  	duration,
-  	containerWidth,
-  }: {
-  	duration: number;
-  	containerWidth: number | null | undefined;
+  export function getTimelineZoomMin({
+  	duration,
+  	containerWidth,
+  }: {
+  	duration: number;
+  	containerWidth: number | null | undefined;
+  }): number
+  export function getTimelinePaddingPx({
+  	containerWidth,
+  	zoomLevel,
+  	minZoom,
+  }: {
+  	containerWidth: number;
+  	zoomLevel: number;
+  	minZoom: number;
+  }): number
+  export function getZoomPercent({
+  	zoomLevel,
+  	minZoom,
+  }: {
+  	zoomLevel: number;
+  	minZoom: number;
   }): number
 
 ## apps/web/src/lib/transcription
@@ -1460,6 +1486,7 @@ project.ts
   export interface TTimelineViewState {
     zoomLevel: number
     scrollLeft: number
+    playheadTime: number
   }
   export interface TProject {
     metadata: TProjectMetadata

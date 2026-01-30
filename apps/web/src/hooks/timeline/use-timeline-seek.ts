@@ -143,6 +143,13 @@ export function useTimelineSeek({
 				fps: projectFps,
 			});
 			seek(time);
+			editor.project.setTimelineViewState({
+				viewState: {
+					zoomLevel,
+					scrollLeft: scrollContainer.scrollLeft,
+					playheadTime: time,
+				},
+			});
 		},
 		[
 			duration,
@@ -150,6 +157,7 @@ export function useTimelineSeek({
 			rulerScrollRef,
 			tracksScrollRef,
 			seek,
+			editor,
 			activeProject?.settings.fps,
 		],
 	);

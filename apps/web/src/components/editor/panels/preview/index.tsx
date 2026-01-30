@@ -7,6 +7,7 @@ import { useRafLoop } from "@/hooks/use-raf-loop";
 import { CanvasRenderer } from "@/services/renderer/canvas-renderer";
 import type { RootNode } from "@/services/renderer/nodes/root-node";
 import { buildScene } from "@/services/renderer/scene-builder";
+import { getLastFrameTime } from "@/lib/time";
 
 function usePreviewSize() {
 	const editor = useEditor();
@@ -77,7 +78,12 @@ function PreviewCanvas() {
 	const render = useCallback(() => {
 		if (ref.current && renderTree && !renderingRef.current) {
 			const time = editor.playback.getCurrentTime();
-			const frame = Math.floor(time * renderer.fps);
+			const lastFrameTime = getLastFrameTime({
+				duration: renderTree.duration,
+				fps: renderer.fps,
+			});
+			const renderTime = Math.min(time, lastFrameTime);
+			const frame = Math.floor(renderTime * renderer.fps);
 
 			if (
 				frame !== lastFrameRef.current ||
@@ -87,7 +93,11 @@ function PreviewCanvas() {
 				lastSceneRef.current = renderTree;
 				lastFrameRef.current = frame;
 				renderer
-					.renderToCanvas({ node: renderTree, time, targetCanvas: ref.current })
+					.renderToCanvas({
+						node: renderTree,
+						time: renderTime,
+						targetCanvas: ref.current,
+					})
 					.then(() => {
 						renderingRef.current = false;
 					});

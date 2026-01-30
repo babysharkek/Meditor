@@ -18,11 +18,13 @@ import type { MediaDragData, StickerDragData } from "@/types/drag";
 
 interface UseTimelineDragDropProps {
 	containerRef: RefObject<HTMLDivElement | null>;
+	headerRef?: RefObject<HTMLElement | null>;
 	zoomLevel: number;
 }
 
 export function useTimelineDragDrop({
 	containerRef,
+	headerRef,
 	zoomLevel,
 }: UseTimelineDragDropProps) {
 	const editor = useEditor();
@@ -93,6 +95,8 @@ export function useTimelineDragDrop({
 			const rect = containerRef.current?.getBoundingClientRect();
 			if (!rect) return;
 
+			const headerHeight =
+				headerRef?.current?.getBoundingClientRect().height ?? 0;
 			const hasFiles = e.dataTransfer.types.includes("Files");
 			const isExternal =
 				hasFiles && !hasDragData({ dataTransfer: e.dataTransfer });
@@ -116,7 +120,7 @@ export function useTimelineDragDrop({
 			});
 
 			const mouseX = e.clientX - rect.left;
-			const mouseY = e.clientY - rect.top;
+			const mouseY = Math.max(0, e.clientY - rect.top - headerHeight);
 
 			const target = computeDropTarget({
 				elementType,
@@ -137,6 +141,7 @@ export function useTimelineDragDrop({
 		},
 		[
 			containerRef,
+			headerRef,
 			tracks,
 			currentTime,
 			zoomLevel,
@@ -416,7 +421,9 @@ export function useTimelineDragDrop({
 					const rect = containerRef.current?.getBoundingClientRect();
 					if (!rect) return;
 					const mouseX = e.clientX - rect.left;
-					const mouseY = e.clientY - rect.top;
+					const headerHeight =
+						headerRef?.current?.getBoundingClientRect().height ?? 0;
+					const mouseY = Math.max(0, e.clientY - rect.top - headerHeight);
 					await executeFileDrop({
 						files: Array.from(e.dataTransfer.files),
 						mouseX,
@@ -435,6 +442,7 @@ export function useTimelineDragDrop({
 			executeMediaDrop,
 			executeFileDrop,
 			containerRef,
+			headerRef,
 		],
 	);
 

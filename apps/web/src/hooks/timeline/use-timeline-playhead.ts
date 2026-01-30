@@ -59,8 +59,7 @@ export function useTimelinePlayhead({
 				0,
 				Math.min(
 					duration,
-					clampedMouseX /
-						(TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel),
+					clampedMouseX / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel),
 				),
 			);
 			const framesPerSecond = activeProject.settings.fps;
@@ -134,7 +133,16 @@ export function useTimelinePlayhead({
 
 		const handleMouseUp = ({ event }: { event: MouseEvent }) => {
 			setIsScrubbing(false);
-			if (scrubTime !== null) seek({ time: scrubTime });
+			if (scrubTime !== null) {
+				seek({ time: scrubTime });
+				editor.project.setTimelineViewState({
+					viewState: {
+						zoomLevel,
+						scrollLeft: tracksScrollRef.current?.scrollLeft ?? 0,
+						playheadTime: scrubTime,
+					},
+				});
+			}
 			setScrubTime(null);
 
 			if (isDraggingRuler) {
@@ -163,6 +171,9 @@ export function useTimelinePlayhead({
 		handleScrub,
 		isDraggingRuler,
 		hasDraggedRuler,
+		editor,
+		tracksScrollRef,
+		zoomLevel,
 	]);
 
 	useEffect(() => {

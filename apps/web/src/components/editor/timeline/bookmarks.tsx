@@ -1,4 +1,3 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEditor } from "@/hooks/use-editor";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { getSnappedSeekTime } from "@/lib/time";
@@ -8,7 +7,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 interface TimelineBookmarksRowProps {
 	zoomLevel: number;
 	dynamicTimelineWidth: number;
-	bookmarksScrollRef: React.RefObject<HTMLDivElement>;
 	handleWheel: (e: React.WheelEvent) => void;
 	handleTimelineContentClick: (e: React.MouseEvent) => void;
 	handleRulerTrackingMouseDown: (e: React.MouseEvent) => void;
@@ -18,7 +16,6 @@ interface TimelineBookmarksRowProps {
 export function TimelineBookmarksRow({
 	zoomLevel,
 	dynamicTimelineWidth,
-	bookmarksScrollRef,
 	handleWheel,
 	handleTimelineContentClick,
 	handleRulerTrackingMouseDown,
@@ -29,30 +26,28 @@ export function TimelineBookmarksRow({
 
 	return (
 		<div className="relative h-4 flex-1 overflow-hidden">
-			<ScrollArea className="scrollbar-hidden w-full" ref={bookmarksScrollRef}>
-				<button
-					className="relative h-4 w-full cursor-default select-none border-0 bg-transparent p-0"
-					style={{
-						width: `${dynamicTimelineWidth}px`,
-					}}
-					aria-label="Timeline ruler"
-					type="button"
-					onWheel={handleWheel}
-					onClick={handleTimelineContentClick}
-					onMouseDown={(event) => {
-						handleRulerMouseDown(event);
-						handleRulerTrackingMouseDown(event);
-					}}
-				>
-					{activeScene.bookmarks.map((time: number) => (
-						<TimelineBookmark
-							key={`bookmark-row-${time}`}
-							time={time}
-							zoomLevel={zoomLevel}
-						/>
-					))}
-				</button>
-			</ScrollArea>
+			<button
+				className="relative h-4 w-full cursor-default select-none border-0 bg-transparent p-0"
+				style={{
+					width: `${dynamicTimelineWidth}px`,
+				}}
+				aria-label="Timeline ruler"
+				type="button"
+				onWheel={handleWheel}
+				onClick={handleTimelineContentClick}
+				onMouseDown={(event) => {
+					handleRulerMouseDown(event);
+					handleRulerTrackingMouseDown(event);
+				}}
+			>
+				{activeScene.bookmarks.map((time: number) => (
+					<TimelineBookmark
+						key={`bookmark-row-${time}`}
+						time={time}
+						zoomLevel={zoomLevel}
+					/>
+				))}
+			</button>
 		</div>
 	);
 }

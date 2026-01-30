@@ -1,15 +1,15 @@
 import { useEffect, useRef } from "react";
 
 interface UseScrollSyncProps {
-	rulerScrollRef: React.RefObject<HTMLDivElement>;
+	rulerScrollRef?: React.RefObject<HTMLDivElement>;
 	tracksScrollRef: React.RefObject<HTMLDivElement>;
 	trackLabelsScrollRef?: React.RefObject<HTMLDivElement>;
 	bookmarksScrollRef?: React.RefObject<HTMLDivElement>;
 }
 
 export function useScrollSync({
-	rulerScrollRef,
 	tracksScrollRef,
+	rulerScrollRef,
 	trackLabelsScrollRef,
 	bookmarksScrollRef,
 }: UseScrollSyncProps) {
@@ -20,23 +20,36 @@ export function useScrollSync({
 	const lastBookmarksSync = useRef(0);
 
 	useEffect(() => {
-		const rulerViewport = rulerScrollRef.current;
+		const rulerViewport = rulerScrollRef?.current ?? null;
 		const tracksViewport = tracksScrollRef.current;
 		const trackLabelsViewport = trackLabelsScrollRef?.current;
 		const bookmarksViewport = bookmarksScrollRef?.current;
 		let handleBookmarksScroll: (() => void) | null = null;
 
-		if (!rulerViewport || !tracksViewport) return;
+		if (!tracksViewport) return;
+
+		const syncScrollLeft = ({
+			target,
+			scrollLeft,
+		}: {
+			target: HTMLDivElement | null | undefined;
+			scrollLeft: number;
+		}) => {
+			if (target) {
+				target.scrollLeft = scrollLeft;
+			}
+		};
 
 		const handleRulerScroll = () => {
 			const now = Date.now();
 			if (isUpdatingRef.current || now - lastRulerSync.current < 16) return;
 			lastRulerSync.current = now;
 			isUpdatingRef.current = true;
-			tracksViewport.scrollLeft = rulerViewport.scrollLeft;
-			if (bookmarksViewport) {
-				bookmarksViewport.scrollLeft = rulerViewport.scrollLeft;
-			}
+			tracksViewport.scrollLeft = rulerViewport?.scrollLeft ?? 0;
+			syncScrollLeft({
+				target: bookmarksViewport,
+				scrollLeft: rulerViewport?.scrollLeft ?? 0,
+			});
 			isUpdatingRef.current = false;
 		};
 
@@ -45,15 +58,23 @@ export function useScrollSync({
 			if (isUpdatingRef.current || now - lastTracksSync.current < 16) return;
 			lastTracksSync.current = now;
 			isUpdatingRef.current = true;
-			rulerViewport.scrollLeft = tracksViewport.scrollLeft;
-			if (bookmarksViewport) {
-				bookmarksViewport.scrollLeft = tracksViewport.scrollLeft;
-			}
+			syncScrollLeft({
+				target: rulerViewport,
+				scrollLeft: tracksViewport.scrollLeft,
+			});
+			syncScrollLeft({
+				target: bookmarksViewport,
+				scrollLeft: tracksViewport.scrollLeft,
+			});
 			isUpdatingRef.current = false;
 		};
 
-		rulerViewport.addEventListener("scroll", handleRulerScroll);
-		tracksViewport.addEventListener("scroll", handleTracksScroll);
+		if (rulerViewport && rulerViewport !== tracksViewport) {
+			rulerViewport.addEventListener("scroll", handleRulerScroll);
+		}
+		if (tracksViewport !== rulerViewport) {
+			tracksViewport.addEventListener("scroll", handleTracksScroll);
+		}
 
 		if (bookmarksViewport) {
 			handleBookmarksScroll = () => {
@@ -62,12 +83,18 @@ export function useScrollSync({
 					return;
 				lastBookmarksSync.current = now;
 				isUpdatingRef.current = true;
-				tracksViewport.scrollLeft = bookmarksViewport.scrollLeft;
-				rulerViewport.scrollLeft = bookmarksViewport.scrollLeft;
+				const nextScrollLeft = bookmarksViewport.scrollLeft;
+				tracksViewport.scrollLeft = nextScrollLeft;
+				syncScrollLeft({
+					target: rulerViewport,
+					scrollLeft: nextScrollLeft,
+				});
 				isUpdatingRef.current = false;
 			};
 
-			bookmarksViewport.addEventListener("scroll", handleBookmarksScroll);
+			if (bookmarksViewport !== tracksViewport) {
+				bookmarksViewport.addEventListener("scroll", handleBookmarksScroll);
+			}
 		}
 
 		if (trackLabelsViewport) {
@@ -95,9 +122,17 @@ export function useScrollSync({
 			tracksViewport.addEventListener("scroll", handleTracksVerticalScroll);
 
 			return () => {
-				rulerViewport.removeEventListener("scroll", handleRulerScroll);
-				tracksViewport.removeEventListener("scroll", handleTracksScroll);
-				if (bookmarksViewport && handleBookmarksScroll) {
+				if (rulerViewport && rulerViewport !== tracksViewport) {
+					rulerViewport.removeEventListener("scroll", handleRulerScroll);
+				}
+				if (tracksViewport !== rulerViewport) {
+					tracksViewport.removeEventListener("scroll", handleTracksScroll);
+				}
+				if (
+					bookmarksViewport &&
+					bookmarksViewport !== tracksViewport &&
+					handleBookmarksScroll
+				) {
 					bookmarksViewport.removeEventListener(
 						"scroll",
 						handleBookmarksScroll,
@@ -115,9 +150,17 @@ export function useScrollSync({
 		}
 
 		return () => {
-			rulerViewport.removeEventListener("scroll", handleRulerScroll);
-			tracksViewport.removeEventListener("scroll", handleTracksScroll);
-			if (bookmarksViewport && handleBookmarksScroll) {
+			if (rulerViewport && rulerViewport !== tracksViewport) {
+				rulerViewport.removeEventListener("scroll", handleRulerScroll);
+			}
+			if (tracksViewport !== rulerViewport) {
+				tracksViewport.removeEventListener("scroll", handleTracksScroll);
+			}
+			if (
+				bookmarksViewport &&
+				bookmarksViewport !== tracksViewport &&
+				handleBookmarksScroll
+			) {
 				bookmarksViewport.removeEventListener("scroll", handleBookmarksScroll);
 			}
 		};

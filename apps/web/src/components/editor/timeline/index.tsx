@@ -37,6 +37,7 @@ import {
 	canTracktHaveAudio,
 	canTrackBeHidden,
 	getTimelineZoomMin,
+	getTimelinePaddingPx,
 	isMainTrack,
 } from "@/lib/timeline";
 import { TimelineToolbar } from "./timeline-toolbar";
@@ -63,14 +64,13 @@ export function Timeline() {
 
 	// refs
 	const timelineRef = useRef<HTMLDivElement>(null);
+	const timelineHeaderRef = useRef<HTMLDivElement>(null);
 	const rulerRef = useRef<HTMLDivElement>(null);
 	const tracksContainerRef = useRef<HTMLDivElement>(null);
-	const rulerScrollRef = useRef<HTMLDivElement>(null);
 	const tracksScrollRef = useRef<HTMLDivElement>(null);
 	const trackLabelsRef = useRef<HTMLDivElement>(null);
 	const playheadRef = useRef<HTMLDivElement>(null);
 	const trackLabelsScrollRef = useRef<HTMLDivElement>(null);
-	const bookmarksScrollRef = useRef<HTMLDivElement>(null);
 
 	// state
 	const [isResizing, setIsResizing] = useState(false);
@@ -94,7 +94,7 @@ export function Timeline() {
 	const timelineDuration = timeline.getTotalDuration() || 0;
 	const minZoomLevel = getTimelineZoomMin({
 		duration: timelineDuration,
-		containerWidth: timelineRef.current?.clientWidth,
+		containerWidth: tracksContainerRef.current?.clientWidth,
 	});
 
 	const savedViewState = editor.project.getTimelineViewState();
@@ -105,8 +105,9 @@ export function Timeline() {
 			minZoom: minZoomLevel,
 			initialZoom: savedViewState?.zoomLevel,
 			initialScrollLeft: savedViewState?.scrollLeft,
+			initialPlayheadTime: savedViewState?.playheadTime,
 			tracksScrollRef,
-			rulerScrollRef,
+			rulerScrollRef: tracksScrollRef,
 		});
 
 	const {
@@ -120,6 +121,7 @@ export function Timeline() {
 		timelineRef,
 		tracksContainerRef,
 		tracksScrollRef,
+		headerRef: timelineHeaderRef,
 		snappingEnabled,
 		onSnapPointChange: handleSnapPointChange,
 	});
@@ -128,13 +130,14 @@ export function Timeline() {
 		useTimelinePlayhead({
 			zoomLevel,
 			rulerRef,
-			rulerScrollRef,
+			rulerScrollRef: tracksScrollRef,
 			tracksScrollRef,
 			playheadRef,
 		});
 
 	const { isDragOver, dropTarget, dragProps } = useTimelineDragDrop({
 		containerRef: tracksContainerRef,
+		headerRef: timelineHeaderRef,
 		zoomLevel,
 	});
 
@@ -152,11 +155,17 @@ export function Timeline() {
 		zoomLevel,
 	});
 
-	const paddedDuration =
-		timelineDuration + TIMELINE_CONSTANTS.PLAYHEAD_LOOKAHEAD_SECONDS;
+	const containerWidth = tracksContainerRef.current?.clientWidth || 1000;
+	const contentWidth =
+		timelineDuration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
+	const paddingPx = getTimelinePaddingPx({
+		containerWidth,
+		zoomLevel,
+		minZoom: minZoomLevel,
+	});
 	const dynamicTimelineWidth = Math.max(
-		paddedDuration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel,
-		timelineRef.current?.clientWidth || 1000,
+		contentWidth + paddingPx,
+		containerWidth,
 	);
 
 	const showSnapIndicator =
@@ -172,7 +181,7 @@ export function Timeline() {
 	} = useTimelineSeek({
 		playheadRef,
 		trackLabelsRef,
-		rulerScrollRef,
+		rulerScrollRef: tracksScrollRef,
 		tracksScrollRef,
 		zoomLevel,
 		duration: timeline.getTotalDuration(),
@@ -182,11 +191,12 @@ export function Timeline() {
 	});
 
 	useScrollSync({
-		rulerScrollRef,
 		tracksScrollRef,
 		trackLabelsScrollRef,
-		bookmarksScrollRef,
 	});
+
+	const timelineHeaderHeight =
+		timelineHeaderRef.current?.getBoundingClientRect().height ?? 0;
 
 	return (
 		<section
@@ -206,18 +216,6 @@ export function Timeline() {
 				className="relative flex flex-1 flex-col overflow-hidden"
 				ref={timelineRef}
 			>
-				<TimelinePlayhead
-					zoomLevel={zoomLevel}
-					rulerRef={rulerRef}
-					rulerScrollRef={rulerScrollRef}
-					tracksScrollRef={tracksScrollRef}
-					trackLabelsRef={trackLabelsRef}
-					timelineRef={timelineRef}
-					playheadRef={playheadRef}
-					isSnappingToPlayhead={
-						showSnapIndicator && currentSnapPoint?.type === "playhead"
-					}
-				/>
 				<SnapIndicator
 					snapPoint={currentSnapPoint}
 					zoomLevel={zoomLevel}
@@ -227,106 +225,75 @@ export function Timeline() {
 					tracksScrollRef={tracksScrollRef}
 					isVisible={showSnapIndicator}
 				/>
-				<div className="bg-panel sticky top-0 z-10 flex flex-col">
-					<div className="flex">
-						<div className="bg-panel flex h-4 w-28 shrink-0 items-center justify-between border-r px-3">
-							<span className="opacity-0">.</span>
-						</div>
-						<TimelineRuler
-							zoomLevel={zoomLevel}
-							dynamicTimelineWidth={dynamicTimelineWidth}
-							rulerRef={rulerRef}
-							rulerScrollRef={rulerScrollRef}
-							handleWheel={handleWheel}
-							handleTimelineContentClick={handleRulerClick}
-							handleRulerTrackingMouseDown={handleRulerMouseDown}
-							handleRulerMouseDown={handlePlayheadRulerMouseDown}
-						/>
-					</div>
-					<div className="flex">
-						<div className="bg-panel flex h-4 w-28 shrink-0 items-center justify-between border-r px-3">
-							<span className="opacity-0">.</span>
-						</div>
-						<TimelineBookmarksRow
-							zoomLevel={zoomLevel}
-							dynamicTimelineWidth={dynamicTimelineWidth}
-							bookmarksScrollRef={bookmarksScrollRef}
-							handleWheel={handleWheel}
-							handleTimelineContentClick={handleRulerClick}
-							handleRulerTrackingMouseDown={handleRulerMouseDown}
-							handleRulerMouseDown={handlePlayheadRulerMouseDown}
-						/>
-					</div>
-				</div>
-
 				<div className="flex flex-1 overflow-hidden">
-					{tracks.length > 0 && (
-						<div
-							ref={trackLabelsRef}
-							className="bg-panel z-100 w-28 shrink-0 overflow-y-auto border-r"
-							style={{ paddingTop: TIMELINE_CONSTANTS.PADDING_TOP }}
-						>
-							<ScrollArea className="size-full" ref={trackLabelsScrollRef}>
-								<div className="flex flex-col gap-1">
-									{tracks.map((track) => (
-										<div
-											key={track.id}
-											className="group flex items-center px-3"
-											style={{
-												height: `${getTrackHeight({ type: track.type })}px`,
-											}}
-										>
-											<div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-												{process.env.NODE_ENV === "development" &&
-													isMainTrack(track) && (
-														<div className="bg-red-500 size-1.5 rounded-full" />
-													)}
-												{canTracktHaveAudio(track) && (
-													<TrackToggleIcon
-														isOff={track.muted}
-														icons={{
-															on: VolumeHighIcon,
-															off: VolumeOffIcon,
-														}}
-														onClick={() =>
-															editor.timeline.toggleTrackMute({
-																trackId: track.id,
-															})
-														}
-													/>
-												)}
-												{canTrackBeHidden(track) && (
-													<TrackToggleIcon
-														isOff={track.hidden}
-														icons={{
-															on: ViewIcon,
-															off: ViewOffSlashIcon,
-														}}
-														onClick={() =>
-															editor.timeline.toggleTrackVisibility({
-																trackId: track.id,
-															})
-														}
-													/>
-												)}
-												<TrackIcon track={track} />
-											</div>
-										</div>
-									))}
-								</div>
-							</ScrollArea>
+					<div className="bg-panel flex w-28 shrink-0 flex-col border-r">
+						<div className="bg-panel flex h-4 items-center justify-between px-3">
+							<span className="opacity-0">.</span>
 						</div>
-					)}
+						<div className="bg-panel flex h-4 items-center justify-between px-3">
+							<span className="opacity-0">.</span>
+						</div>
+						{tracks.length > 0 && (
+							<div
+								ref={trackLabelsRef}
+								className="bg-panel flex-1 overflow-y-auto"
+								style={{ paddingTop: TIMELINE_CONSTANTS.PADDING_TOP_PX }}
+							>
+								<ScrollArea className="size-full" ref={trackLabelsScrollRef}>
+									<div className="flex flex-col gap-1">
+										{tracks.map((track) => (
+											<div
+												key={track.id}
+												className="group flex items-center px-3"
+												style={{
+													height: `${getTrackHeight({ type: track.type })}px`,
+												}}
+											>
+												<div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+													{process.env.NODE_ENV === "development" &&
+														isMainTrack(track) && (
+															<div className="bg-red-500 size-1.5 rounded-full" />
+														)}
+													{canTracktHaveAudio(track) && (
+														<TrackToggleIcon
+															isOff={track.muted}
+															icons={{
+																on: VolumeHighIcon,
+																off: VolumeOffIcon,
+															}}
+															onClick={() =>
+																editor.timeline.toggleTrackMute({
+																	trackId: track.id,
+																})
+															}
+														/>
+													)}
+													{canTrackBeHidden(track) && (
+														<TrackToggleIcon
+															isOff={track.hidden}
+															icons={{
+																on: ViewIcon,
+																off: ViewOffSlashIcon,
+															}}
+															onClick={() =>
+																editor.timeline.toggleTrackVisibility({
+																	trackId: track.id,
+																})
+															}
+														/>
+													)}
+													<TrackIcon track={track} />
+												</div>
+											</div>
+										))}
+									</div>
+								</ScrollArea>
+							</div>
+						)}
+					</div>
 
 					<div
-						className="relative flex-1 overflow-hidden"
-						style={{ paddingTop: TIMELINE_CONSTANTS.PADDING_TOP }}
-						onWheel={(e) => {
-							if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-								return;
-							}
-							handleWheel(e);
-						}}
+						className="relative flex flex-1 flex-col overflow-hidden"
 						ref={tracksContainerRef}
 					>
 						<SelectionBox
@@ -339,15 +306,16 @@ export function Timeline() {
 							dropTarget={dropTarget}
 							tracks={timeline.getTracks()}
 							isVisible={isDragOver}
+							headerHeight={timelineHeaderHeight}
 						/>
 						<DragLine
 							dropTarget={dragDropTarget}
 							tracks={timeline.getTracks()}
 							isVisible={dragState.isDragging}
+							headerHeight={timelineHeaderHeight}
 						/>
-
 						<ScrollArea
-							className="size-full"
+							className="size-full overflow-y-hidden"
 							ref={tracksScrollRef}
 							onMouseDown={(event) => {
 								const isDirectTarget = event.target === event.currentTarget;
@@ -362,111 +330,161 @@ export function Timeline() {
 								event.stopPropagation();
 								handleTracksClick(event);
 							}}
+							onWheel={(event) => {
+								if (
+									event.shiftKey ||
+									Math.abs(event.deltaX) > Math.abs(event.deltaY)
+								) {
+									return;
+								}
+								handleWheel(event);
+							}}
 							onScroll={() => {
 								saveScrollPosition();
 							}}
 						>
 							<div
-								className="relative flex-1"
+								className="relative"
 								style={{
-									height: `${Math.max(
-										tracksContainerHeight.min,
-										Math.min(
-											tracksContainerHeight.max,
-											getTotalTracksHeight({ tracks }),
-										),
-									)}px`,
 									width: `${dynamicTimelineWidth}px`,
 								}}
 							>
-								{tracks.length === 0 ? (
-									<div />
-								) : (
-									tracks.map((track, index) => (
-										<ContextMenu key={track.id}>
-											<ContextMenuTrigger asChild>
-												<div
-													className="absolute right-0 left-0"
-													style={{
-														top: `${getCumulativeHeightBefore({
-															tracks,
-															trackIndex: index,
-														})}px`,
-														height: `${getTrackHeight({ type: track.type })}px`,
-													}}
-												>
-													<TimelineTrackContent
-														track={track}
-														zoomLevel={zoomLevel}
-														dragState={dragState}
-														rulerScrollRef={rulerScrollRef}
-														tracksScrollRef={tracksScrollRef}
-														lastMouseXRef={lastMouseXRef}
-														onSnapPointChange={handleSnapPointChange}
-														onResizeStateChange={handleResizeStateChange}
-														onElementMouseDown={handleElementMouseDown}
-														onElementClick={handleElementClick}
-														onTrackMouseDown={handleSelectionMouseDown}
-														shouldIgnoreClick={shouldIgnoreClick}
-													/>
-												</div>
-											</ContextMenuTrigger>
-											<ContextMenuContent className="z-200 w-40">
-												<ContextMenuItem
-													icon={<HugeiconsIcon icon={TaskAdd02Icon} />}
-													onClick={(e) => {
-														e.stopPropagation();
-														invokeAction("paste-copied");
-													}}
-												>
-													Paste elements
-												</ContextMenuItem>
-												<ContextMenuItem
-													onClick={(e) => {
-														e.stopPropagation();
-														timeline.toggleTrackMute({
-															trackId: track.id,
-														});
-													}}
-												>
-													<HugeiconsIcon icon={VolumeHighIcon} />
-													<span>
-														{canTracktHaveAudio(track) && track.muted
-															? "Unmute track"
-															: "Mute track"}
-													</span>
-												</ContextMenuItem>
-												<ContextMenuItem
-													onClick={(e) => {
-														e.stopPropagation();
-														timeline.toggleTrackVisibility({
-															trackId: track.id,
-														});
-													}}
-												>
-													<HugeiconsIcon icon={ViewIcon} />
-													<span>
-														{canTrackBeHidden(track) && track.hidden
-															? "Show track"
-															: "Hide track"}
-													</span>
-												</ContextMenuItem>
-												<ContextMenuItem
-													onClick={(e) => {
-														e.stopPropagation();
-														timeline.removeTrack({
-															trackId: track.id,
-														});
-													}}
-													variant="destructive"
-												>
-													<HugeiconsIcon icon={Delete02Icon} />
-													Delete track
-												</ContextMenuItem>
-											</ContextMenuContent>
-										</ContextMenu>
-									))
-								)}
+								<div
+									ref={timelineHeaderRef}
+									className="bg-panel sticky top-0 z-30 flex flex-col"
+								>
+									<TimelineRuler
+										zoomLevel={zoomLevel}
+										dynamicTimelineWidth={dynamicTimelineWidth}
+										rulerRef={rulerRef}
+										handleWheel={handleWheel}
+										handleTimelineContentClick={handleRulerClick}
+										handleRulerTrackingMouseDown={handleRulerMouseDown}
+										handleRulerMouseDown={handlePlayheadRulerMouseDown}
+									/>
+									<TimelineBookmarksRow
+										zoomLevel={zoomLevel}
+										dynamicTimelineWidth={dynamicTimelineWidth}
+										handleWheel={handleWheel}
+										handleTimelineContentClick={handleRulerClick}
+										handleRulerTrackingMouseDown={handleRulerMouseDown}
+										handleRulerMouseDown={handlePlayheadRulerMouseDown}
+									/>
+								</div>
+								<TimelinePlayhead
+									zoomLevel={zoomLevel}
+									rulerRef={rulerRef}
+									rulerScrollRef={tracksScrollRef}
+									tracksScrollRef={tracksScrollRef}
+									timelineRef={timelineRef}
+									playheadRef={playheadRef}
+									isSnappingToPlayhead={
+										showSnapIndicator && currentSnapPoint?.type === "playhead"
+									}
+								/>
+								<div
+									className="relative"
+									style={{
+										height: `${Math.max(
+											tracksContainerHeight.min,
+											Math.min(
+												tracksContainerHeight.max,
+												getTotalTracksHeight({ tracks }),
+											),
+										)}px`,
+									}}
+								>
+									{tracks.length === 0 ? (
+										<div />
+									) : (
+										tracks.map((track, index) => (
+											<ContextMenu key={track.id}>
+												<ContextMenuTrigger asChild>
+													<div
+														className="absolute right-0 left-0"
+														style={{
+															top: `${getCumulativeHeightBefore({
+																tracks,
+																trackIndex: index,
+															})}px`,
+															height: `${getTrackHeight({
+																type: track.type,
+															})}px`,
+														}}
+													>
+														<TimelineTrackContent
+															track={track}
+															zoomLevel={zoomLevel}
+															dragState={dragState}
+															rulerScrollRef={tracksScrollRef}
+															tracksScrollRef={tracksScrollRef}
+															lastMouseXRef={lastMouseXRef}
+															onSnapPointChange={handleSnapPointChange}
+															onResizeStateChange={handleResizeStateChange}
+															onElementMouseDown={handleElementMouseDown}
+															onElementClick={handleElementClick}
+															onTrackMouseDown={handleSelectionMouseDown}
+															shouldIgnoreClick={shouldIgnoreClick}
+														/>
+													</div>
+												</ContextMenuTrigger>
+												<ContextMenuContent className="z-200 w-40">
+													<ContextMenuItem
+														icon={<HugeiconsIcon icon={TaskAdd02Icon} />}
+														onClick={(e) => {
+															e.stopPropagation();
+															invokeAction("paste-copied");
+														}}
+													>
+														Paste elements
+													</ContextMenuItem>
+													<ContextMenuItem
+														onClick={(e) => {
+															e.stopPropagation();
+															timeline.toggleTrackMute({
+																trackId: track.id,
+															});
+														}}
+													>
+														<HugeiconsIcon icon={VolumeHighIcon} />
+														<span>
+															{canTracktHaveAudio(track) && track.muted
+																? "Unmute track"
+																: "Mute track"}
+														</span>
+													</ContextMenuItem>
+													<ContextMenuItem
+														onClick={(e) => {
+															e.stopPropagation();
+															timeline.toggleTrackVisibility({
+																trackId: track.id,
+															});
+														}}
+													>
+														<HugeiconsIcon icon={ViewIcon} />
+														<span>
+															{canTrackBeHidden(track) && track.hidden
+																? "Show track"
+																: "Hide track"}
+														</span>
+													</ContextMenuItem>
+													<ContextMenuItem
+														onClick={(e) => {
+															e.stopPropagation();
+															timeline.removeTrack({
+																trackId: track.id,
+															});
+														}}
+														variant="destructive"
+													>
+														<HugeiconsIcon icon={Delete02Icon} />
+														Delete track
+													</ContextMenuItem>
+												</ContextMenuContent>
+											</ContextMenu>
+										))
+									)}
+								</div>
 							</div>
 						</ScrollArea>
 					</div>

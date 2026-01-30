@@ -16,12 +16,7 @@ export class PlaybackManager {
 		const duration = this.editor.timeline.getTotalDuration();
 
 		if (duration > 0) {
-			const activeProject = this.editor.project.getActive();
-			const fps = activeProject.settings.fps;
-			const frameOffset = 1 / fps;
-			const endThreshold = Math.max(0, duration - frameOffset);
-
-			if (this.currentTime >= endThreshold) {
+			if (this.currentTime >= duration) {
 				this.seek({ time: 0 });
 			}
 		}
@@ -142,18 +137,13 @@ export class PlaybackManager {
 		const duration = this.editor.timeline.getTotalDuration();
 
 		if (duration > 0 && newTime >= duration) {
-			const activeProject = this.editor.project.getActive();
-			const fps = activeProject.settings.fps;
-			const frameOffset = 1 / fps;
-			const stopTime = Math.max(0, duration - frameOffset);
-
 			this.pause();
-			this.currentTime = stopTime;
+			this.currentTime = duration;
 			this.notify();
 
 			window.dispatchEvent(
 				new CustomEvent("playback-seek", {
-					detail: { time: stopTime },
+					detail: { time: duration },
 				}),
 			);
 		} else {

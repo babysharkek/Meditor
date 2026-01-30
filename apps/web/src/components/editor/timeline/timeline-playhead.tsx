@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { useTimelinePlayhead } from "@/hooks/timeline/use-timeline-playhead";
 import { useEditor } from "@/hooks/use-editor";
@@ -10,7 +10,6 @@ interface TimelinePlayheadProps {
 	rulerRef: React.RefObject<HTMLDivElement>;
 	rulerScrollRef: React.RefObject<HTMLDivElement>;
 	tracksScrollRef: React.RefObject<HTMLDivElement>;
-	trackLabelsRef?: React.RefObject<HTMLDivElement>;
 	timelineRef: React.RefObject<HTMLDivElement>;
 	playheadRef?: React.RefObject<HTMLDivElement>;
 	isSnappingToPlayhead?: boolean;
@@ -21,17 +20,14 @@ export function TimelinePlayhead({
 	rulerRef,
 	rulerScrollRef,
 	tracksScrollRef,
-	trackLabelsRef,
 	timelineRef,
 	playheadRef: externalPlayheadRef,
 	isSnappingToPlayhead = false,
 }: TimelinePlayheadProps) {
 	const editor = useEditor();
 	const duration = editor.timeline.getTotalDuration();
-	const tracks = editor.timeline.getTracks();
 	const internalPlayheadRef = useRef<HTMLDivElement>(null);
 	const playheadRef = externalPlayheadRef || internalPlayheadRef;
-	const [scrollLeft, setScrollLeft] = useState(0);
 
 	const { playheadPosition, handlePlayheadMouseDown } = useTimelinePlayhead({
 		zoomLevel,
@@ -41,48 +37,15 @@ export function TimelinePlayhead({
 		playheadRef,
 	});
 
-	useEffect(() => {
-		const tracksViewport = tracksScrollRef.current;
-
-		if (!tracksViewport) return;
-
-		const handleScroll = () => {
-			setScrollLeft(tracksViewport.scrollLeft);
-		};
-
-		setScrollLeft(tracksViewport.scrollLeft);
-
-		tracksViewport.addEventListener("scroll", handleScroll);
-		return () => tracksViewport.removeEventListener("scroll", handleScroll);
-	}, [tracksScrollRef]);
-
-	const timelineContainerHeight = timelineRef.current?.offsetHeight || 400;
-	const totalHeight = timelineContainerHeight - 4;
-
-	const trackLabelsWidth =
-		tracks.length > 0 && trackLabelsRef?.current
-			? trackLabelsRef.current.offsetWidth
-			: 0;
+	const timelineContainerHeight =
+		tracksScrollRef.current?.clientHeight ??
+		timelineRef.current?.clientHeight ??
+		400;
+	const totalHeight = Math.max(0, timelineContainerHeight - 4);
 
 	const timelinePosition =
 		playheadPosition * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
-	const rawLeftPosition = trackLabelsWidth + timelinePosition - scrollLeft;
-
-	const timelineContentWidth =
-		duration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
-	const tracksViewport = tracksScrollRef.current;
-	const viewportWidth = tracksViewport?.clientWidth || 1000;
-
-	const leftBoundary = trackLabelsWidth;
-	const rightBoundary = Math.min(
-		trackLabelsWidth + timelineContentWidth - scrollLeft,
-		trackLabelsWidth + viewportWidth,
-	);
-
-	const leftPosition = Math.max(
-		leftBoundary,
-		Math.min(rightBoundary, rawLeftPosition),
-	);
+	const leftPosition = timelinePosition;
 
 	const handlePlayheadKeyDown = (
 		event: React.KeyboardEvent<HTMLDivElement>,

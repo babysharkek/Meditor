@@ -1,4 +1,3 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { TIMELINE_CONSTANTS } from "@/constants/timeline-constants";
 import { DEFAULT_FPS } from "@/constants/project-constants";
 import { useEditor } from "@/hooks/use-editor";
@@ -8,7 +7,6 @@ interface TimelineRulerProps {
 	zoomLevel: number;
 	dynamicTimelineWidth: number;
 	rulerRef: React.RefObject<HTMLDivElement>;
-	rulerScrollRef: React.RefObject<HTMLDivElement>;
 	handleWheel: (e: React.WheelEvent) => void;
 	handleTimelineContentClick: (e: React.MouseEvent) => void;
 	handleRulerTrackingMouseDown: (e: React.MouseEvent) => void;
@@ -19,7 +17,6 @@ export function TimelineRuler({
 	zoomLevel,
 	dynamicTimelineWidth,
 	rulerRef,
-	rulerScrollRef,
 	handleWheel,
 	handleTimelineContentClick,
 	handleRulerTrackingMouseDown,
@@ -59,19 +56,17 @@ export function TimelineRuler({
 			onMouseDown={handleRulerTrackingMouseDown}
 			onKeyDown={() => {}}
 		>
-			<ScrollArea className="scrollbar-hidden w-full" ref={rulerScrollRef}>
-				<div
-					role="none"
-					ref={rulerRef}
-					className="relative h-4 cursor-default select-none"
-					style={{
-						width: `${dynamicTimelineWidth}px`,
-					}}
-					onMouseDown={handleRulerMouseDown}
-				>
-					{timelineTicks}
-				</div>
-			</ScrollArea>
+			<div
+				role="none"
+				ref={rulerRef}
+				className="relative h-4 cursor-default select-none"
+				style={{
+					width: `${dynamicTimelineWidth}px`,
+				}}
+				onMouseDown={handleRulerMouseDown}
+			>
+				{timelineTicks}
+			</div>
 		</div>
 	);
 }
