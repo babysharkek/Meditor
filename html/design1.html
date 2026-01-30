@@ -1,383 +1,566 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Projects - Brand Design</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        
-        /* Brand Colors */
-        :root {
-            --brand-blue: #00A3FF;
-        }
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+      }
 
-        .project-card:hover .card-actions { opacity: 1; }
-        .checkbox-wrapper:checked + div { border-color: var(--brand-blue); background-color: #eff6ff; }
-        .controls-row.has-selection .controls-select { opacity: 1; }
-        .project-select-wrapper { opacity: 0; }
-        .project-card:hover .project-select-wrapper { opacity: 1; }
-        .project-card:has(.project-select:checked) .project-select-wrapper { opacity: 1; }
-        .multi-select .project-menu { opacity: 0 !important; pointer-events: none; }
-        
-        /* Custom Checkbox - Softer and Rounder */
-        .custom-checkbox {
-            appearance: none;
-            background-color: #fff;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px; /* Rounder checkbox */
-            display: inline-grid;
-            place-content: center;
-        }
-        .custom-checkbox:checked {
-            background-color: var(--brand-blue);
-            border-color: var(--brand-blue);
-        }
-        .custom-checkbox:checked::after {
-            content: "";
-            width: 10px;
-            height: 10px;
-            background-color: #fff;
-            clip-path: polygon(14% 44%, 0 58%, 40% 100%, 100% 24%, 86% 10%, 40% 70%);
-        }
+      /* Brand Colors */
+      :root {
+        --brand-blue: #00a3ff;
+      }
+
+      .project-card:hover .card-actions {
+        opacity: 1;
+      }
+      .checkbox-wrapper:checked + div {
+        border-color: var(--brand-blue);
+        background-color: #eff6ff;
+      }
+      .controls-row.has-selection .controls-select {
+        opacity: 1;
+      }
+      .project-select-wrapper {
+        opacity: 0;
+      }
+      .project-card:hover .project-select-wrapper {
+        opacity: 1;
+      }
+      .project-card:has(.project-select:checked) .project-select-wrapper {
+        opacity: 1;
+      }
+      .multi-select .project-menu {
+        opacity: 0 !important;
+        pointer-events: none;
+      }
+
+      /* Custom Checkbox - Softer and Rounder */
+      .custom-checkbox {
+        appearance: none;
+        background-color: #fff;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px; /* Rounder checkbox */
+        display: inline-grid;
+        place-content: center;
+      }
+      .custom-checkbox:checked {
+        background-color: var(--brand-blue);
+        border-color: var(--brand-blue);
+      }
+      .custom-checkbox:checked::after {
+        content: "";
+        width: 10px;
+        height: 10px;
+        background-color: #fff;
+        clip-path: polygon(
+          14% 44%,
+          0 58%,
+          40% 100%,
+          100% 24%,
+          86% 10%,
+          40% 70%
+        );
+      }
     </style>
-</head>
-<body class="bg-[#ffffff] text-slate-900 h-screen flex overflow-hidden">
-
+  </head>
+  <body class="bg-[#ffffff] text-slate-900 h-screen flex overflow-hidden">
     <!-- Sidebar -->
-    <aside class="w-64 bg-white border-r border-slate-100 flex flex-col flex-shrink-0">
-        <div class="p-6 pl-8 flex items-center gap-3">
-            <img src="../apps/web/public/logos/opencut/1k/logo-black.png" alt="OpenCut Logo" class="size-6">
-            <span class="font-semibold text-lg tracking-tight text-slate-900">OpenCut</span>
+    <aside
+      class="w-64 bg-white border-r border-slate-100 flex flex-col flex-shrink-0"
+    >
+      <div class="p-6 pl-8 flex items-center gap-3">
+        <img
+          src="../apps/web/public/logos/opencut/1k/logo-black.png"
+          alt="OpenCut Logo"
+          class="size-6"
+        />
+        <span class="font-semibold text-lg tracking-tight text-slate-900"
+          >OpenCut</span
+        >
+      </div>
+
+      <nav class="flex-1 px-4 space-y-2 mt-2">
+        <a
+          href="#"
+          class="flex items-center gap-3 px-4 py-3 text-sm font-medium bg-blue-50/50 text-[#00A3FF] rounded-2xl"
+        >
+          <i data-lucide="layout-grid" class="w-5 h-5"></i>
+          Projects
+        </a>
+        <div class="pt-6 pb-2 px-4">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            Folders
+          </p>
         </div>
-
-        <nav class="flex-1 px-4 space-y-2 mt-2">
-            <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm font-medium bg-blue-50/50 text-[#00A3FF] rounded-2xl">
-                <i data-lucide="layout-grid" class="w-5 h-5"></i>
-                Projects
-            </a>
-            <div class="pt-6 pb-2 px-4">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Folders</p>
-            </div>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl">
-                <i data-lucide="folder" class="w-5 h-5 text-slate-400"></i>
-                Marketing
-            </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl">
-                <i data-lucide="folder" class="w-5 h-5 text-slate-400"></i>
-                Social media
-            </a>
-        </nav>
-
+        <a
+          href="#"
+          class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl"
+        >
+          <i data-lucide="folder" class="w-5 h-5 text-slate-400"></i>
+          Marketing
+        </a>
+        <a
+          href="#"
+          class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-2xl"
+        >
+          <i data-lucide="folder" class="w-5 h-5 text-slate-400"></i>
+          Social media
+        </a>
+      </nav>
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-w-0">
-        <!-- Header -->
-        <header class="h-20 flex items-center justify-between px-8 flex-shrink-0">
-            <div class="flex items-center gap-4">
-                <h1 class="text-xl font-bold text-slate-900">All projects</h1>
-            </div>
-
-            <div class="flex items-center gap-4">
-                <div class="relative group">
-                    <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                    <input id="search-input" type="text" placeholder="Search..." class="w-64 bg-white border border-slate-200 text-slate-900 text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:border-[#00A3FF] focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400 shadow-sm">
-                </div>
-                
-                <div class="flex bg-white rounded-full border border-slate-200 p-1 shadow-sm">
-                    <button class="p-2 rounded-full bg-slate-100 text-slate-900 shadow-sm">
-                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                    </button>
-                    <button class="p-2 rounded-full text-slate-400 hover:text-slate-600">
-                        <i data-lucide="list" class="w-4 h-4"></i>
-                    </button>
-                </div>
-
-                <button class="bg-[#00A3FF] hover:bg-[#008BE0] text-white px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 active:scale-95">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    New project
-                </button>
-            </div>
-        </header>
-
-        <!-- Content Area -->
-        <div class="flex-1 overflow-y-auto px-8 pb-8">
-
-            <!-- Controls Row (Select all + Sort) -->
-            <div id="controls-row" class="controls-row group mb-4 flex items-center gap-3 text-slate-700">
-                <div class="flex items-center gap-2">
-                    <label class="flex items-center gap-3 text-sm font-medium cursor-pointer select-none p-1 rounded-lg">
-                        <input id="select-all" type="checkbox" class="custom-checkbox controls-select size-5" />
-                        <span class="text-slate-500 group-hover:text-slate-700">Select all</span>
-                    </label>
-                </div>
-                <div class="h-4 w-px bg-slate-200 mx-2"></div>
-                <button type="button" class="inline-flex items-center gap-1.5 rounded-lg p-1 text-sm font-medium text-slate-500 hover:text-slate-900">
-                    Name
-                    <i data-lucide="arrow-down" class="size-3.5"></i>
-                </button>
-            </div>
-
-            <!-- Grid -->
-            <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-
-                <!-- Project Card 1 -->
-                <div class="project-card group rounded-[24px] overflow-hidden relative h-auto flex flex-col">
-                    
-                    <!-- Selection Checkbox -->
-                    <div class="project-select-wrapper absolute top-4 left-4 z-20">
-                        <input type="checkbox" class="custom-checkbox project-select w-6 h-6 cursor-pointer shadow-md" onchange="toggleSelection(this)">
-                    </div>
-                    
-                    <!-- Menu -->
-                    <div class="project-menu absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100">
-                        <button class="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white text-slate-600 hover:text-[#00A3FF]">
-                            <i data-lucide="more-horizontal" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-
-                    <!-- Thumbnail -->
-                    <div class="aspect-video bg-slate-50 relative overflow-hidden m-1 rounded-lg">
-                        <img src="C:\Users\heart\Downloads\download.jpg" class="w-full h-full object-cover" alt="Project">
-                        <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] font-semibold px-2 py-1 rounded-lg">
-                            02:14
-                        </div>
-                    </div>
-
-                    <!-- Info -->
-                    <div class="px-2 pb-5 pt-3 flex-1 flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-semibold text-slate-900 truncate text-[15px]">Summer Vlog 2025</h3>
-                            <div class="flex items-center gap-2 mt-2 text-slate-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="size-4" width="24" height="24" color="currentColor" fill="none" stroke="currentColor" stroke-width="1.5" className="">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M12 8V12L14 14" />
-                                </svg>
-                                <p class="text-xs font-medium">Created Jan 20, 2026</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Project Card 2 -->
-                <div class="project-card group rounded-[24px] overflow-hidden relative h-auto flex flex-col">
-                    <!-- Selection Checkbox -->
-                    <div class="project-select-wrapper absolute top-4 left-4 z-20">
-                        <input type="checkbox" class="custom-checkbox project-select w-6 h-6 cursor-pointer shadow-md" onchange="toggleSelection(this)">
-                    </div>
-                    <!-- Menu -->
-                    <div class="project-menu absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100">
-                        <button class="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white text-slate-600 hover:text-[#00A3FF]">
-                            <i data-lucide="more-horizontal" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-
-                    <div class="aspect-video bg-slate-50 relative overflow-hidden m-1 rounded-lg">
-                        <img src="C:\Users\heart\Downloads\download.jpg" class="w-full h-full object-cover" alt="Project">
-                        <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] font-semibold px-2 py-1 rounded-lg">
-                            00:45
-                        </div>
-                    </div>
-
-                    <div class="px-2 pb-5 pt-3 flex-1 flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-semibold text-slate-900 truncate text-[15px]">Product Launch Teaser</h3>
-                            <div class="flex items-center gap-2 mt-2 text-slate-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="size-4" width="24" height="24" color="currentColor" fill="none" stroke="currentColor" stroke-width="1.5" className="">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M12 8V12L14 14" />
-                                </svg>
-                                <p class="text-xs font-medium">Created Jan 20, 2026</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                 <!-- Project Card 3 -->
-                 <div class="project-card group rounded-[24px] overflow-hidden relative h-auto flex flex-col">
-                    <!-- Selection Checkbox -->
-                    <div class="project-select-wrapper absolute top-4 left-4 z-20">
-                        <input type="checkbox" class="custom-checkbox project-select w-6 h-6 cursor-pointer shadow-md" onchange="toggleSelection(this)">
-                    </div>
-                    <!-- Menu -->
-                    <div class="project-menu absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100">
-                        <button class="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white text-slate-600 hover:text-[#00A3FF]">
-                            <i data-lucide="more-horizontal" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-
-                    <div class="aspect-video bg-slate-50 relative overflow-hidden m-1 rounded-lg">
-                        <img src="C:\Users\heart\Downloads\download.jpg" class="w-full h-full object-cover" alt="Project">
-                         <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] font-semibold px-2 py-1 rounded-lg">
-                            03:30
-                        </div>
-                    </div>
-
-                    <div class="px-2 pb-5 pt-3 flex-1 flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-semibold text-slate-900 truncate text-[15px]">Podcast Ep. 4</h3>
-                            <div class="flex items-center gap-2 mt-2 text-slate-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="size-4" width="24" height="24" color="currentColor" fill="none" stroke="currentColor" stroke-width="1.5" className="">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 8V12L14 14" />
-</svg>
-                                <p class="text-xs font-medium">Created Jan 18, 2026</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Empty State -->
-            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-24 text-center">
-                <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-6 ring-1 ring-slate-900/5">
-                    <i data-lucide="search" class="w-8 h-8 text-slate-400"></i>
-                </div>
-                <h3 class="text-slate-900 font-semibold text-lg mb-2">No projects found</h3>
-                <p class="text-slate-500 text-sm max-w-[280px] mx-auto leading-relaxed mb-8">
-                    We couldn't find any projects matching your search. Try adjusting your terms.
-                </p>
-                <button onclick="clearSearch()" class="inline-flex items-center justify-center px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200">
-                    Clear search
-                </button>
-            </div>
+      <!-- Header -->
+      <header class="h-20 flex items-center justify-between px-8 flex-shrink-0">
+        <div class="flex items-center gap-4">
+          <h1 class="text-xl font-bold text-slate-900">All projects</h1>
         </div>
+
+        <div class="flex items-center gap-4">
+          <div class="relative group">
+            <i
+              data-lucide="search"
+              class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+            ></i>
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Search..."
+              class="w-64 bg-white border border-slate-200 text-slate-900 text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:border-[#00A3FF] focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-400 shadow-sm"
+            />
+          </div>
+
+          <div
+            class="flex bg-white rounded-full border border-slate-200 p-1 shadow-sm"
+          >
+            <button
+              class="p-2 rounded-full bg-slate-100 text-slate-900 shadow-sm"
+            >
+              <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            </button>
+            <button
+              class="p-2 rounded-full text-slate-400 hover:text-slate-600"
+            >
+              <i data-lucide="list" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <button
+            class="bg-[#00A3FF] hover:bg-[#008BE0] text-white px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 active:scale-95"
+          >
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            New project
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto px-8 pb-8">
+        <!-- Controls Row (Select all + Sort) -->
+        <div
+          id="controls-row"
+          class="controls-row group mb-4 flex items-center gap-3 text-slate-700"
+        >
+          <div class="flex items-center gap-2">
+            <label
+              class="flex items-center gap-3 text-sm font-medium cursor-pointer select-none p-1 rounded-lg"
+            >
+              <input
+                id="select-all"
+                type="checkbox"
+                class="custom-checkbox controls-select size-5"
+              />
+              <span class="text-slate-500 group-hover:text-slate-700"
+                >Select all</span
+              >
+            </label>
+          </div>
+          <div class="h-4 w-px bg-slate-200 mx-2"></div>
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 rounded-lg p-1 text-sm font-medium text-slate-500 hover:text-slate-900"
+          >
+            Name
+            <i data-lucide="arrow-down" class="size-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Grid -->
+        <div
+          id="projects-grid"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+        >
+          <!-- Project Card 1 -->
+          <div
+            class="project-card group rounded-[24px] overflow-hidden relative h-auto flex flex-col"
+          >
+            <!-- Selection Checkbox -->
+            <div class="project-select-wrapper absolute top-4 left-4 z-20">
+              <input
+                type="checkbox"
+                class="custom-checkbox project-select w-6 h-6 cursor-pointer shadow-md"
+                onchange="toggleSelection(this)"
+              />
+            </div>
+
+            <!-- Menu -->
+            <div
+              class="project-menu absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100"
+            >
+              <button
+                class="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white text-slate-600 hover:text-[#00A3FF]"
+              >
+                <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- Thumbnail -->
+            <div
+              class="aspect-video bg-slate-50 relative overflow-hidden m-1 rounded-lg"
+            >
+              <img
+                src="C:\Users\heart\Downloads\download.jpg"
+                class="w-full h-full object-cover"
+                alt="Project"
+              />
+              <div
+                class="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] font-semibold px-2 py-1 rounded-lg"
+              >
+                02:14
+              </div>
+            </div>
+
+            <!-- Info -->
+            <div class="px-2 pb-5 pt-3 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="font-semibold text-slate-900 truncate text-[15px]">
+                  Summer Vlog 2025
+                </h3>
+                <div class="flex items-center gap-2 mt-2 text-slate-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="size-4"
+                    width="24"
+                    height="24"
+                    color="currentColor"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    className=""
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8V12L14 14" />
+                  </svg>
+                  <p class="text-xs font-medium">Created Jan 20, 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project Card 2 -->
+          <div
+            class="project-card group rounded-[24px] overflow-hidden relative h-auto flex flex-col"
+          >
+            <!-- Selection Checkbox -->
+            <div class="project-select-wrapper absolute top-4 left-4 z-20">
+              <input
+                type="checkbox"
+                class="custom-checkbox project-select w-6 h-6 cursor-pointer shadow-md"
+                onchange="toggleSelection(this)"
+              />
+            </div>
+            <!-- Menu -->
+            <div
+              class="project-menu absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100"
+            >
+              <button
+                class="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white text-slate-600 hover:text-[#00A3FF]"
+              >
+                <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <div
+              class="aspect-video bg-slate-50 relative overflow-hidden m-1 rounded-lg"
+            >
+              <img
+                src="C:\Users\heart\Downloads\download.jpg"
+                class="w-full h-full object-cover"
+                alt="Project"
+              />
+              <div
+                class="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] font-semibold px-2 py-1 rounded-lg"
+              >
+                00:45
+              </div>
+            </div>
+
+            <div class="px-2 pb-5 pt-3 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="font-semibold text-slate-900 truncate text-[15px]">
+                  Product Launch Teaser
+                </h3>
+                <div class="flex items-center gap-2 mt-2 text-slate-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="size-4"
+                    width="24"
+                    height="24"
+                    color="currentColor"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    className=""
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8V12L14 14" />
+                  </svg>
+                  <p class="text-xs font-medium">Created Jan 20, 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project Card 3 -->
+          <div
+            class="project-card group rounded-[24px] overflow-hidden relative h-auto flex flex-col"
+          >
+            <!-- Selection Checkbox -->
+            <div class="project-select-wrapper absolute top-4 left-4 z-20">
+              <input
+                type="checkbox"
+                class="custom-checkbox project-select w-6 h-6 cursor-pointer shadow-md"
+                onchange="toggleSelection(this)"
+              />
+            </div>
+            <!-- Menu -->
+            <div
+              class="project-menu absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100"
+            >
+              <button
+                class="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white text-slate-600 hover:text-[#00A3FF]"
+              >
+                <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <div
+              class="aspect-video bg-slate-50 relative overflow-hidden m-1 rounded-lg"
+            >
+              <img
+                src="C:\Users\heart\Downloads\download.jpg"
+                class="w-full h-full object-cover"
+                alt="Project"
+              />
+              <div
+                class="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] font-semibold px-2 py-1 rounded-lg"
+              >
+                03:30
+              </div>
+            </div>
+
+            <div class="px-2 pb-5 pt-3 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="font-semibold text-slate-900 truncate text-[15px]">
+                  Podcast Ep. 4
+                </h3>
+                <div class="flex items-center gap-2 mt-2 text-slate-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="size-4"
+                    width="24"
+                    height="24"
+                    color="currentColor"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    className=""
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8V12L14 14" />
+                  </svg>
+                  <p class="text-xs font-medium">Created Jan 18, 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div
+          id="empty-state"
+          class="hidden flex flex-col items-center justify-center py-24 text-center"
+        >
+          <div
+            class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-6 ring-1 ring-slate-900/5"
+          >
+            <i data-lucide="search" class="w-8 h-8 text-slate-400"></i>
+          </div>
+          <h3 class="text-slate-900 font-semibold text-lg mb-2">
+            No projects found
+          </h3>
+          <p
+            class="text-slate-500 text-sm max-w-[280px] mx-auto leading-relaxed mb-8"
+          >
+            We couldn't find any projects matching your search. Try adjusting
+            your terms.
+          </p>
+          <button
+            onclick="clearSearch()"
+            class="inline-flex items-center justify-center px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200"
+          >
+            Clear search
+          </button>
+        </div>
+      </div>
     </main>
 
     <script>
-        lucide.createIcons();
-        
-        const selectedProjectIds = new Set();
+      lucide.createIcons();
 
-        function getProjectId({ card, index }) {
-            return card.getAttribute('data-project-id') ?? `project-${index}`;
+      const selectedProjectIds = new Set();
+
+      function getProjectId({ card, index }) {
+        return card.getAttribute("data-project-id") ?? `project-${index}`;
+      }
+
+      function updateControlsSelectionState() {
+        const controlsRow = document.getElementById("controls-row");
+        const selectAll = document.getElementById("select-all");
+        const projectCheckboxes = document.querySelectorAll(".project-select");
+        if (!controlsRow || !selectAll) {
+          return;
         }
+        const selectedCount = selectedProjectIds.size;
+        document.body.classList.toggle("multi-select", selectedCount > 1);
+        controlsRow.classList.toggle("has-selection", selectedCount > 0);
+        const totalCount = projectCheckboxes.length;
+        selectAll.checked = selectedCount > 0 && selectedCount === totalCount;
+        selectAll.indeterminate =
+          selectedCount > 0 && selectedCount < totalCount;
+      }
 
-
-        function updateControlsSelectionState() {
-            const controlsRow = document.getElementById('controls-row');
-            const selectAll = document.getElementById('select-all');
-            const projectCheckboxes = document.querySelectorAll('.project-select');
-            if (!controlsRow || !selectAll) {
-                return;
-            }
-            const selectedCount = selectedProjectIds.size;
-            document.body.classList.toggle('multi-select', selectedCount > 1);
-            controlsRow.classList.toggle('has-selection', selectedCount > 0);
-            const totalCount = projectCheckboxes.length;
-            selectAll.checked = selectedCount > 0 && selectedCount === totalCount;
-            selectAll.indeterminate = selectedCount > 0 && selectedCount < totalCount;
+      function syncSelectionState() {
+        const projectCards = Array.from(
+          document.querySelectorAll(".project-card"),
+        );
+        for (const [index, card] of projectCards.entries()) {
+          const checkbox = card.querySelector(".project-select");
+          if (!checkbox) {
+            continue;
+          }
+          const projectId = getProjectId({ card, index });
+          const isSelected = selectedProjectIds.has(projectId);
+          checkbox.checked = isSelected;
         }
+        updateControlsSelectionState();
+      }
 
-        function syncSelectionState() {
-            const projectCards = Array.from(document.querySelectorAll('.project-card'));
-            for (const [index, card] of projectCards.entries()) {
-                const checkbox = card.querySelector('.project-select');
-                if (!checkbox) {
-                    continue;
-                }
-                const projectId = getProjectId({ card, index });
-                const isSelected = selectedProjectIds.has(projectId);
-                checkbox.checked = isSelected;
-            }
-            updateControlsSelectionState();
+      function toggleSelection(checkbox) {
+        const card = checkbox.closest(".project-card");
+        if (!card) {
+          return;
         }
-
-        function toggleSelection(checkbox) {
-            const card = checkbox.closest('.project-card');
-            if (!card) {
-                return;
-            }
-            const projectCards = Array.from(document.querySelectorAll('.project-card'));
-            const projectId = getProjectId({
-                card,
-                index: projectCards.indexOf(card),
-            });
-            if (checkbox.checked) {
-                selectedProjectIds.add(projectId);
-            } else {
-                selectedProjectIds.delete(projectId);
-            }
-            syncSelectionState();
-        }
-
-        function toggleSelectAll({ isSelected }) {
-            const projectCards = Array.from(document.querySelectorAll('.project-card'));
-            if (!isSelected) {
-                selectedProjectIds.clear();
-                syncSelectionState();
-                return;
-            }
-            for (const [index, card] of projectCards.entries()) {
-                selectedProjectIds.add(getProjectId({ card, index }));
-            }
-            syncSelectionState();
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const selectAll = document.getElementById('select-all');
-            if (selectAll) {
-                selectAll.addEventListener('change', () => {
-                    toggleSelectAll({ isSelected: selectAll.checked });
-                });
-            }
-            syncSelectionState();
-
-            // Search functionality
-            const searchInput = document.getElementById('search-input');
-            const emptyState = document.getElementById('empty-state');
-            const projectsGrid = document.getElementById('projects-grid');
-
-            if (searchInput) {
-                searchInput.addEventListener('input', (e) => {
-                    const query = e.target.value.toLowerCase().trim();
-                    const cards = document.querySelectorAll('.project-card');
-                    let hasVisibleProjects = false;
-
-                    cards.forEach(card => {
-                        const titleElement = card.querySelector('h3');
-                        if (!titleElement) return;
-                        
-                        const title = titleElement.textContent.toLowerCase();
-                        const isMatch = title.includes(query);
-                        
-                        if (isMatch) {
-                            card.classList.remove('hidden');
-                            hasVisibleProjects = true;
-                        } else {
-                            card.classList.add('hidden');
-                        }
-                    });
-
-                    // Toggle empty state
-                    if (hasVisibleProjects) {
-                        emptyState.classList.add('hidden');
-                        projectsGrid.classList.remove('hidden');
-                    } else {
-                        emptyState.classList.remove('hidden');
-                        projectsGrid.classList.add('hidden');
-                    }
-                    
-                    // Re-initialize icons for new elements (if any dynamic ones were added, though here we just hide/show)
-                    // But importantly, the empty state icon needs to be rendered if it wasn't visible initially
-                    lucide.createIcons();
-                });
-            }
-
-            // Expose clearSearch globally
-            window.clearSearch = function() {
-                if (searchInput) {
-                    searchInput.value = '';
-                    searchInput.dispatchEvent(new Event('input'));
-                    searchInput.focus();
-                }
-            };
+        const projectCards = Array.from(
+          document.querySelectorAll(".project-card"),
+        );
+        const projectId = getProjectId({
+          card,
+          index: projectCards.indexOf(card),
         });
+        if (checkbox.checked) {
+          selectedProjectIds.add(projectId);
+        } else {
+          selectedProjectIds.delete(projectId);
+        }
+        syncSelectionState();
+      }
+
+      function toggleSelectAll({ isSelected }) {
+        const projectCards = Array.from(
+          document.querySelectorAll(".project-card"),
+        );
+        if (!isSelected) {
+          selectedProjectIds.clear();
+          syncSelectionState();
+          return;
+        }
+        for (const [index, card] of projectCards.entries()) {
+          selectedProjectIds.add(getProjectId({ card, index }));
+        }
+        syncSelectionState();
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const selectAll = document.getElementById("select-all");
+        if (selectAll) {
+          selectAll.addEventListener("change", () => {
+            toggleSelectAll({ isSelected: selectAll.checked });
+          });
+        }
+        syncSelectionState();
+
+        // Search functionality
+        const searchInput = document.getElementById("search-input");
+        const emptyState = document.getElementById("empty-state");
+        const projectsGrid = document.getElementById("projects-grid");
+
+        if (searchInput) {
+          searchInput.addEventListener("input", (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const cards = document.querySelectorAll(".project-card");
+            let hasVisibleProjects = false;
+
+            cards.forEach((card) => {
+              const titleElement = card.querySelector("h3");
+              if (!titleElement) return;
+
+              const title = titleElement.textContent.toLowerCase();
+              const isMatch = title.includes(query);
+
+              if (isMatch) {
+                card.classList.remove("hidden");
+                hasVisibleProjects = true;
+              } else {
+                card.classList.add("hidden");
+              }
+            });
+
+            // Toggle empty state
+            if (hasVisibleProjects) {
+              emptyState.classList.add("hidden");
+              projectsGrid.classList.remove("hidden");
+            } else {
+              emptyState.classList.remove("hidden");
+              projectsGrid.classList.add("hidden");
+            }
+
+            // Re-initialize icons for new elements (if any dynamic ones were added, though here we just hide/show)
+            // But importantly, the empty state icon needs to be rendered if it wasn't visible initially
+            lucide.createIcons();
+          });
+        }
+
+        // Expose clearSearch globally
+        window.clearSearch = function () {
+          if (searchInput) {
+            searchInput.value = "";
+            searchInput.dispatchEvent(new Event("input"));
+            searchInput.focus();
+          }
+        };
+      });
     </script>
-</body>
+  </body>
 </html>
