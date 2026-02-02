@@ -30,6 +30,7 @@ import { mediaSupportsAudio } from "@/lib/media/media-utils";
 import { getActionDefinition, type TAction, invokeAction } from "@/lib/actions";
 import { useElementSelection } from "@/hooks/timeline/element/use-element-selection";
 import Image from "next/image";
+import { Filmstrip } from "./filmstrip";
 import {
 	ScissorIcon,
 	Delete02Icon,
@@ -159,6 +160,7 @@ export function TimelineElement({
 						hasAudio={hasAudio}
 						isMuted={isMuted}
 						mediaAssets={mediaAssets}
+						zoomLevel={zoomLevel}
 						onElementClick={onElementClick}
 						onElementMouseDown={onElementMouseDown}
 						handleResizeStart={handleResizeStart}
@@ -166,7 +168,10 @@ export function TimelineElement({
 				</div>
 			</ContextMenuTrigger>
 			<ContextMenuContent className="z-200 w-64">
-				<ActionMenuItem action="split" icon={<HugeiconsIcon icon={ScissorIcon} />}>
+				<ActionMenuItem
+					action="split"
+					icon={<HugeiconsIcon icon={ScissorIcon} />}
+				>
 					Split
 				</ActionMenuItem>
 				<CopyMenuItem />
@@ -185,7 +190,10 @@ export function TimelineElement({
 					/>
 				)}
 				{selectedElements.length === 1 && (
-					<ActionMenuItem action="duplicate-selected" icon={<HugeiconsIcon icon={Copy01Icon} />}>
+					<ActionMenuItem
+						action="duplicate-selected"
+						icon={<HugeiconsIcon icon={Copy01Icon} />}
+					>
 						Duplicate
 					</ActionMenuItem>
 				)}
@@ -225,6 +233,7 @@ function ElementInner({
 	hasAudio,
 	isMuted,
 	mediaAssets,
+	zoomLevel,
 	onElementClick,
 	onElementMouseDown,
 	handleResizeStart,
@@ -236,6 +245,7 @@ function ElementInner({
 	hasAudio: boolean;
 	isMuted: boolean;
 	mediaAssets: MediaAsset[];
+	zoomLevel: number;
 	onElementClick: (e: React.MouseEvent, element: TimelineElementType) => void;
 	onElementMouseDown: (
 		e: React.MouseEvent,
@@ -267,6 +277,7 @@ function ElementInner({
 						track={track}
 						isSelected={isSelected}
 						mediaAssets={mediaAssets}
+						zoomLevel={zoomLevel}
 					/>
 				</div>
 
@@ -338,11 +349,13 @@ function ElementContent({
 	track,
 	isSelected,
 	mediaAssets,
+	zoomLevel,
 }: {
 	element: TimelineElementType;
 	track: TimelineTrack;
 	isSelected: boolean;
 	mediaAssets: MediaAsset[];
+	zoomLevel: number;
 }) {
 	if (element.type === "text") {
 		return (
@@ -408,14 +421,10 @@ function ElementContent({
 		);
 	}
 
-	if (
-		mediaAsset.type === "image" ||
-		(mediaAsset.type === "video" && mediaAsset.thumbnailUrl)
-	) {
+	if (mediaAsset.type === "image") {
 		const trackHeight = getTrackHeight({ type: track.type });
 		const tileWidth = trackHeight * (16 / 9);
-		const imageUrl =
-			mediaAsset.type === "image" ? mediaAsset.url : mediaAsset.thumbnailUrl;
+		const imageUrl = mediaAsset.url;
 
 		return (
 			<div className="flex size-full items-center justify-center">
@@ -439,6 +448,29 @@ function ElementContent({
 		);
 	}
 
+	if (mediaAsset.type === "video") {
+		const trackHeight = getTrackHeight({ type: track.type });
+		const trimStart = element.trimStart ?? 0;
+
+		return (
+			<div className="flex size-full items-center justify-center">
+				<div
+					className={`relative size-full ${isSelected ? "bg-primary" : "bg-transparent"}`}
+				>
+					<Filmstrip
+						mediaId={element.mediaId}
+						file={mediaAsset.file}
+						duration={element.duration}
+						trimStart={trimStart}
+						trackHeight={trackHeight}
+						zoomLevel={zoomLevel}
+						fallbackThumbnailUrl={mediaAsset.thumbnailUrl}
+					/>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<span className="text-foreground/80 truncate text-xs">{element.name}</span>
 	);
@@ -446,7 +478,10 @@ function ElementContent({
 
 function CopyMenuItem() {
 	return (
-		<ActionMenuItem action="copy-selected" icon={<HugeiconsIcon icon={Copy01Icon} />}>
+		<ActionMenuItem
+			action="copy-selected"
+			icon={<HugeiconsIcon icon={Copy01Icon} />}
+		>
 			Copy
 		</ActionMenuItem>
 	);
@@ -502,7 +537,10 @@ function VisibilityMenuItem({
 	};
 
 	return (
-		<ActionMenuItem action="toggle-elements-visibility-selected" icon={getIcon()}>
+		<ActionMenuItem
+			action="toggle-elements-visibility-selected"
+			icon={getIcon()}
+		>
 			{isHidden ? "Show" : "Hide"}
 		</ActionMenuItem>
 	);

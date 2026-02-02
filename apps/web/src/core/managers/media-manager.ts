@@ -3,6 +3,7 @@ import type { MediaAsset } from "@/types/assets";
 import { storageService } from "@/services/storage/service";
 import { generateUUID } from "@/utils/id";
 import { videoCache } from "@/services/video-cache/service";
+import { filmstripService } from "@/services/filmstrip/service";
 import { hasMediaId } from "@/lib/timeline/element-utils";
 
 export class MediaManager {
@@ -46,6 +47,7 @@ export class MediaManager {
 		const asset = this.assets.find((asset) => asset.id === id);
 
 		videoCache.clearVideo({ mediaId: id });
+		filmstripService.clearMedia({ mediaId: id });
 
 		if (asset?.url) {
 			URL.revokeObjectURL(asset.url);
@@ -124,6 +126,7 @@ export class MediaManager {
 
 	clearAllAssets(): void {
 		videoCache.clearAll();
+		filmstripService.destroy();
 
 		this.assets.forEach((asset) => {
 			if (asset.url) {
