@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog";
 import type { TextElement } from "@/types/timeline";
 
 const FONT_FAMILIES = [
@@ -39,53 +40,49 @@ const FONT_STYLES = [
 export function TextPropertiesPanel() {
 	const editor = useEditor();
 	const [selectedTextElement, setSelectedTextElement] = useState<TextElement | null>(null);
-	const [trackId, setTrackId] = useState<string | null>(null);
 
-	// Simple selection: pick the first text element on the current time
 	useEffect(() => {
-		const time = editor.playback.getCurrentTime();
+		const currentTime = editor.playback.getCurrentTime();
 		const tracks = editor.timeline.getTracks();
+
+		// Find first text element at current playback time
 		for (const track of tracks) {
 			if (track.type !== "text") continue;
-			for (const el of track.elements) {
-				if (el.type === "text" && time >= el.startTime && time < el.startTime + el.duration) {
-					setSelectedTextElement(el);
-					setTrackId(track.id);
+			for (const element of track.elements) {
+				if (element.type === "text" && currentTime >= element.startTime && currentTime <= element.startTime + element.duration) {
+					setSelectedTextElement(element);
 					return;
 				}
 			}
 		}
 		setSelectedTextElement(null);
-		setTrackId(null);
 	}, [editor]);
 
-	function updateElement(updates: Partial<TextElement>) {
-		if (!selectedTextElement || !trackId) return;
-		editor.timeline.updateTextElement({
-			trackId,
-			elementId: selectedTextElement.id,
-			updates,
-		});
-		// Refresh local state
-		const updated = { ...selectedTextElement, ...updates };
-		setSelectedTextElement(updated);
-	}
+	const updateElement = (updates: Partial<TextElement>) => {
+		if (!selectedTextElement) return;
+
+		const tracks = editor.timeline.getTracks();
+		const track = tracks.find((t) => t.type === "text");
+		if (!track) return;
+
+		const updatedElements = track.elements.map((el) =>
+			el.id === selectedTextElement.id ? { ...el, ...updates } : el
+		);
+
+		editor.timeline.updateTracks([
+			...tracks.filter((t) => t.type !== "text"),
+			{ ...track, elements: updatedElements },
+		]);
+	};
 
 	if (!selectedTextElement) {
-		return (
-			<div className="bg-panel border-l border-panel-border flex h-full w-64 flex-col p-4">
-				<h3 className="text-muted-foreground mb-2 text-sm font-semibold">Text Properties</h3>
-				<p className="text-muted-foreground text-xs">No text element selected.</p>
-			</div>
-		);
+		return null;
 	}
 
 	return (
-		<div className="bg-panel border-l border-panel-border flex h-full w-64 flex-col overflow-hidden">
-			<div className="p-4">
-				<h3 className="text-muted-foreground mb-2 text-sm font-semibold">Text Properties</h3>
-			</div>
-			<div className="flex-1 overflow-y-auto px-4 pb-4">
+		<Dialog open={true}>
+			<DialogContent>
+				<DialogDescription>Edit text properties</DialogDescription>
 				<div className="flex flex-col gap-3">
 					{/* Content */}
 					<div>
@@ -246,7 +243,7 @@ export function TextPropertiesPanel() {
 						Reset to Defaults
 					</Button>
 				</div>
-			</div>
-		</div>
+			</DialogContent>
+		</Dialog>
 	);
 }
