@@ -9,6 +9,8 @@ if (webEnv.NODE_ENV === "production") {
   dotenv.config({ path: ".env.local" });
 }
 
+const dbUrl = webEnv.DATABASE_URL ?? "postgresql://localhost:5432/placeholder";
+
 export default {
   schema: "./src/schema.ts",
   dialect: "postgresql",
@@ -16,7 +18,7 @@ export default {
     table: "drizzle_migrations",
   },
   dbCredentials: {
-    url: webEnv.DATABASE_URL,
+    url: dbUrl,
   },
   out: "./migrations",
   strict: webEnv.NODE_ENV === "production",
