@@ -8,6 +8,7 @@ import { CanvasRenderer } from "@/services/renderer/canvas-renderer";
 import type { RootNode } from "@/services/renderer/nodes/root-node";
 import { buildScene } from "@/services/renderer/scene-builder";
 import { getLastFrameTime } from "@/lib/time";
+import { CanvasInteractionOverlay } from "./canvas-interaction-overlay";
 
 function usePreviewSize() {
 	const editor = useEditor();
@@ -49,7 +50,10 @@ export function PreviewPanel() {
 	return (
 		<div className="bg-panel relative flex h-full min-h-0 w-full min-w-0 flex-col rounded-sm">
 			<div className="flex min-h-0 min-w-0 flex-1 items-center justify-center p-2">
-				<PreviewCanvas />
+				<div className="relative">
+					<PreviewCanvas />
+					<CanvasInteractionOverlay canvasSize={usePreviewSize()} />
+				</div>
 				<RenderTreeController />
 			</div>
 		</div>
