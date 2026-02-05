@@ -1,9 +1,10 @@
-import { OcDataBuddyIcon, OcMarbleIcon, } from "@opencut/ui/icons";
+import type { ElementType } from "react";
+import { OcDataBuddyIcon, OcMarbleIcon } from "@opencut/ui/icons";
 
 export const SITE_URL = "https://opencut.app";
 
 export const SITE_INFO = {
-	title: "OpenCut",
+	title: "Logic Studio",
 	description:
 		"A simple but powerful video editor that gets the job done. In your browser.",
 	url: SITE_URL,
@@ -16,20 +17,20 @@ export type ExternalTool = {
 	name: string;
 	description: string;
 	url: string;
-	icon: React.ElementType;
+	icon: ElementType;
 };
 
 export const EXTERNAL_TOOLS: ExternalTool[] = [
 	{
 		name: "Marble",
 		description:
-			"Modern headless CMS for content management and the blog for OpenCut",
+			"Modern headless CMS for content management and the blog for Logic Studio",
 		url: "https://marblecms.com?utm_source=opencut",
 		icon: OcMarbleIcon,
 	},
 	{
 		name: "Databuddy",
-		description: "GDPR compliant analytics and user insights for OpenCut",
+		description: "GDPR compliant analytics and user insights for Logic Studio",
 		url: "https://databuddy.cc?utm_source=opencut",
 		icon: OcDataBuddyIcon,
 	},
