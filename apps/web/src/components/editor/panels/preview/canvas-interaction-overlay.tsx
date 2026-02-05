@@ -96,8 +96,9 @@ export function CanvasInteractionOverlay({
 		const tracks = editor.timeline.getTracks() as TimelineTrack[];
 		const updatedTracks = tracks.map((track) => {
 			if (track.id !== trackId) return track;
+			if (track.type !== "text") return track;
 			const newElements = track.elements.map((el) =>
-				el.id === elementId && el.type === "text"
+				el.id === elementId
 					? {
 							...el,
 							transform: {
@@ -108,7 +109,7 @@ export function CanvasInteractionOverlay({
 					: el
 			);
 			return { ...track, elements: newElements };
-		});
+		}) as TimelineTrack[];
 		editor.timeline.updateTracks(updatedTracks);
 	}
 
