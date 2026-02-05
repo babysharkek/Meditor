@@ -200,15 +200,18 @@ export async function GET(request: NextRequest) {
 
 		const sortParam = buildSortParameter({ query, sort });
 
-		const params = new URLSearchParams({
+		const paramsObj: Record<string, string> = {
 			query: query || "",
-			token: webEnv.FREESOUND_API_KEY,
 			page: page.toString(),
 			page_size: pageSize.toString(),
 			sort: sortParam,
 			fields:
 				"id,name,description,url,previews,download,duration,filesize,type,channels,bitrate,bitdepth,samplerate,username,tags,license,created,num_downloads,avg_rating,num_ratings",
-		});
+		};
+		if (webEnv.FREESOUND_API_KEY) {
+			paramsObj.token = webEnv.FREESOUND_API_KEY;
+		}
+		const params = new URLSearchParams(paramsObj);
 
 		const isEffectsSearch = type === "effects" || !type;
 		if (isEffectsSearch) {
