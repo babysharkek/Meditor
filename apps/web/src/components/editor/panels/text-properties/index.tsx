@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useEditor } from "@/hooks/use-editor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,46 +38,48 @@ const FONT_STYLES = [
 
 export function TextPropertiesPanel() {
 	const editor = useEditor();
-	const [selectedTextElement, setSelectedTextElement] = useState<TextElement | null>(null);
-	const [trackId, setTrackId] = useState<string | null>(null);
+	const currentTime = editor.playback.getCurrentTime();
+	const tracks = editor.timeline.getTracks();
 
-	// Simple selection: pick the first text element on the current time
-	useEffect(() => {
-		const time = editor.playback.getCurrentTime();
-		const tracks = editor.timeline.getTracks();
-		for (const track of tracks) {
-			if (track.type !== "text") continue;
-			for (const el of track.elements) {
-				if (el.type === "text" && time >= el.startTime && time < el.startTime + el.duration) {
-					setSelectedTextElement(el);
-					setTrackId(track.id);
-					return;
-				}
+	let selectedTextElement: TextElement | null = null;
+	let selectedTextTrackId: string | null = null;
+
+	for (const track of tracks) {
+		if (track.type !== "text") continue;
+		for (const element of track.elements) {
+			if (
+				element.type === "text" &&
+				currentTime >= element.startTime &&
+				currentTime <= element.startTime + element.duration
+			) {
+				selectedTextElement = element;
+				selectedTextTrackId = track.id;
+				break;
 			}
 		}
-		setSelectedTextElement(null);
-		setTrackId(null);
-	}, [editor]);
-
-	function updateElement(updates: Partial<TextElement>) {
-		if (!selectedTextElement || !trackId) return;
-		editor.timeline.updateTextElement({
-			trackId,
-			elementId: selectedTextElement.id,
-			updates,
-		});
-		// Refresh local state
-		const updated = { ...selectedTextElement, ...updates };
-		setSelectedTextElement(updated);
+		if (selectedTextElement) break;
 	}
 
+	const updateElement = (updates: Partial<TextElement>) => {
+		if (!selectedTextElement || !selectedTextTrackId) return;
+
+		const nextTracks = tracks.map((track) => {
+			if (track.type !== "text") return track;
+			if (track.id !== selectedTextTrackId) return track;
+
+			return {
+				...track,
+				elements: track.elements.map((el) =>
+					el.id === selectedTextElement.id ? { ...el, ...updates } : el,
+				),
+			};
+		});
+
+		editor.timeline.updateTracks(nextTracks);
+	};
+
 	if (!selectedTextElement) {
-		return (
-			<div className="bg-panel border-l border-panel-border flex h-full w-64 flex-col p-4">
-				<h3 className="text-muted-foreground mb-2 text-sm font-semibold">Text Properties</h3>
-				<p className="text-muted-foreground text-xs">No text element selected.</p>
-			</div>
-		);
+		return null;
 	}
 
 	return (
