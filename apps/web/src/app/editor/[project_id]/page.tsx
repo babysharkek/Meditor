@@ -7,7 +7,7 @@ import {
 	ResizableHandle,
 } from "@/components/ui/resizable";
 import { AssetsPanel } from "@/components/editor/panels/assets";
-import { PropertiesPanel } from "@/components/editor/panels/properties";
+import { TextPropertiesPanel } from "@/components/editor/panels/text-properties";
 import { Timeline } from "@/components/editor/timeline";
 import { PreviewPanel } from "@/components/editor/panels/preview";
 import { EditorHeader } from "@/components/editor/editor-header";
@@ -88,7 +88,7 @@ function EditorLayout() {
 						maxSize={40}
 						className="min-w-0 rounded-sm"
 					>
-						<PropertiesPanel />
+						<TextPropertiesPanel />
 					</ResizablePanel>
 				</ResizablePanelGroup>
 			</ResizablePanel>
