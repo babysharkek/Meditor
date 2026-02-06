@@ -4,8 +4,14 @@ const webEnvSchema = z.object({
 	// Node
 	NODE_ENV: z.preprocess(
 		(value) => {
-			if (typeof value !== "string") return value;
+			if (typeof value !== "string") return "production";
 			if (value === "preview") return "production";
+			if (value === "staging") return "production";
+			if (value === "prod") return "production";
+			if (value === "dev") return "development";
+			if (value === "" || value === "undefined" || value === "null") {
+				return "production";
+			}
 			return value;
 		},
 		z.enum(["development", "production", "test"]),
