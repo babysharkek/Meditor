@@ -19,8 +19,7 @@ export function Hero() {
 				</div>
 
 				<p className="text-muted-foreground mx-auto mt-10 max-w-xl text-base font-light tracking-wide sm:text-xl">
-					A simple but powerful video editor that gets the job done. Works on
-					any platform.
+					Edit videos fast. With Just the tools you need.
 				</p>
 
 				<div className="mt-8 flex justify-center gap-8">
