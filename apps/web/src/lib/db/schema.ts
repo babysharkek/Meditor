@@ -14,6 +14,22 @@ export const users = pgTable("users", {
 		.notNull(),
 }).enableRLS();
 
+export const userProfiles = pgTable("user_profiles", {
+	userId: text("user_id")
+		.primaryKey()
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	displayName: text("display_name"),
+	bio: text("bio"),
+	avatarUrl: text("avatar_url"),
+	createdAt: timestamp("created_at")
+		.$defaultFn(() => /* @__PURE__ */ new Date())
+		.notNull(),
+	updatedAt: timestamp("updated_at")
+		.$defaultFn(() => /* @__PURE__ */ new Date())
+		.notNull(),
+}).enableRLS();
+
 export const sessions = pgTable("sessions", {
 	id: text("id").primaryKey(),
 	expiresAt: timestamp("expires_at").notNull(),

@@ -12,7 +12,7 @@ if (webEnv.NODE_ENV === "production") {
 const dbUrl = webEnv.DATABASE_URL ?? "postgresql://localhost:5432/placeholder";
 
 export default {
-  schema: "./src/schema.ts",
+  schema: "./src/lib/db/schema.ts",
   dialect: "postgresql",
   migrations: {
     table: "drizzle_migrations",
