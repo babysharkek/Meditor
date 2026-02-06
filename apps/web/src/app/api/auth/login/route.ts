@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
+
+// Simple password verification using crypto (for demo purposes)
+function verifyPassword(password: string, hashedPassword: string): boolean {
+	const [salt, hash] = hashedPassword.split(":");
+	const computedHash = createHash("sha256")
+		.update(password + salt)
+		.digest("hex");
+	return hash === computedHash;
+}
 
 export async function POST(req: NextRequest) {
 	try {
@@ -38,7 +46,7 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		const isValid = await bcrypt.compare(password, user.password);
+		const isValid = verifyPassword(password, user.password);
 		if (!isValid) {
 			return NextResponse.json(
 				{ error: "Invalid email or password" },

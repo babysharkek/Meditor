@@ -2,7 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { createHash, randomBytes } from "crypto";
+
+// Simple password hashing using crypto (for demo purposes)
+function hashPassword(password: string): string {
+	const salt = randomBytes(16).toString("hex");
+	const hash = createHash("sha256")
+		.update(password + salt)
+		.digest("hex");
+	return `${salt}:${hash}`;
+}
 
 export async function POST(req: NextRequest) {
 	try {
@@ -30,7 +39,7 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Hash password
-		const hashedPassword = await bcrypt.hash(password, 10);
+		const hashedPassword = hashPassword(password);
 
 		// Create user
 		const [newUser] = await db
