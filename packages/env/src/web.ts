@@ -2,7 +2,14 @@ import { z } from "zod";
 
 const webEnvSchema = z.object({
 	// Node
-	NODE_ENV: z.enum(["development", "production", "test"]),
+	NODE_ENV: z.preprocess(
+		(value) => {
+			if (typeof value !== "string") return value;
+			if (value === "preview") return "production";
+			return value;
+		},
+		z.enum(["development", "production", "test"]),
+	),
 	ANALYZE: z.string().optional(),
 	NEXT_RUNTIME: z.enum(["nodejs", "edge"]).optional(),
 
