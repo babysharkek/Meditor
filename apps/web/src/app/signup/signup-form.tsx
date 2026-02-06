@@ -13,7 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { signUp } from "@/lib/auth/client";
+import { registerUser } from "@/lib/auth/simple-client";
 
 export function SignupForm({ next }: { next?: string }) {
 	const router = useRouter();
@@ -42,17 +42,11 @@ export function SignupForm({ next }: { next?: string }) {
 							setIsLoading(true);
 							setError(null);
 							try {
-								const result = await signUp.email({
+								await registerUser({
+									name,
 									email,
 									password,
-									name,
 								});
-
-								if (result?.error) {
-									setError(result.error.message ?? "Failed to sign up.");
-									console.error("Signup error:", result.error);
-									return;
-								}
 
 								router.push(redirectTo);
 							} catch (err) {

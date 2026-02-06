@@ -13,7 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { signIn } from "@/lib/auth/client";
+import { loginUser } from "@/lib/auth/simple-client";
 
 export function LoginForm({ next }: { next?: string }) {
 	const router = useRouter();
@@ -41,16 +41,10 @@ export function LoginForm({ next }: { next?: string }) {
 							setIsLoading(true);
 							setError(null);
 							try {
-								const result = await signIn.email({
+								await loginUser({
 									email,
 									password,
 								});
-
-								if (result?.error) {
-									setError(result.error.message ?? "Failed to log in.");
-									console.error("Login error:", result.error);
-									return;
-								}
 
 								router.push(redirectTo);
 							} catch (err) {
