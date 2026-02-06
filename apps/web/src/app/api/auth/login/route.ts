@@ -73,6 +73,11 @@ export async function POST(req: NextRequest) {
 		return response;
 	} catch (error) {
 		console.error("Login error:", error);
+		console.error("Error details:", {
+			message: error instanceof Error ? error.message : "Unknown error",
+			stack: error instanceof Error ? error.stack : undefined,
+			databaseUrl: process.env.DATABASE_URL ? "Set" : "Not set",
+		});
 		return NextResponse.json(
 			{ error: "Internal server error" },
 			{ status: 500 },
