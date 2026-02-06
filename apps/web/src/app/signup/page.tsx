@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ import { signUp } from "@/lib/auth/client";
 
 export default function SignupPage() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -51,7 +53,8 @@ export default function SignupPage() {
 									return;
 								}
 
-								router.push("/projects");
+								const next = searchParams.get("next");
+								router.push(next && next.startsWith("/") ? next : "/projects");
 							} catch {
 								setError("Failed to sign up.");
 							} finally {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ import { signIn } from "@/lib/auth/client";
 
 export default function LoginPage() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +51,8 @@ export default function LoginPage() {
 									return;
 								}
 
-								router.push("/projects");
+								const next = searchParams.get("next");
+								router.push(next && next.startsWith("/") ? next : "/projects");
 							} catch {
 								setError("Failed to log in.");
 							} finally {
