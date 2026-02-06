@@ -4,6 +4,20 @@ import { Redis } from "@upstash/redis";
 import { db } from "@/lib/db";
 import { webEnv } from "@opencut/env/web";
 
+const trustedOrigins = Array.from(
+	new Set(
+		[
+			webEnv.NEXT_PUBLIC_SITE_URL,
+			process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+			"http://localhost:3000",
+			"http://127.0.0.1:3000",
+		].filter((value): value is string => Boolean(value)),
+	),
+);
+
+const baseURL =
+	process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : trustedOrigins[0];
+
 const secret =
 	webEnv.BETTER_AUTH_SECRET ??
 	process.env.BETTER_AUTH_SECRET ??
@@ -48,9 +62,9 @@ export const auth = betterAuth({
 				},
 			}
 		: {}),
-	baseURL: webEnv.NEXT_PUBLIC_SITE_URL,
+	baseURL,
 	appName: "OpenCut",
-	trustedOrigins: [webEnv.NEXT_PUBLIC_SITE_URL],
+	trustedOrigins,
 });
 
 export type Auth = typeof auth;
