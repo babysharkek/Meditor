@@ -47,16 +47,11 @@ export async function POST(req: NextRequest) {
 			.values({
 				name,
 				email,
-				emailVerified: new Date(),
+				emailVerified: true,
 				image: null,
+				password: hashedPassword,
 			})
 			.returning();
-
-		// Store password in a simple way (you may want a separate passwords table)
-		await db
-			.update(users)
-			.set({ password: hashedPassword })
-			.where(eq(users.id, newUser.id));
 
 		return NextResponse.json(
 			{ user: { id: newUser.id, name: newUser.name, email: newUser.email } },
