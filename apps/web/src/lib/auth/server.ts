@@ -4,6 +4,12 @@ import { Redis } from "@upstash/redis";
 import { db } from "@/lib/db";
 import { webEnv } from "@opencut/env/web";
 
+const secret =
+	webEnv.BETTER_AUTH_SECRET ??
+	process.env.BETTER_AUTH_SECRET ??
+	process.env.VERCEL_GIT_COMMIT_SHA ??
+	"development-secret";
+
 const redis =
 	webEnv.UPSTASH_REDIS_REST_URL && webEnv.UPSTASH_REDIS_REST_TOKEN
 		? new Redis({
@@ -17,7 +23,7 @@ export const auth = betterAuth({
 		provider: "pg",
 		usePlural: true,
 	}),
-	secret: webEnv.BETTER_AUTH_SECRET,
+	secret,
 	user: {
 		deleteUser: {
 			enabled: true,
