@@ -48,12 +48,14 @@ export function LoginForm({ next }: { next?: string }) {
 
 								if (result?.error) {
 									setError(result.error.message ?? "Failed to log in.");
+									console.error("Login error:", result.error);
 									return;
 								}
 
 								router.push(redirectTo);
-							} catch {
-								setError("Failed to log in.");
+							} catch (err) {
+								console.error("Login exception:", err);
+								setError(err instanceof Error ? err.message : "Failed to log in.");
 							} finally {
 								setIsLoading(false);
 							}

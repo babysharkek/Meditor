@@ -50,12 +50,14 @@ export function SignupForm({ next }: { next?: string }) {
 
 								if (result?.error) {
 									setError(result.error.message ?? "Failed to sign up.");
+									console.error("Signup error:", result.error);
 									return;
 								}
 
 								router.push(redirectTo);
-							} catch {
-								setError("Failed to sign up.");
+							} catch (err) {
+								console.error("Signup exception:", err);
+								setError(err instanceof Error ? err.message : "Failed to sign up.");
 							} finally {
 								setIsLoading(false);
 							}
