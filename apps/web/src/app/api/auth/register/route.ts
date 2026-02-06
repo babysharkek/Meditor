@@ -13,6 +13,11 @@ function hashPassword(password: string): string {
 	return `${salt}:${hash}`;
 }
 
+// Generate a simple unique ID
+function generateId(): string {
+	return randomBytes(16).toString("hex");
+}
+
 export async function POST(req: NextRequest) {
 	try {
 		const { name, email, password } = await req.json();
@@ -45,6 +50,7 @@ export async function POST(req: NextRequest) {
 		const [newUser] = await db
 			.insert(users)
 			.values({
+				id: generateId(),
 				name,
 				email,
 				emailVerified: true,
